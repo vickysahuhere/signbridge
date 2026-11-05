@@ -94,12 +94,20 @@ export function extractAndNormalizeFrame(holisticResult = {}) {
       x: (leftHand[0].x - centerX) / shoulderScale,
       y: (leftHand[0].y - centerY) / shoulderScale,
       z: ((leftHand[0].z || 0) - centerZ) / shoulderScale
-    } : null,
+    } : (pose[15] ? {
+      x: (pose[15].x - centerX) / shoulderScale,
+      y: (pose[15].y - centerY) / shoulderScale,
+      z: ((pose[15].z || 0) - centerZ) / shoulderScale
+    } : null),
     rightWrist: rightHand[0] ? {
       x: (rightHand[0].x - centerX) / shoulderScale,
       y: (rightHand[0].y - centerY) / shoulderScale,
       z: ((rightHand[0].z || 0) - centerZ) / shoulderScale
-    } : null,
+    } : (pose[16] ? {
+      x: (pose[16].x - centerX) / shoulderScale,
+      y: (pose[16].y - centerY) / shoulderScale,
+      z: ((pose[16].z || 0) - centerZ) / shoulderScale
+    } : null),
     shoulderScale,
     center: { x: centerX, y: centerY, z: centerZ }
   };

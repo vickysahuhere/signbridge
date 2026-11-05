@@ -6,6 +6,13 @@ export function useVisionWorker() {
   const [workerStatus, setWorkerStatus] = useState('idle');
   const [workerLatencyMs, setWorkerLatencyMs] = useState(0);
   const [latestLandmarks, setLatestLandmarks] = useState(null);
+  const [motionState, setMotionState] = useState({
+    state: 'IDLE',
+    rollingVelocity: 0,
+    pauseProgress: 0,
+    elapsedPauseMs: 0
+  });
+  const [bufferSize, setBufferSize] = useState(0);
   const [workerError, setWorkerError] = useState(null);
 
   // Prevent queuing frames when worker is busy
@@ -40,6 +47,12 @@ export function useVisionWorker() {
             isProcessingFrameRef.current = false;
             setLatestLandmarks(data.landmarks);
             setWorkerLatencyMs(data.processingTimeMs);
+            if (data.motion) {
+              setMotionState(data.motion);
+            }
+            if (typeof data.bufferSize === 'number') {
+              setBufferSize(data.bufferSize);
+            }
             break;
 
           case 'FRAME_ERROR':
@@ -106,13 +119,23 @@ export function useVisionWorker() {
     }
   }, [isWorkerReady]);
 
+  // Clear 30-frame temporal buffer and reset velocity gate
+  const clearBuffer = useCallback(() => {
+    if (workerRef.current && isWorkerReady) {
+      workerRef.current.postMessage({ type: 'CLEAR_BUFFER' });
+    }
+  }, [isWorkerReady]);
+
   return {
     isWorkerReady,
     workerStatus,
     workerLatencyMs,
     latestLandmarks,
+    motionState,
+    bufferSize,
     workerError,
-    sendFrame
+    sendFrame,
+    clearBuffer
   };
 }
 

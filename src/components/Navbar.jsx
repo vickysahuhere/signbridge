@@ -1,7 +1,12 @@
 import React from 'react';
-import { Video, Cpu, Activity } from 'lucide-react';
+import { Video, Cpu, Activity, Zap, Clock, CheckCircle2 } from 'lucide-react';
 
-export function Navbar({ fps = 0, workerStatus = 'idle', workerLatencyMs = 0 }) {
+export function Navbar({
+  fps = 0,
+  workerStatus = 'idle',
+  workerLatencyMs = 0,
+  motionState = { state: 'IDLE', pauseProgress: 0 }
+}) {
   const getStatusBadge = () => {
     switch (workerStatus) {
       case 'ready':
@@ -32,7 +37,43 @@ export function Navbar({ fps = 0, workerStatus = 'idle', workerLatencyMs = 0 }) 
     }
   };
 
+  const getMotionBadge = () => {
+    switch (motionState.state) {
+      case 'SIGNING_ACTIVE':
+        return {
+          icon: Zap,
+          label: 'Signing Active',
+          badgeClass: 'border-emerald-500/40 bg-emerald-500/20 text-emerald-300 shadow-sm shadow-emerald-500/20 animate-pulse',
+          dotClass: 'bg-emerald-400'
+        };
+      case 'PAUSE_COUNTDOWN':
+        const pct = Math.round((motionState.pauseProgress || 0) * 100);
+        return {
+          icon: Clock,
+          label: `Pause (${pct}%)`,
+          badgeClass: 'border-amber-500/40 bg-amber-500/20 text-amber-300',
+          dotClass: 'bg-amber-400 animate-pulse'
+        };
+      case 'IDLE_COMMIT':
+        return {
+          icon: CheckCircle2,
+          label: 'Sentence Ready',
+          badgeClass: 'border-sky-500/40 bg-sky-500/20 text-sky-300 ring-1 ring-sky-400/50',
+          dotClass: 'bg-sky-400'
+        };
+      default:
+        return {
+          icon: Activity,
+          label: 'Idle Ready',
+          badgeClass: 'border-slate-700/80 bg-slate-800/80 text-slate-400',
+          dotClass: 'bg-slate-500'
+        };
+    }
+  };
+
   const status = getStatusBadge();
+  const motion = getMotionBadge();
+  const MotionIcon = motion.icon;
 
   return (
     <header className="border-b border-slate-700/60 bg-slate-800/80 backdrop-blur-md sticky top-0 z-50 px-4 lg:px-8 py-3 transition-colors">
@@ -46,7 +87,7 @@ export function Navbar({ fps = 0, workerStatus = 'idle', workerLatencyMs = 0 }) 
             <div className="flex items-center gap-2">
               <h1 className="font-bold text-lg text-slate-100 tracking-tight">SignBridge ISL</h1>
               <span className="text-xs px-2 py-0.5 rounded-full bg-slate-700/80 text-sky-300 border border-slate-600 font-mono">
-                Phase 1: Vision Core
+                Phase 2: Mathematical Core
               </span>
             </div>
             <p className="text-xs text-slate-400">Edge AI Indian Sign Language to Text Bridge</p>
@@ -54,9 +95,16 @@ export function Navbar({ fps = 0, workerStatus = 'idle', workerLatencyMs = 0 }) 
         </div>
 
         {/* Telemetry & Status Badges */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
+          {/* Motion State Energy Pill */}
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${motion.badgeClass}`}>
+            <span className={`w-2 h-2 rounded-full ${motion.dotClass}`} />
+            <MotionIcon className="w-3.5 h-3.5" />
+            <span className="font-mono">{motion.label}</span>
+          </div>
+
           {/* Worker Status Badge */}
-          <div className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium ${status.badgeClass}`}>
+          <div className={`hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium ${status.badgeClass}`}>
             <span className={`w-2 h-2 rounded-full ${status.dotClass}`} />
             <Cpu className="w-3.5 h-3.5" />
             <span>{status.label}</span>

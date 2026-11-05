@@ -7,7 +7,9 @@ export function SignerStage({
   onFrame,
   latestLandmarks,
   isWorkerReady = false,
-  onFpsUpdate
+  onFpsUpdate,
+  motionState = { state: 'IDLE', pauseProgress: 0, rollingVelocity: 0 },
+  bufferSize = 0
 }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -169,16 +171,52 @@ export function SignerStage({
           </div>
         )}
 
-        {/* Hand Color Legend Overlay (during active signing) */}
-        {isCameraActive && showSkeleton && (
-          <div className="absolute bottom-3 left-3 z-20 flex items-center gap-3 px-3 py-1.5 rounded-lg bg-slate-900/80 backdrop-blur-md border border-slate-700/60 text-[11px] font-mono">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-sky-400" />
-              <span className="text-slate-300">Left Hand</span>
+        {/* 1.2s Auto-Commit Pause Countdown Progress Bar */}
+        {isCameraActive && motionState.state === 'PAUSE_COUNTDOWN' && (
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 w-72 bg-slate-900/90 backdrop-blur-md rounded-xl p-2.5 border border-amber-500/50 shadow-xl shadow-amber-500/10">
+            <div className="flex items-center justify-between text-[11px] font-mono text-amber-300 mb-1.5">
+              <span className="font-semibold flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                Auto-Commit Countdown
+              </span>
+              <span>{Math.round((motionState.pauseProgress || 0) * 100)}%</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-              <span className="text-slate-300">Right Hand</span>
+            <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-700/60">
+              <div
+                className="h-full bg-gradient-to-r from-amber-500 to-amber-400 transition-all duration-75 rounded-full"
+                style={{ width: `${Math.min(100, Math.round((motionState.pauseProgress || 0) * 100))}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Auto-Commit Flash Banner */}
+        {isCameraActive && motionState.state === 'IDLE_COMMIT' && (
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 flex items-center gap-2 px-4 py-2 rounded-full bg-sky-500/95 text-slate-950 font-bold text-xs shadow-xl shadow-sky-500/25 backdrop-blur-md animate-bounce">
+            <span>✨ Sentence Boundary Emitted</span>
+          </div>
+        )}
+
+        {/* Hand Color Legend & RingBuffer Telemetry (during active camera) */}
+        {isCameraActive && showSkeleton && (
+          <div className="absolute bottom-3 left-3 right-3 z-20 flex items-center justify-between pointer-events-none">
+            <div className="flex items-center gap-3 px-3 py-1.5 rounded-lg bg-slate-900/80 backdrop-blur-md border border-slate-700/60 text-[11px] font-mono pointer-events-auto">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-sky-400" />
+                <span className="text-slate-300">Left Hand</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+                <span className="text-slate-300">Right Hand</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900/80 backdrop-blur-md border border-slate-700/60 text-[11px] font-mono text-slate-400 pointer-events-auto">
+              <span>Buffer:</span>
+              <span className="text-sky-300 font-semibold">{bufferSize}/30 frames</span>
+              <span className="text-slate-600">•</span>
+              <span>v:</span>
+              <span className="text-emerald-300 font-semibold">{Number(motionState.rollingVelocity || 0).toFixed(3)}</span>
             </div>
           </div>
         )}

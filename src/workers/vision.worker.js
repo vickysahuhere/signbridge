@@ -1,7 +1,21 @@
 import { FilesetResolver, HolisticLandmarker } from '@mediapipe/tasks-vision';
+import { extractAndNormalizeFrame } from '../vision/normalizeLandmarks.js';
+import { RingBuffer } from '../vision/RingBuffer.js';
+import { VelocityGate } from '../vision/velocityGate.js';
 
 let holisticLandmarker = null;
 let isInitialized = false;
+
+// 30-frame temporal buffer storing 240-float feature vectors
+const ringBuffer = new RingBuffer(30, 240);
+
+// Motion energy detector and 1.2s auto-commit pause state machine
+const velocityGate = new VelocityGate({
+  activeThreshold: 0.015,
+  idleThreshold: 0.008,
+  commitDurationMs: 1200,
+  windowSize: 5
+});
 
 const DEFAULT_WASM_CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm';
 const DEFAULT_MODEL_URL =
@@ -144,6 +158,15 @@ function processFrame(imageBitmap, timestamp) {
     // Free transferred GPU bitmap immediately
     imageBitmap.close();
 
+    // 1. Normalize 80 keypoints into 240 floats (translation & scale invariant)
+    const normalized = extractAndNormalizeFrame(results);
+
+    // 2. Push 240-float frame into 30-frame FIFO RingBuffer
+    ringBuffer.push(normalized.features);
+
+    // 3. Update velocity gate with normalized wrists and current frame timestamp
+    const motion = velocityGate.update(normalized.leftWrist, normalized.rightWrist, timestamp);
+
     const processingTimeMs = Math.round(performance.now() - frameStart);
 
     self.postMessage({
@@ -154,6 +177,9 @@ function processFrame(imageBitmap, timestamp) {
         poseLandmarks: results.poseLandmarks || [],
         faceLandmarks: results.faceLandmarks || []
       },
+      normalizedFeatures: normalized.features,
+      motion,
+      bufferSize: ringBuffer.size(),
       timestamp,
       processingTimeMs
     });
@@ -181,6 +207,20 @@ self.onmessage = async (event) => {
 
     case 'PROCESS_FRAME':
       processFrame(imageBitmap, timestamp);
+      break;
+
+    case 'CLEAR_BUFFER':
+      ringBuffer.clear();
+      velocityGate.reset();
+      self.postMessage({ type: 'BUFFER_CLEARED' });
+      break;
+
+    case 'GET_FLATTENED_BUFFER':
+      self.postMessage({
+        type: 'FLATTENED_BUFFER',
+        buffer: ringBuffer.getFlattened(),
+        size: ringBuffer.size()
+      });
       break;
 
     case 'PING':

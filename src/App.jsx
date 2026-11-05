@@ -10,6 +10,8 @@ export function App() {
     workerStatus,
     workerLatencyMs,
     latestLandmarks,
+    motionState,
+    bufferSize,
     workerError,
     sendFrame
   } = useVisionWorker();
@@ -24,15 +26,16 @@ export function App() {
         fps={fps}
         workerStatus={workerStatus}
         workerLatencyMs={workerLatencyMs}
+        motionState={motionState}
       />
 
       <main className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8 max-w-7xl mx-auto w-full">
         <div className="w-full text-center mb-6">
           <h2 className="text-2xl font-bold text-slate-100 tracking-tight mb-2">
-            Indian Sign Language Vision & Skeleton Core
+            Indian Sign Language Mathematical & Temporal Core
           </h2>
           <p className="text-sm text-slate-400 max-w-xl mx-auto">
-            High-performance browser computer vision pipeline running MediaPipe Holistic in a dedicated Web Worker at 30+ FPS.
+            High-performance browser computer vision & feature normalization pipeline. Invariant 240-float vectors, 30-frame temporal buffer, and 1.2s auto-commit pause detection.
           </p>
         </div>
 
@@ -47,11 +50,13 @@ export function App() {
           onFpsUpdate={setFps}
           latestLandmarks={latestLandmarks}
           isWorkerReady={isWorkerReady}
+          motionState={motionState}
+          bufferSize={bufferSize}
         />
       </main>
 
       <footer className="border-t border-slate-800/80 py-4 px-6 text-center text-xs text-slate-500 font-mono">
-        SignBridge ISL • Phase 1: The Eyes • 100% Client-Side Private Edge AI
+        SignBridge ISL • Phase 2: The Math • 100% Client-Side Private Edge AI
       </footer>
     </div>
   );
