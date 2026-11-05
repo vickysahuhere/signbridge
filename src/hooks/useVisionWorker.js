@@ -8,6 +8,8 @@ export function useVisionWorker() {
   const [latestLandmarks, setLatestLandmarks] = useState(null);
   const [latestNormalizedFeatures, setLatestNormalizedFeatures] = useState(null);
   const [alphabetPredictions, setAlphabetPredictions] = useState([]);
+  const [wordPredictions, setWordPredictions] = useState({ topCandidates: [], confirmedWord: null });
+  const [latestConfirmedWord, setLatestConfirmedWord] = useState(null);
   const [motionState, setMotionState] = useState({
     state: 'IDLE',
     rollingVelocity: 0,
@@ -54,6 +56,12 @@ export function useVisionWorker() {
             }
             if (Array.isArray(data.alphabetPredictions)) {
               setAlphabetPredictions(data.alphabetPredictions);
+            }
+            if (data.wordPredictions) {
+              setWordPredictions(data.wordPredictions);
+              if (data.wordPredictions.confirmedWord) {
+                setLatestConfirmedWord(data.wordPredictions.confirmedWord);
+              }
             }
             if (data.motion) {
               setMotionState(data.motion);
@@ -141,6 +149,8 @@ export function useVisionWorker() {
     latestLandmarks,
     latestNormalizedFeatures,
     alphabetPredictions,
+    wordPredictions,
+    latestConfirmedWord,
     motionState,
     bufferSize,
     workerError,

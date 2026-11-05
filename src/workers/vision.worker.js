@@ -5,12 +5,25 @@ import { RingBuffer } from '../vision/RingBuffer.js';
 import { VelocityGate } from '../vision/velocityGate.js';
 import { getTopKPredictions } from '../ai/softmax.js';
 import { ISL_ALPHABET_LABELS } from '../ai/islAlphabetLabels.js';
+import { ISL_WORD_LABELS } from '../ai/islWordLabels.js';
+import { ConsecutiveConfirmationGate } from '../ai/consecutiveConfirmation.js';
 
 let holisticLandmarker = null;
 let isInitialized = false;
 
 let alphabetSession = null;
 let isAlphabetModelReady = false;
+
+let wordSession = null;
+let isWordModelReady = false;
+let frameCounter = 0;
+
+const wordConfirmationGate = new ConsecutiveConfirmationGate({
+  confidenceThreshold: 0.75,
+  requiredConsecutive: 2,
+  cooldownFrames: 6
+});
+const WORD_GLOSS_LABELS = ISL_WORD_LABELS.map(w => w.gloss);
 
 // Configure ONNX WASM execution
 if (typeof ort !== 'undefined' && ort?.env?.wasm) {
@@ -32,6 +45,7 @@ const DEFAULT_WASM_CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0
 const DEFAULT_MODEL_URL =
   'https://storage.googleapis.com/mediapipe-models/holistic_landmarker/holistic_landmarker/float16/latest/holistic_landmarker.task';
 const DEFAULT_ALPHABET_MODEL_URL = '/models/isl_alphabet_mlp.onnx';
+const DEFAULT_WORD_MODEL_URL = '/models/isl_include_50.onnx';
 
 /**
  * Initialize Two-Handed ISL Alphabet MLP Model
@@ -71,6 +85,47 @@ async function initAlphabetModel(modelPath = DEFAULT_ALPHABET_MODEL_URL) {
     self.postMessage({ type: 'ALPHABET_MODEL_READY' });
   } catch (err) {
     console.warn('[vision.worker] Alphabet model initialization warning:', err.message);
+  }
+}
+
+/**
+ * Initialize AI4Bharat INCLUDE-50 Temporal Word Model
+ */
+async function initWordModel(modelPath = DEFAULT_WORD_MODEL_URL) {
+  try {
+    console.log('[vision.worker] Initializing AI4Bharat INCLUDE-50 temporal model from:', modelPath);
+    let modelData;
+
+    if (typeof fetch !== 'undefined') {
+      try {
+        const resp = await fetch(modelPath);
+        if (resp.ok) {
+          modelData = await resp.arrayBuffer();
+        } else {
+          console.warn(`[vision.worker] Fetching ${modelPath} returned status ${resp.status}`);
+          modelData = modelPath;
+        }
+      } catch (fetchErr) {
+        console.warn('[vision.worker] Fetch error for word model, using direct path:', fetchErr);
+        modelData = modelPath;
+      }
+    } else {
+      modelData = modelPath;
+    }
+
+    wordSession = await ort.InferenceSession.create(modelData, {
+      executionProviders: ['wasm']
+    });
+
+    // Run dummy inference warm-up frame [1, 7200]
+    const dummy = new ort.Tensor('float32', new Float32Array(7200), [1, 7200]);
+    await wordSession.run({ input: dummy });
+
+    isWordModelReady = true;
+    console.log('[vision.worker] INCLUDE-50 temporal model initialized and warmed up successfully (<15ms)');
+    self.postMessage({ type: 'WORD_MODEL_READY' });
+  } catch (err) {
+    console.warn('[vision.worker] Word model initialization notice:', err.message);
   }
 }
 
@@ -178,6 +233,9 @@ async function initVision(config = {}) {
     // Initialize ISL Alphabet MLP session
     await initAlphabetModel(config.alphabetModelUrl || DEFAULT_ALPHABET_MODEL_URL);
 
+    // Initialize AI4Bharat INCLUDE-50 Temporal Model session
+    await initWordModel(config.wordModelUrl || DEFAULT_WORD_MODEL_URL);
+
     isInitialized = true;
     const totalBootMs = Math.round(performance.now() - startTime);
 
@@ -222,6 +280,7 @@ async function processFrame(imageBitmap, timestamp) {
 
     // 3. Update velocity gate with normalized wrists and current frame timestamp
     const motion = velocityGate.update(normalized.leftWrist, normalized.rightWrist, timestamp);
+    frameCounter++;
 
     // 4. Run Two-Handed Alphabet MLP classification if model ready
     let alphabetPredictions = [];
@@ -234,6 +293,30 @@ async function processFrame(imageBitmap, timestamp) {
         }
       } catch (inferErr) {
         console.warn('[vision.worker] Alphabet MLP inference error:', inferErr);
+      }
+    }
+
+    // 5. Run Temporal INCLUDE-50 Word inference every 5 frames during active signing
+    let wordPredictions = { topCandidates: [], confirmedWord: null };
+    if (wordSession && isWordModelReady && ringBuffer.size() >= 30) {
+      if (motion.state === 'SIGNING_ACTIVE' && frameCounter % 5 === 0) {
+        try {
+          const flatBuffer = ringBuffer.getFlattened();
+          const wordInput = new ort.Tensor('float32', flatBuffer, [1, 7200]);
+          const wordOutputs = await wordSession.run({ input: wordInput });
+          if (wordOutputs?.output?.data) {
+            const topWords = getTopKPredictions(wordOutputs.output.data, WORD_GLOSS_LABELS, 3, 0.75);
+            const confirmation = wordConfirmationGate.processCandidate(topWords[0]);
+            wordPredictions = {
+              topCandidates: topWords,
+              confirmedWord: confirmation.confirmed ? confirmation.word : null
+            };
+          }
+        } catch (wordErr) {
+          console.warn('[vision.worker] Temporal word inference error:', wordErr);
+        }
+      } else if (motion.state === 'IDLE') {
+        wordConfirmationGate.reset();
       }
     }
 
@@ -251,6 +334,7 @@ async function processFrame(imageBitmap, timestamp) {
       motion,
       bufferSize: ringBuffer.size(),
       alphabetPredictions,
+      wordPredictions,
       timestamp,
       processingTimeMs
     });

@@ -2,12 +2,14 @@ import React, { useState, useCallback } from 'react';
 import { Navbar } from './components/Navbar.jsx';
 import { SignerStage } from './components/SignerStage.jsx';
 import { KeypointRecorderDrawer } from './components/KeypointRecorderDrawer.jsx';
+import { WordDictionaryModal } from './components/WordDictionaryModal.jsx';
 import { useVisionWorker } from './hooks/useVisionWorker.js';
 
 export function App() {
   const [fps, setFps] = useState(0);
-  const [recognitionMode, setRecognitionMode] = useState('alphabet'); // 'alphabet' | 'word'
+  const [recognitionMode, setRecognitionMode] = useState('word'); // 'alphabet' | 'word' - default to word mode for Phase 4
   const [isRecorderOpen, setIsRecorderOpen] = useState(false);
+  const [isDictionaryOpen, setIsDictionaryOpen] = useState(false);
 
   const {
     isWorkerReady,
@@ -16,6 +18,8 @@ export function App() {
     latestLandmarks,
     latestNormalizedFeatures,
     alphabetPredictions,
+    wordPredictions,
+    latestConfirmedWord,
     motionState,
     bufferSize,
     workerError,
@@ -36,15 +40,16 @@ export function App() {
         recognitionMode={recognitionMode}
         onToggleMode={setRecognitionMode}
         onOpenRecorder={() => setIsRecorderOpen(true)}
+        onOpenDictionary={() => setIsDictionaryOpen(true)}
       />
 
       <main className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8 max-w-7xl mx-auto w-full">
         <div className="w-full text-center mb-6">
           <h2 className="text-2xl font-bold text-slate-100 tracking-tight mb-2">
-            Indian Sign Language Two-Handed Alphabet AI
+            Indian Sign Language Conversational AI
           </h2>
           <p className="text-sm text-slate-400 max-w-xl mx-auto">
-            Real-time ONNX Runtime Web neural network classifying 36 ISL letters & digits in &lt;10ms, backed by in-browser keypoint dataset capture.
+            Real-time client-side ISL recognition running MediaPipe Holistic, two-handed alphabet MLP, and INCLUDE-50 temporal word sequence AI.
           </p>
         </div>
 
@@ -62,6 +67,8 @@ export function App() {
           motionState={motionState}
           bufferSize={bufferSize}
           alphabetPredictions={alphabetPredictions}
+          wordPredictions={wordPredictions}
+          latestConfirmedWord={latestConfirmedWord}
           recognitionMode={recognitionMode}
         />
       </main>
@@ -74,8 +81,14 @@ export function App() {
         motionState={motionState}
       />
 
+      {/* 50-Word ISL Vocabulary Reference Modal */}
+      <WordDictionaryModal
+        isOpen={isDictionaryOpen}
+        onClose={() => setIsDictionaryOpen(false)}
+      />
+
       <footer className="border-t border-slate-800/80 py-4 px-6 text-center text-xs text-slate-500 font-mono">
-        SignBridge ISL • Phase 3: The Brain (Part 1) • 100% Client-Side Private Edge AI
+        SignBridge ISL • Phase 4: The Brain (Part 2) • 100% Client-Side Private Edge AI
       </footer>
     </div>
   );

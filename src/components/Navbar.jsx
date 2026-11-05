@@ -8,7 +8,8 @@ export function Navbar({
   motionState = { state: 'IDLE', pauseProgress: 0 },
   recognitionMode = 'alphabet',
   onToggleMode,
-  onOpenRecorder
+  onOpenRecorder,
+  onOpenDictionary
 }) {
   const getStatusBadge = () => {
     switch (workerStatus) {
@@ -89,8 +90,8 @@ export function Navbar({
           <div>
             <div className="flex items-center gap-2">
               <h1 className="font-bold text-lg text-slate-100 tracking-tight">SignBridge ISL</h1>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-slate-700/80 text-sky-300 border border-slate-600 font-mono">
-                Phase 3: Alphabet Brain
+              <span className="text-xs px-2 py-0.5 rounded-full bg-slate-700/80 text-emerald-300 border border-slate-600 font-mono">
+                Phase 4: INCLUDE-50 Word AI
               </span>
             </div>
             <p className="text-xs text-slate-400">Edge AI Indian Sign Language to Text Bridge</p>
@@ -122,6 +123,18 @@ export function Navbar({
               Words (Phase 4)
             </button>
           </div>
+
+          {/* ISL Dictionary (50 Words) Trigger Button */}
+          {onOpenDictionary && (
+            <button
+              onClick={onOpenDictionary}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 text-xs font-medium transition shadow-sm"
+              title="Open 50-Word ISL Vocabulary Dictionary"
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">ISL Dictionary (50)</span>
+            </button>
+          )}
 
           {/* Keypoint Recorder Trigger Button */}
           {onOpenRecorder && (

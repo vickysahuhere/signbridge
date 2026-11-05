@@ -11,7 +11,9 @@ export function SignerStage({
   motionState = { state: 'IDLE', pauseProgress: 0, rollingVelocity: 0 },
   bufferSize = 0,
   alphabetPredictions = [],
-  recognitionMode = 'alphabet'
+  wordPredictions = { topCandidates: [], confirmedWord: null },
+  latestConfirmedWord = null,
+  recognitionMode = 'word'
 }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -196,6 +198,86 @@ export function SignerStage({
         {isCameraActive && motionState.state === 'IDLE_COMMIT' && (
           <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 flex items-center gap-2 px-4 py-2 rounded-full bg-sky-500/95 text-slate-950 font-bold text-xs shadow-xl shadow-sky-500/25 backdrop-blur-md animate-bounce">
             <span>✨ Sentence Boundary Emitted</span>
+          </div>
+        )}
+
+        {/* Confirmed ISL Word Lock Banner (during active word recognition) */}
+        {isCameraActive && recognitionMode === 'word' && (wordPredictions?.confirmedWord || latestConfirmedWord) && (
+          <div className="absolute top-16 left-1/2 transform -translate-x-1/2 z-20 flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500 text-slate-950 font-bold text-xs shadow-xl shadow-emerald-500/30 backdrop-blur-md animate-in fade-in zoom-in duration-150">
+            <Check className="w-4 h-4 stroke-[3]" />
+            <span>CONFIRMED: {wordPredictions?.confirmedWord || latestConfirmedWord}</span>
+          </div>
+        )}
+
+        {/* Top-3 Word Prediction HUD (during Word Mode) */}
+        {isCameraActive && recognitionMode === 'word' && wordPredictions?.topCandidates?.length > 0 && (
+          <div className="absolute top-4 right-4 z-20 flex flex-col gap-1.5 w-52 bg-slate-900/90 backdrop-blur-md rounded-xl p-2.5 border border-slate-700/70 shadow-2xl">
+            <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 border-b border-slate-800 pb-1">
+              <span className="flex items-center gap-1 font-semibold text-emerald-400">
+                <Sparkles className="w-3 h-3 text-emerald-400" />
+                ISL Words (INCLUDE)
+              </span>
+              <span>Top-3</span>
+            </div>
+
+            {/* Top-1 Word Candidate */}
+            {wordPredictions.topCandidates[0] && (
+              <div
+                className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg border transition-all ${
+                  wordPredictions.topCandidates[0].isConfident
+                    ? 'bg-emerald-500/20 border-emerald-500/60 text-emerald-300 shadow-md shadow-emerald-500/20 ring-1 ring-emerald-400/40'
+                    : 'bg-amber-500/10 border-amber-500/40 text-amber-300'
+                }`}
+              >
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm font-black font-mono tracking-wider">
+                      {wordPredictions.topCandidates[0].label}
+                    </span>
+                    {wordPredictions.topCandidates[0].isConfident && (
+                      <span className="flex items-center gap-0.5 text-[9px] px-1 py-0.2 rounded bg-emerald-500/30 text-emerald-200 font-mono font-semibold">
+                        <Lock className="w-2.5 h-2.5" />
+                        LOCK
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs font-mono font-bold">
+                    {Math.round(wordPredictions.topCandidates[0].confidence * 100)}%
+                  </span>
+                  <div className="w-14 h-1.5 bg-slate-800 rounded-full mt-1 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-100 ${
+                        wordPredictions.topCandidates[0].isConfident
+                          ? 'bg-emerald-400'
+                          : 'bg-amber-400'
+                      }`}
+                      style={{
+                        width: `${Math.min(100, Math.round(wordPredictions.topCandidates[0].confidence * 100))}%`
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Runners-up 2 and 3 */}
+            <div className="grid grid-cols-2 gap-1.5 pt-0.5">
+              {wordPredictions.topCandidates.slice(1, 3).map((pred) => (
+                <div
+                  key={pred.rank}
+                  className="flex items-center justify-between px-2 py-1 rounded-md bg-slate-800/80 border border-slate-700/60 text-[10px] font-mono text-slate-300"
+                >
+                  <span className="font-bold text-slate-200 truncate max-w-[65px]" title={pred.label}>
+                    {pred.label}
+                  </span>
+                  <span className="text-[9px] text-slate-400">
+                    {Math.round(pred.confidence * 100)}%
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
