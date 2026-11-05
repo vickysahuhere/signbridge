@@ -39,11 +39,11 @@ Requirements for initial release, mapped directly to roadmap phases.
 
 ### Computational Linguistics & Sentence Engine (The Linguist)
 
-- [ ] **LING-01**: Manages an active gloss buffer that automatically deduplicates repeated adjacent signs (`["HELLO", "HELLO"]` -> `["HELLO"]`).
-- [ ] **LING-02**: Provides manual correction controls including `[Undo Last Sign]` and `[Clear All]` in `<LiveGlossBar />`.
-- [ ] **LING-03**: Implements deterministic ISL Subject-Object-Verb (SOV) to English Subject-Verb-Object (SVO) clause reordering in pure JavaScript.
-- [ ] **LING-04**: Repositions trailing ISL WH-question markers (`WHAT`, `WHERE`, `WHO`, `WHY`, `HOW`, `WHEN`) to the front of English interrogative sentences with appropriate copula insertion.
-- [ ] **LING-05**: Renders a live circular 1.2s countdown ring that triggers sentence completion and displays the formatted English preview string.
+- [x] **LING-01**: Manages an active gloss buffer that automatically deduplicates repeated adjacent signs (`["HELLO", "HELLO"]` -> `["HELLO"]`).
+- [x] **LING-02**: Provides manual correction controls including `[Undo Last Sign]` and `[Clear All]` in `<LiveGlossBar />`.
+- [x] **LING-03**: Implements deterministic ISL Subject-Object-Verb (SOV) to English Subject-Verb-Object (SVO) clause reordering in pure JavaScript.
+- [x] **LING-04**: Repositions trailing ISL WH-question markers (`WHAT`, `WHERE`, `WHO`, `WHY`, `HOW`, `WHEN`) to the front of English interrogative sentences with appropriate copula insertion.
+- [x] **LING-05**: Renders a live circular 1.2s countdown ring that triggers sentence completion and displays the formatted English preview string.
 
 ### Networking, Subtitles HUD & Cloud Deployment (The Bridge)
 
@@ -93,11 +93,11 @@ Deferred to subsequent releases:
 | WORD-02 | Phase 4 | Complete |
 | WORD-03 | Phase 4 | Complete |
 | WORD-04 | Phase 4 | Complete |
-| LING-01 | Phase 5 | Pending |
-| LING-02 | Phase 5 | Pending |
-| LING-03 | Phase 5 | Pending |
-| LING-04 | Phase 5 | Pending |
-| LING-05 | Phase 5 | Pending |
+| LING-01 | Phase 5 | Complete |
+| LING-02 | Phase 5 | Complete |
+| LING-03 | Phase 5 | Complete |
+| LING-04 | Phase 5 | Complete |
+| LING-05 | Phase 5 | Complete |
 | NETW-01 | Phase 6 | Pending |
 | NETW-02 | Phase 6 | Pending |
 | NETW-03 | Phase 6 | Pending |

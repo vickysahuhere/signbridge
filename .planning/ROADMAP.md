@@ -96,11 +96,11 @@ Plans:
   2. Circular 1.2s pause progress ring visualizes the countdown to automatic sentence dispatch.
   3. Deterministic grammar engine reorders ISL SOV clauses into natural English (`["ME", "WATER", "WANT"]` -> `"I want water."`).
   4. Trailing WH-question signs (`WHAT`, `WHERE`, `WHO`, `WHY`, `HOW`) are relocated to the sentence start with appropriate copulas and question marks (`["YOU", "NAME", "WHAT"]` -> `"What is your name?"`).
-**Plans**: 2 plans
+**Plans**: 2/2 plans executed
 
 Plans:
-- [ ] 05-01: GlossBufferManager (deduplication, undo, clear) and deterministic ISL SOV-to-SVO grammar transformer (islSentenceFormatter.js) with unit test suite.
-- [ ] 05-02: LiveGlossBar component with gloss token pills, English preview, 1.2s circular countdown ring, and auto-commit integration in App.jsx.
+- [x] 05-01: GlossBufferManager (deduplication, undo, clear) and deterministic ISL SOV-to-SVO grammar transformer (islSentenceFormatter.js) with unit test suite.
+- [x] 05-02: LiveGlossBar component with gloss token pills, English preview, 1.2s circular countdown ring, and auto-commit integration in App.jsx.
 
 ---
 
