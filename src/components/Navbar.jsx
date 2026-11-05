@@ -183,7 +183,7 @@ export function Navbar({
 
           {/* Mode Selector Pill (Word vs A-Z) */}
           {currentRole === 'signer' && (
-            <div className="hidden lg:flex items-center p-0.5 rounded-lg bg-slate-900/80 border border-slate-700 text-xs font-medium">
+            <div className="flex items-center p-0.5 rounded-lg bg-slate-900/80 border border-slate-700 text-xs font-medium">
               <button
                 onClick={() => onToggleMode && onToggleMode('word')}
                 className={`px-2.5 py-1 rounded-md transition ${

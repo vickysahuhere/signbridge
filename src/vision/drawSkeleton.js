@@ -8,6 +8,8 @@
  * Face Mesh:  Amber         (#F59E0B)
  */
 
+import { getLandmarkArray } from './normalizeLandmarks.js';
+
 // 21 Hand joint connections
 export const HAND_CONNECTIONS = [
   // Palm base
@@ -164,10 +166,10 @@ export function drawSkeleton(ctx, landmarks, options = {}) {
 
   if (!landmarks) return;
 
-  const leftHand = landmarks.leftHandLandmarks?.[0] || landmarks.leftHandLandmarks || [];
-  const rightHand = landmarks.rightHandLandmarks?.[0] || landmarks.rightHandLandmarks || [];
-  const pose = landmarks.poseLandmarks?.[0] || landmarks.poseLandmarks || [];
-  const face = landmarks.faceLandmarks?.[0] || landmarks.faceLandmarks || [];
+  const leftHand = getLandmarkArray(landmarks.leftHandLandmarks);
+  const rightHand = getLandmarkArray(landmarks.rightHandLandmarks);
+  const pose = getLandmarkArray(landmarks.poseLandmarks);
+  const face = getLandmarkArray(landmarks.faceLandmarks);
 
   // 1. Upper Body Pose (White)
   if (pose.length > 0) {
@@ -205,8 +207,8 @@ export function drawSkeleton(ctx, landmarks, options = {}) {
 export function checkBoundaryAlert(landmarks, marginPercent = 0.10) {
   if (!landmarks) return { isOutOfFrame: false, message: '' };
 
-  const leftHand = landmarks.leftHandLandmarks?.[0] || landmarks.leftHandLandmarks || [];
-  const rightHand = landmarks.rightHandLandmarks?.[0] || landmarks.rightHandLandmarks || [];
+  const leftHand = getLandmarkArray(landmarks.leftHandLandmarks);
+  const rightHand = getLandmarkArray(landmarks.rightHandLandmarks);
 
   const leftWrist = leftHand[0];
   const rightWrist = rightHand[0];

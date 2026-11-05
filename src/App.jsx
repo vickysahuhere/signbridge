@@ -199,6 +199,7 @@ export function App() {
                 latestConfirmedWord={latestConfirmedWord}
                 latestReply={latestIncomingReply}
                 recognitionMode={recognitionMode}
+                onToggleMode={setRecognitionMode}
               />
 
               <LiveGlossBar

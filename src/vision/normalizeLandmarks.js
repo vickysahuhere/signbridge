@@ -28,17 +28,28 @@ export const TOTAL_KEYPOINTS = 80;
 export const FEATURE_DIM = TOTAL_KEYPOINTS * 3; // 240 floats
 
 /**
+ * Safely extracts a 1D landmark array regardless of whether MediaPipe returns
+ * a 1D array of points [{x, y, z}, ...] or a 2D array of hands/poses [[{x, y, z}, ...]].
+ */
+export function getLandmarkArray(data) {
+  if (!data || !Array.isArray(data) || data.length === 0) return [];
+  if (Array.isArray(data[0])) return data[0];
+  if (typeof data[0] === 'object' && data[0] !== null && 'x' in data[0]) return data;
+  return [];
+}
+
+/**
  * Normalizes a single frame of Holistic landmarks.
  *
  * @param {Object} holisticResult - Output from MediaPipe HolisticLandmarker.detectForVideo
  * @returns {Object} { features: Float32Array(240), leftWrist, rightWrist, shoulderScale, center }
  */
 export function extractAndNormalizeFrame(holisticResult = {}) {
-  // Extract landmarks arrays (tolerating both array of arrays and flat array formats)
-  const pose = holisticResult.poseLandmarks?.[0] || holisticResult.poseLandmarks || [];
-  const leftHand = holisticResult.leftHandLandmarks?.[0] || holisticResult.leftHandLandmarks || [];
-  const rightHand = holisticResult.rightHandLandmarks?.[0] || holisticResult.rightHandLandmarks || [];
-  const face = holisticResult.faceLandmarks?.[0] || holisticResult.faceLandmarks || [];
+  // Extract landmarks arrays safely tolerating both 2D and 1D arrays
+  const pose = getLandmarkArray(holisticResult.poseLandmarks);
+  const leftHand = getLandmarkArray(holisticResult.leftHandLandmarks);
+  const rightHand = getLandmarkArray(holisticResult.rightHandLandmarks);
+  const face = getLandmarkArray(holisticResult.faceLandmarks);
 
   // 1. Calculate Shoulder Midpoint (Center of Coordinate Space)
   const leftShoulder = pose[11] || { x: 0.4, y: 0.5, z: 0 };

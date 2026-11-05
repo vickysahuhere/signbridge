@@ -1,6 +1,6 @@
 import { FilesetResolver, HolisticLandmarker } from '@mediapipe/tasks-vision';
 import * as ort from 'onnxruntime-web';
-import { extractAndNormalizeFrame } from '../vision/normalizeLandmarks.js';
+import { extractAndNormalizeFrame, getLandmarkArray } from '../vision/normalizeLandmarks.js';
 import { RingBuffer } from '../vision/RingBuffer.js';
 import { VelocityGate } from '../vision/velocityGate.js';
 import { getTopKPredictions } from '../ai/softmax.js';
@@ -205,15 +205,15 @@ async function initVision(config = {}) {
           delegate: 'GPU'
         },
         runningMode: 'VIDEO',
-        minHandDetectionConfidence: 0.5,
-        minHandPresenceConfidence: 0.5,
-        minHandTrackingConfidence: 0.5,
-        minFaceDetectionConfidence: 0.5,
-        minFacePresenceConfidence: 0.5,
-        minFaceTrackingConfidence: 0.5,
-        minPoseDetectionConfidence: 0.5,
-        minPosePresenceConfidence: 0.5,
-        minPoseTrackingConfidence: 0.5
+        minHandDetectionConfidence: 0.3,
+        minHandPresenceConfidence: 0.3,
+        minHandTrackingConfidence: 0.3,
+        minFaceDetectionConfidence: 0.35,
+        minFacePresenceConfidence: 0.35,
+        minFaceTrackingConfidence: 0.35,
+        minPoseDetectionConfidence: 0.35,
+        minPosePresenceConfidence: 0.35,
+        minPoseTrackingConfidence: 0.35
       });
     } catch (gpuError) {
       console.warn('[vision.worker] GPU delegate failed, falling back to CPU:', gpuError);
@@ -289,7 +289,7 @@ async function processFrame(imageBitmap, timestamp) {
         const inputTensor = new ort.Tensor('float32', normalized.features, [1, 240]);
         const outputs = await alphabetSession.run({ input: inputTensor });
         if (outputs?.output?.data) {
-          alphabetPredictions = getTopKPredictions(outputs.output.data, ISL_ALPHABET_LABELS, 3, 0.75);
+          alphabetPredictions = getTopKPredictions(outputs.output.data, ISL_ALPHABET_LABELS, 3, 0.65);
         }
       } catch (inferErr) {
         console.warn('[vision.worker] Alphabet MLP inference error:', inferErr);
@@ -325,10 +325,10 @@ async function processFrame(imageBitmap, timestamp) {
     self.postMessage({
       type: 'LANDMARK_RESULTS',
       landmarks: {
-        leftHandLandmarks: results.leftHandLandmarks || [],
-        rightHandLandmarks: results.rightHandLandmarks || [],
-        poseLandmarks: results.poseLandmarks || [],
-        faceLandmarks: results.faceLandmarks || []
+        leftHandLandmarks: getLandmarkArray(results.leftHandLandmarks),
+        rightHandLandmarks: getLandmarkArray(results.rightHandLandmarks),
+        poseLandmarks: getLandmarkArray(results.poseLandmarks),
+        faceLandmarks: getLandmarkArray(results.faceLandmarks)
       },
       normalizedFeatures: normalized.features,
       motion,

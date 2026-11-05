@@ -15,7 +15,8 @@ export function SignerStage({
   wordPredictions = { topCandidates: [], confirmedWord: null },
   latestConfirmedWord = null,
   latestReply = null,
-  recognitionMode = 'word'
+  recognitionMode = 'word',
+  onToggleMode = null
 }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -132,6 +133,13 @@ export function SignerStage({
     drawSkeleton(ctx, latestLandmarks, { showGuide: true, showFace: true });
     ctx.restore();
   }, [latestLandmarks, isCameraActive, showSkeleton]);
+
+  // Hand detection status check
+  const leftHandList = latestLandmarks?.leftHandLandmarks || [];
+  const rightHandList = latestLandmarks?.rightHandLandmarks || [];
+  const hasLeftHand = Array.isArray(leftHandList) && leftHandList.length > 0;
+  const hasRightHand = Array.isArray(rightHandList) && rightHandList.length > 0;
+  const hasAnyHand = hasLeftHand || hasRightHand;
 
   // Cleanup stream on component unmount
   useEffect(() => {
@@ -286,6 +294,43 @@ export function SignerStage({
           </div>
         )}
 
+        {/* Helper prompt in Word mode when no candidates yet */}
+        {isCameraActive && recognitionMode === 'word' && (!wordPredictions?.topCandidates || wordPredictions.topCandidates.length === 0) && (
+          <div className="absolute top-4 right-4 z-20 flex flex-col gap-1 w-52 bg-slate-900/85 backdrop-blur-md rounded-xl p-2.5 border border-emerald-500/30 shadow-xl text-[11px] font-mono text-slate-300">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-emerald-400 font-bold">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Word Mode (INCLUDE)</span>
+              </div>
+              {onToggleMode && (
+                <button
+                  onClick={() => onToggleMode('alphabet')}
+                  className="text-[9px] px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 hover:bg-sky-500/30 border border-sky-500/40 cursor-pointer"
+                  title="Switch to A-Z letter fingerspelling"
+                >
+                  Try A–Z
+                </button>
+              )}
+            </div>
+            <p className="text-[10px] text-slate-400 leading-tight">
+              {hasAnyHand ? 'Perform sign motion for ~1s' : 'Show hands to start signing'}
+            </p>
+          </div>
+        )}
+
+        {/* Waiting for gesture in Alphabet mode */}
+        {isCameraActive && recognitionMode === 'alphabet' && alphabetPredictions.length === 0 && (
+          <div className="absolute top-4 right-4 z-20 flex flex-col gap-1 w-48 bg-slate-900/85 backdrop-blur-md rounded-xl p-2.5 border border-sky-500/30 shadow-xl text-[11px] font-mono text-slate-300">
+            <div className="flex items-center gap-1.5 text-sky-400 font-bold">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>A–Z Alphabet Mode</span>
+            </div>
+            <p className="text-[10px] text-slate-400 leading-tight">
+              {hasAnyHand ? 'Analyzing hand shape...' : 'Show hands to camera'}
+            </p>
+          </div>
+        )}
+
         {/* Top-3 Alphabet Prediction HUD (during active fingerspelling) */}
         {isCameraActive && recognitionMode === 'alphabet' && alphabetPredictions.length > 0 && (
           <div className="absolute top-4 right-4 z-20 flex flex-col gap-1.5 w-48 bg-slate-900/90 backdrop-blur-md rounded-xl p-2.5 border border-slate-700/70 shadow-2xl">
@@ -361,12 +406,16 @@ export function SignerStage({
           <div className="absolute bottom-3 left-3 right-3 z-20 flex items-center justify-between pointer-events-none">
             <div className="flex items-center gap-3 px-3 py-1.5 rounded-lg bg-slate-900/80 backdrop-blur-md border border-slate-700/60 text-[11px] font-mono pointer-events-auto">
               <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-sky-400" />
-                <span className="text-slate-300">Left Hand</span>
+                <span className={`w-2.5 h-2.5 rounded-full transition-colors ${hasLeftHand ? 'bg-sky-400 ring-2 ring-sky-400/40 shadow-sm shadow-sky-400' : 'bg-slate-600'}`} />
+                <span className={hasLeftHand ? 'text-sky-300 font-semibold' : 'text-slate-400'}>
+                  Left Hand {hasLeftHand ? '✓' : ''}
+                </span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-                <span className="text-slate-300">Right Hand</span>
+                <span className={`w-2.5 h-2.5 rounded-full transition-colors ${hasRightHand ? 'bg-emerald-400 ring-2 ring-emerald-400/40 shadow-sm shadow-emerald-400' : 'bg-slate-600'}`} />
+                <span className={hasRightHand ? 'text-emerald-300 font-semibold' : 'text-slate-400'}>
+                  Right Hand {hasRightHand ? '✓' : ''}
+                </span>
               </div>
             </div>
 
@@ -464,6 +513,34 @@ export function SignerStage({
               <Activity className="w-3.5 h-3.5" />
               <span>{showSkeleton ? 'Hide Skeleton' : 'Show Skeleton'}</span>
             </button>
+          )}
+
+          {/* Inline Recognition Mode Switcher */}
+          {isCameraActive && onToggleMode && (
+            <div className="flex items-center p-0.5 rounded-xl bg-slate-900 border border-slate-700 text-xs font-medium">
+              <button
+                onClick={() => onToggleMode('alphabet')}
+                className={`px-2.5 py-1.5 rounded-lg transition text-[11px] font-mono flex items-center gap-1 ${
+                  recognitionMode === 'alphabet'
+                    ? 'bg-sky-500/25 text-sky-300 border border-sky-500/50 font-bold shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+                title="Two-Handed Fingerspelling (A–Z)"
+              >
+                🔤 A–Z
+              </button>
+              <button
+                onClick={() => onToggleMode('word')}
+                className={`px-2.5 py-1.5 rounded-lg transition text-[11px] font-mono flex items-center gap-1 ${
+                  recognitionMode === 'word'
+                    ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/50 font-bold shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+                title="AI4Bharat 50 ISL Words"
+              >
+                💬 Words
+              </button>
+            </div>
           )}
         </div>
 
