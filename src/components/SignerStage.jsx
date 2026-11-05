@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { Camera, CameraOff, AlertCircle, RefreshCw, Eye, Activity, Lock, Sparkles, Check } from 'lucide-react';
 import { startCameraLoop } from '../vision/cameraLoop.js';
 import { drawSkeleton, checkBoundaryAlert } from '../vision/drawSkeleton.js';
+import { IncomingSubtitleOverlay } from './IncomingSubtitleOverlay.jsx';
 
 export function SignerStage({
   onFrame,
@@ -13,6 +14,7 @@ export function SignerStage({
   alphabetPredictions = [],
   wordPredictions = { topCandidates: [], confirmedWord: null },
   latestConfirmedWord = null,
+  latestReply = null,
   recognitionMode = 'word'
 }) {
   const videoRef = useRef(null);
@@ -166,6 +168,9 @@ export function SignerStage({
           height={480}
           className="absolute inset-0 w-full h-full object-cover pointer-events-none z-10"
         />
+
+        {/* Top Glass HUD Subtitle Banner (NETW-05: Zero Eye-Travel Ergonomics) */}
+        <IncomingSubtitleOverlay latestReply={latestReply} />
 
         {/* Boundary Alert Warning Badge */}
         {boundaryAlert.isOutOfFrame && (
