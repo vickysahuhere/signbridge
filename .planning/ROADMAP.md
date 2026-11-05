@@ -114,12 +114,12 @@ Plans:
   3. If strict UDP firewalls block WebRTC, system automatically falls back to Supabase Realtime Broadcast over WebSocket without dropped messages.
   4. Text Partner's incoming replies display in the high-contrast Top Glass HUD Subtitle Banner directly above Person A's webcam canvas (zero eye-travel ergonomics).
   5. Application builds for production and deploys cleanly to Cloudflare Pages with immutable model asset caching.
-**Plans**: 3 plans
+**Plans**: 3/3 plans executed
 
 Plans:
-- [ ] 06-01: Supabase Realtime client setup (`supabaseClient.js`), room presence, role selection (Signer vs. Text Partner), and fallback broadcast channel.
-- [ ] 06-02: WebRTC manager (`webrtcManager.js`) with STUN/TURN ICE negotiation, `RTCDataChannel` message dispatch, and live sign preview streaming.
-- [ ] 06-03: Zero eye-travel HUD subtitle overlay (`<IncomingSubtitleOverlay />`), full UI integration, and Cloudflare Pages build/cache configuration.
+- [x] 06-01: Supabase Realtime client setup (`supabaseClient.js`), room presence, role selection (Signer vs. Text Partner), and fallback broadcast channel.
+- [x] 06-02: WebRTC manager (`webrtcManager.js`) with STUN/TURN ICE negotiation, `RTCDataChannel` message dispatch, and live sign preview streaming.
+- [x] 06-03: Zero eye-travel HUD subtitle overlay (`<IncomingSubtitleOverlay />`), full UI integration, and Cloudflare Pages build/cache configuration.
 
 ---
 
@@ -135,4 +135,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 3. The Brain (Part 1) | 2/2 | Complete | 2026-11-05 |
 | 4. The Brain (Part 2) | 2/2 | Complete | 2026-11-05 |
 | 5. The Linguist | 2/2 | Complete | 2026-11-05 |
-| 6. The Bridge | 0/3 | Planned | - |
+| 6. The Bridge | 3/3 | Complete | 2026-11-05 |

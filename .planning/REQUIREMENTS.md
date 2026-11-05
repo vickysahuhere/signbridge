@@ -47,12 +47,12 @@ Requirements for initial release, mapped directly to roadmap phases.
 
 ### Networking, Subtitles HUD & Cloud Deployment (The Bridge)
 
-- [ ] **NETW-01**: Provides instant room creation and joining via URL parameter (`?room=roomId`) using Supabase Realtime for signaling and presence tracking.
-- [ ] **NETW-02**: Establishes peer-to-peer WebRTC `RTCDataChannel("isl-chat")` with Cloudflare STUN/TURN traversal for <20ms direct messaging.
-- [ ] **NETW-03**: Implements seamless fallback to Supabase Realtime Broadcast WebSocket if P2P UDP connection fails or is blocked.
-- [ ] **NETW-04**: Streams live partial sign tokens (`"Aarav is signing: YOU • NAME..."`) to the text partner in real time as signs are recognized.
-- [ ] **NETW-05**: Renders incoming text replies from Person B inside `<IncomingSubtitleOverlay />` directly above the top edge of Person A's webcam canvas (zero eye-travel HUD).
-- [ ] **NETW-06**: Production build (`npm run build`) optimized for Cloudflare Pages with immutable model asset caching headers.
+- [x] **NETW-01**: Provides instant room creation and joining via URL parameter (`?room=roomId`) using Supabase Realtime for signaling and presence tracking.
+- [x] **NETW-02**: Establishes peer-to-peer WebRTC `RTCDataChannel("isl-chat")` with Cloudflare STUN/TURN traversal for <20ms direct messaging.
+- [x] **NETW-03**: Implements seamless fallback to Supabase Realtime Broadcast WebSocket if P2P UDP connection fails or is blocked.
+- [x] **NETW-04**: Streams live partial sign tokens (`"Aarav is signing: YOU • NAME..."`) to the text partner in real time as signs are recognized.
+- [x] **NETW-05**: Renders incoming text replies from Person B inside `<IncomingSubtitleOverlay />` directly above the top edge of Person A's webcam canvas (zero eye-travel HUD).
+- [x] **NETW-06**: Production build (`npm run build`) optimized for Cloudflare Pages with immutable model asset caching headers.
 
 ## v2 Requirements
 
@@ -98,12 +98,12 @@ Deferred to subsequent releases:
 | LING-03 | Phase 5 | Complete |
 | LING-04 | Phase 5 | Complete |
 | LING-05 | Phase 5 | Complete |
-| NETW-01 | Phase 6 | Pending |
-| NETW-02 | Phase 6 | Pending |
-| NETW-03 | Phase 6 | Pending |
-| NETW-04 | Phase 6 | Pending |
-| NETW-05 | Phase 6 | Pending |
-| NETW-06 | Phase 6 | Pending |
+| NETW-01 | Phase 6 | Complete |
+| NETW-02 | Phase 6 | Complete |
+| NETW-03 | Phase 6 | Complete |
+| NETW-04 | Phase 6 | Complete |
+| NETW-05 | Phase 6 | Complete |
+| NETW-06 | Phase 6 | Complete |
 
 **Coverage:**
 - v1 requirements: 29 total
