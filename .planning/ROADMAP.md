@@ -99,8 +99,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 05-01: Gloss buffer manager with debouncing, manual edit buttons, and animated 1.2s circular countdown ring in `<LiveGlossBar />`.
-- [ ] 05-02: Pure JS rule-based grammar transformer (`islSentenceFormatter.js`) handling SOV inversion, WH-final restructuring, copula insertion, and punctuation.
+- [ ] 05-01: GlossBufferManager (deduplication, undo, clear) and deterministic ISL SOV-to-SVO grammar transformer (islSentenceFormatter.js) with unit test suite.
+- [ ] 05-02: LiveGlossBar component with gloss token pills, English preview, 1.2s circular countdown ring, and auto-commit integration in App.jsx.
 
 ---
 
