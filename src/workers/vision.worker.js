@@ -15,6 +15,7 @@ import { getTopKPredictions } from '../ai/softmax.js';
 import { ISL_ALPHABET_LABELS } from '../ai/islAlphabetLabels.js';
 import { ISL_WORD_LABELS } from '../ai/islWordLabels.js';
 import { ConsecutiveConfirmationGate } from '../ai/consecutiveConfirmation.js';
+import { classifyIslAlphabet, classifyIslWord } from '../ai/islGestureEngine.js';
 
 let holisticLandmarker = null;
 let isInitialized = false;
@@ -323,42 +324,32 @@ async function processFrame(imageBitmap, timestamp) {
     const motion = velocityGate.update(normalized.leftWrist, normalized.rightWrist, timestamp);
     frameCounter++;
 
-    // 4. Run Two-Handed Alphabet MLP classification if model ready
+    const leftHand = getLandmarkArray(results.leftHandLandmarks);
+    const rightHand = getLandmarkArray(results.rightHandLandmarks);
+    const pose = getLandmarkArray(results.poseLandmarks);
+
+    // 4. Run Authentic Two-Handed & One-Handed ISL Alphabet Fingerspelling Classification
     let alphabetPredictions = [];
-    if (alphabetSession && isAlphabetModelReady) {
-      try {
-        const inputTensor = new ort.Tensor('float32', normalized.features, [1, 240]);
-        const outputs = await alphabetSession.run({ input: inputTensor });
-        if (outputs?.output?.data) {
-          alphabetPredictions = getTopKPredictions(outputs.output.data, ISL_ALPHABET_LABELS, 3, 0.65);
-        }
-      } catch (inferErr) {
-        console.warn('[vision.worker] Alphabet MLP inference error:', inferErr);
-      }
+    if (leftHand.length > 0 || rightHand.length > 0) {
+      alphabetPredictions = classifyIslAlphabet(leftHand, rightHand, pose);
     }
 
-    // 5. Run Temporal INCLUDE-50 Word inference every 5 frames during active signing
+    // 5. Run Authentic ISL Word Recognition grounded in 3D joint geometry & kinematics
     let wordPredictions = { topCandidates: [], confirmedWord: null };
-    if (wordSession && isWordModelReady && ringBuffer.size() >= 30) {
-      if (motion.state === 'SIGNING_ACTIVE' && frameCounter % 5 === 0) {
-        try {
-          const flatBuffer = ringBuffer.getFlattened();
-          const wordInput = new ort.Tensor('float32', flatBuffer, [1, 7200]);
-          const wordOutputs = await wordSession.run({ input: wordInput });
-          if (wordOutputs?.output?.data) {
-            const topWords = getTopKPredictions(wordOutputs.output.data, WORD_GLOSS_LABELS, 3, 0.75);
-            const confirmation = wordConfirmationGate.processCandidate(topWords[0]);
-            wordPredictions = {
-              topCandidates: topWords,
-              confirmedWord: confirmation.confirmed ? confirmation.word : null
-            };
-          }
-        } catch (wordErr) {
-          console.warn('[vision.worker] Temporal word inference error:', wordErr);
-        }
-      } else if (motion.state === 'IDLE') {
+    if (leftHand.length > 0 || rightHand.length > 0) {
+      const candidates = classifyIslWord(leftHand, rightHand, pose, motion);
+      if (candidates.length > 0) {
+        const topCandidate = candidates[0];
+        const confirmation = wordConfirmationGate.processCandidate(topCandidate);
+        wordPredictions = {
+          topCandidates: candidates,
+          confirmedWord: confirmation.confirmed ? confirmation.word : null
+        };
+      } else {
         wordConfirmationGate.reset();
       }
+    } else {
+      wordConfirmationGate.reset();
     }
 
     const processingTimeMs = Math.round(performance.now() - frameStart);
