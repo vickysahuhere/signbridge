@@ -1,15 +1,21 @@
 import React, { useState, useCallback } from 'react';
 import { Navbar } from './components/Navbar.jsx';
 import { SignerStage } from './components/SignerStage.jsx';
+import { KeypointRecorderDrawer } from './components/KeypointRecorderDrawer.jsx';
 import { useVisionWorker } from './hooks/useVisionWorker.js';
 
 export function App() {
   const [fps, setFps] = useState(0);
+  const [recognitionMode, setRecognitionMode] = useState('alphabet'); // 'alphabet' | 'word'
+  const [isRecorderOpen, setIsRecorderOpen] = useState(false);
+
   const {
     isWorkerReady,
     workerStatus,
     workerLatencyMs,
     latestLandmarks,
+    latestNormalizedFeatures,
+    alphabetPredictions,
     motionState,
     bufferSize,
     workerError,
@@ -21,21 +27,24 @@ export function App() {
   }, [sendFrame]);
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans relative overflow-x-hidden">
       <Navbar
         fps={fps}
         workerStatus={workerStatus}
         workerLatencyMs={workerLatencyMs}
         motionState={motionState}
+        recognitionMode={recognitionMode}
+        onToggleMode={setRecognitionMode}
+        onOpenRecorder={() => setIsRecorderOpen(true)}
       />
 
       <main className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8 max-w-7xl mx-auto w-full">
         <div className="w-full text-center mb-6">
           <h2 className="text-2xl font-bold text-slate-100 tracking-tight mb-2">
-            Indian Sign Language Mathematical & Temporal Core
+            Indian Sign Language Two-Handed Alphabet AI
           </h2>
           <p className="text-sm text-slate-400 max-w-xl mx-auto">
-            High-performance browser computer vision & feature normalization pipeline. Invariant 240-float vectors, 30-frame temporal buffer, and 1.2s auto-commit pause detection.
+            Real-time ONNX Runtime Web neural network classifying 36 ISL letters & digits in &lt;10ms, backed by in-browser keypoint dataset capture.
           </p>
         </div>
 
@@ -52,11 +61,21 @@ export function App() {
           isWorkerReady={isWorkerReady}
           motionState={motionState}
           bufferSize={bufferSize}
+          alphabetPredictions={alphabetPredictions}
+          recognitionMode={recognitionMode}
         />
       </main>
 
+      {/* Developer Training / Keypoint Dataset Recorder Drawer */}
+      <KeypointRecorderDrawer
+        isOpen={isRecorderOpen}
+        onClose={() => setIsRecorderOpen(false)}
+        latestNormalizedFeatures={latestNormalizedFeatures}
+        motionState={motionState}
+      />
+
       <footer className="border-t border-slate-800/80 py-4 px-6 text-center text-xs text-slate-500 font-mono">
-        SignBridge ISL • Phase 2: The Math • 100% Client-Side Private Edge AI
+        SignBridge ISL • Phase 3: The Brain (Part 1) • 100% Client-Side Private Edge AI
       </footer>
     </div>
   );

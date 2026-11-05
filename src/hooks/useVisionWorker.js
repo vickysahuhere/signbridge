@@ -6,6 +6,8 @@ export function useVisionWorker() {
   const [workerStatus, setWorkerStatus] = useState('idle');
   const [workerLatencyMs, setWorkerLatencyMs] = useState(0);
   const [latestLandmarks, setLatestLandmarks] = useState(null);
+  const [latestNormalizedFeatures, setLatestNormalizedFeatures] = useState(null);
+  const [alphabetPredictions, setAlphabetPredictions] = useState([]);
   const [motionState, setMotionState] = useState({
     state: 'IDLE',
     rollingVelocity: 0,
@@ -47,6 +49,12 @@ export function useVisionWorker() {
             isProcessingFrameRef.current = false;
             setLatestLandmarks(data.landmarks);
             setWorkerLatencyMs(data.processingTimeMs);
+            if (data.normalizedFeatures) {
+              setLatestNormalizedFeatures(data.normalizedFeatures);
+            }
+            if (Array.isArray(data.alphabetPredictions)) {
+              setAlphabetPredictions(data.alphabetPredictions);
+            }
             if (data.motion) {
               setMotionState(data.motion);
             }
@@ -131,6 +139,8 @@ export function useVisionWorker() {
     workerStatus,
     workerLatencyMs,
     latestLandmarks,
+    latestNormalizedFeatures,
+    alphabetPredictions,
     motionState,
     bufferSize,
     workerError,

@@ -1,24 +1,27 @@
 import React from 'react';
-import { Video, Cpu, Activity, Zap, Clock, CheckCircle2 } from 'lucide-react';
+import { Video, Cpu, Activity, Zap, Clock, CheckCircle2, Database, Sparkles, BookOpen } from 'lucide-react';
 
 export function Navbar({
   fps = 0,
   workerStatus = 'idle',
   workerLatencyMs = 0,
-  motionState = { state: 'IDLE', pauseProgress: 0 }
+  motionState = { state: 'IDLE', pauseProgress: 0 },
+  recognitionMode = 'alphabet',
+  onToggleMode,
+  onOpenRecorder
 }) {
   const getStatusBadge = () => {
     switch (workerStatus) {
       case 'ready':
         return {
-          label: 'WebGL Holistic Ready',
+          label: 'WebGL + ONNX Ready',
           dotClass: 'bg-emerald-400 animate-pulse',
           badgeClass: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
         };
       case 'compiling':
       case 'loading':
         return {
-          label: 'Compiling Shaders...',
+          label: 'Compiling Shaders / ONNX...',
           dotClass: 'bg-amber-400 animate-ping',
           badgeClass: 'border-amber-500/30 bg-amber-500/10 text-amber-300'
         };
@@ -87,15 +90,51 @@ export function Navbar({
             <div className="flex items-center gap-2">
               <h1 className="font-bold text-lg text-slate-100 tracking-tight">SignBridge ISL</h1>
               <span className="text-xs px-2 py-0.5 rounded-full bg-slate-700/80 text-sky-300 border border-slate-600 font-mono">
-                Phase 2: Mathematical Core
+                Phase 3: Alphabet Brain
               </span>
             </div>
             <p className="text-xs text-slate-400">Edge AI Indian Sign Language to Text Bridge</p>
           </div>
         </div>
 
-        {/* Telemetry & Status Badges */}
+        {/* Center / Right Control & Status Bar */}
         <div className="flex items-center gap-2.5">
+          {/* Mode Selector Pill */}
+          <div className="hidden sm:flex items-center p-1 rounded-xl bg-slate-900/80 border border-slate-700 text-xs font-medium">
+            <button
+              onClick={() => onToggleMode && onToggleMode('alphabet')}
+              className={`px-3 py-1 rounded-lg transition ${
+                recognitionMode === 'alphabet'
+                  ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40 font-semibold shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              A–Z Alphabet
+            </button>
+            <button
+              onClick={() => onToggleMode && onToggleMode('word')}
+              className={`px-3 py-1 rounded-lg transition ${
+                recognitionMode === 'word'
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-semibold shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Words (Phase 4)
+            </button>
+          </div>
+
+          {/* Keypoint Recorder Trigger Button */}
+          {onOpenRecorder && (
+            <button
+              onClick={onOpenRecorder}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-purple-500/40 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 text-xs font-medium transition shadow-sm"
+              title="Open Developer Keypoint Dataset Recorder"
+            >
+              <Database className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">Keypoint Recorder</span>
+            </button>
+          )}
+
           {/* Motion State Energy Pill */}
           <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${motion.badgeClass}`}>
             <span className={`w-2 h-2 rounded-full ${motion.dotClass}`} />
@@ -104,7 +143,7 @@ export function Navbar({
           </div>
 
           {/* Worker Status Badge */}
-          <div className={`hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium ${status.badgeClass}`}>
+          <div className={`hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium ${status.badgeClass}`}>
             <span className={`w-2 h-2 rounded-full ${status.dotClass}`} />
             <Cpu className="w-3.5 h-3.5" />
             <span>{status.label}</span>

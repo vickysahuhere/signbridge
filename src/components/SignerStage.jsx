@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { Camera, CameraOff, AlertCircle, RefreshCw, Eye, Activity } from 'lucide-react';
+import { Camera, CameraOff, AlertCircle, RefreshCw, Eye, Activity, Lock, Sparkles, Check } from 'lucide-react';
 import { startCameraLoop } from '../vision/cameraLoop.js';
 import { drawSkeleton, checkBoundaryAlert } from '../vision/drawSkeleton.js';
 
@@ -9,7 +9,9 @@ export function SignerStage({
   isWorkerReady = false,
   onFpsUpdate,
   motionState = { state: 'IDLE', pauseProgress: 0, rollingVelocity: 0 },
-  bufferSize = 0
+  bufferSize = 0,
+  alphabetPredictions = [],
+  recognitionMode = 'alphabet'
 }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -194,6 +196,76 @@ export function SignerStage({
         {isCameraActive && motionState.state === 'IDLE_COMMIT' && (
           <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 flex items-center gap-2 px-4 py-2 rounded-full bg-sky-500/95 text-slate-950 font-bold text-xs shadow-xl shadow-sky-500/25 backdrop-blur-md animate-bounce">
             <span>✨ Sentence Boundary Emitted</span>
+          </div>
+        )}
+
+        {/* Top-3 Alphabet Prediction HUD (during active fingerspelling) */}
+        {isCameraActive && recognitionMode === 'alphabet' && alphabetPredictions.length > 0 && (
+          <div className="absolute top-4 right-4 z-20 flex flex-col gap-1.5 w-48 bg-slate-900/90 backdrop-blur-md rounded-xl p-2.5 border border-slate-700/70 shadow-2xl">
+            <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 border-b border-slate-800 pb-1">
+              <span className="flex items-center gap-1 font-semibold text-sky-300">
+                <Sparkles className="w-3 h-3 text-sky-400" />
+                ISL Alphabet
+              </span>
+              <span>Top-3</span>
+            </div>
+
+            {/* Top-1 Candidate */}
+            {alphabetPredictions[0] && (
+              <div
+                className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg border transition-all ${
+                  alphabetPredictions[0].isConfident
+                    ? 'bg-emerald-500/20 border-emerald-500/60 text-emerald-300 shadow-md shadow-emerald-500/20 ring-1 ring-emerald-400/40'
+                    : 'bg-amber-500/10 border-amber-500/40 text-amber-300'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-xl font-black font-mono tracking-wider">
+                    {alphabetPredictions[0].label}
+                  </span>
+                  {alphabetPredictions[0].isConfident && (
+                    <span className="flex items-center gap-0.5 text-[10px] px-1 py-0.5 rounded bg-emerald-500/30 text-emerald-200 font-mono font-semibold">
+                      <Lock className="w-2.5 h-2.5" />
+                      LOCK
+                    </span>
+                  )}
+                </div>
+                <div className="text-right">
+                  <span className="text-xs font-mono font-bold">
+                    {Math.round(alphabetPredictions[0].confidence * 100)}%
+                  </span>
+                  <div className="w-14 h-1.5 bg-slate-800 rounded-full mt-1 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-100 ${
+                        alphabetPredictions[0].isConfident
+                          ? 'bg-emerald-400'
+                          : 'bg-amber-400'
+                      }`}
+                      style={{
+                        width: `${Math.min(100, Math.round(alphabetPredictions[0].confidence * 100))}%`
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Runners-up 2 and 3 */}
+            <div className="grid grid-cols-2 gap-1.5 pt-0.5">
+              {alphabetPredictions.slice(1, 3).map((pred) => (
+                <div
+                  key={pred.rank}
+                  className="flex items-center justify-between px-2 py-1 rounded-md bg-slate-800/80 border border-slate-700/60 text-[11px] font-mono text-slate-300"
+                >
+                  <span className="font-bold text-slate-200">
+                    {pred.rank}: {pred.label}
+                  </span>
+                  <span className="text-[10px] text-slate-400">
+                    {Math.round(pred.confidence * 100)}%
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
