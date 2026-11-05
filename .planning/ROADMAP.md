@@ -63,10 +63,10 @@ Plans:
   2. Top-1 prediction locks in only when Softmax confidence meets or exceeds the 0.75 threshold.
   3. Top-3 predicted letters and animated confidence bars render in the UI.
   4. Developer Training Drawer allows recording 100-frame normalized samples of two-handed ISL signs and downloading them as JSON/CSV.
-**Plans**: 2 plans
+**Plans**: 0/2 plans executed
 
 Plans:
-- [ ] 03-01: ONNX Runtime Web worker integration, model loading, and Softmax classification pipeline with confidence thresholding.
+- [ ] 03-01: ONNX Runtime Web worker integration, ISL Alphabet MLP generator, and Softmax classification pipeline with confidence thresholding.
 - [ ] 03-02: Developer Keypoint Recorder drawer UI and live top-3 prediction display in `<SignerStage />`.
 
 ---

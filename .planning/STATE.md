@@ -1,17 +1,17 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 2
-current_phase_name: The Math
-status: complete
-stopped_at: Phase 2 verified and complete (10/10 must-haves). Ready to plan Phase 3 via `/gsd-plan-phase 3`.
-last_updated: "2026-11-05T19:19:00.000Z"
+current_phase: 3
+current_phase_name: The Brain (Part 1)
+status: planned
+stopped_at: Phase 3 planned (03-01 and 03-02 ready). Execute via /gsd-execute-phase 3.
+last_updated: "2026-11-05T19:28:40.000Z"
 last_activity: 2026-11-05
-last_activity_desc: "Completed Phase 2 (The Math): coordinate normalization, 30-frame RingBuffer, wrist velocity motion gating, and unit tests"
-state_head: 91a307a
+last_activity_desc: "Planned Phase 3 (The Brain Part 1): ONNX Runtime Web ISL Alphabet MLP, Softmax confidence thresholding, Top-3 HUD, and Keypoint Recorder Drawer"
+state_head: a0d15c2
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 5
+  total_plans: 7
   completed_plans: 5
   percent: 33
 ---
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-11-04)
 
 **Core value:** Real-time, privacy-preserving, zero-server-cost two-way communication between Deaf ISL signers and hearing text users running 100% in the browser with <50ms message latency and >=30 FPS vision tracking.  
-**Current focus:** Phase 2: The Math (Complete) -> Phase 3: The Brain (Part 1)
+**Current focus:** Phase 3: The Brain (Part 1) — Alphabet MLP & Keypoint Recorder
 
 ## Current Position
 
-Phase: 2 of 6 (The Math)  
-Plan: 2 of 2 in current phase (02-01, 02-02 complete)  
-Status: Phase 2 Complete & Verified  
-Last activity: 2026-11-05 — Completed Phase 2 (The Math): coordinate normalization, 30-frame RingBuffer, wrist velocity motion gating, and unit tests
+Phase: 3 of 6 (The Brain Part 1)  
+Plan: 0 of 2 in current phase (03-01, 03-02 planned across 2 waves)  
+Status: Ready to execute  
+Last activity: 2026-11-05 — Planned Phase 3 (The Brain Part 1): ONNX Runtime Web ISL Alphabet MLP, Softmax confidence thresholding, Top-3 HUD, and Keypoint Recorder Drawer
 
 Progress: [███░░░░░░░] 33%
 
