@@ -90,8 +90,8 @@ export function Navbar({
           <div>
             <div className="flex items-center gap-2">
               <h1 className="font-bold text-lg text-slate-100 tracking-tight">SignBridge ISL</h1>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-slate-700/80 text-emerald-300 border border-slate-600 font-mono">
-                Phase 4: INCLUDE-50 Word AI
+              <span className="text-xs px-2 py-0.5 rounded-full bg-slate-700/80 text-sky-300 border border-slate-600 font-mono">
+                Phase 5: The Linguist
               </span>
             </div>
             <p className="text-xs text-slate-400">Edge AI Indian Sign Language to Text Bridge</p>
