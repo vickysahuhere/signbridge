@@ -20,8 +20,8 @@ Requirements for initial release, mapped directly to roadmap phases.
 - [x] **MATH-01**: Extracts 80 critical landmarks (21 Left Hand + 21 Right Hand + 12 Upper Pose + 26 Face points) and normalizes coordinates by shoulder midpoint (center) and shoulder width (scale) into a `Float32Array(240)` per frame.
 - [x] **MATH-02**: Zero-pads missing hand landmarks (when one hand is hidden) to maintain constant vector dimensions without `NaN` values.
 - [x] **MATH-03**: Maintains a 30-frame FIFO RingBuffer (`30 x 240 = 7,200` floats) representing a 1.0s sliding temporal window.
-- [ ] **MATH-04**: Computes rolling wrist velocity over the previous 5 frames to classify motion into `SIGNING_ACTIVE`, `PAUSE_COUNTDOWN`, and `IDLE_COMMIT` states.
-- [ ] **MATH-05**: Detects a 1.2s continuous idle hand pause when the buffer has active signs, triggering an automatic sentence commit.
+- [x] **MATH-04**: Computes rolling wrist velocity over the previous 5 frames to classify motion into `SIGNING_ACTIVE`, `PAUSE_COUNTDOWN`, and `IDLE_COMMIT` states.
+- [x] **MATH-05**: Detects a 1.2s continuous idle hand pause when the buffer has active signs, triggering an automatic sentence commit.
 
 ### Two-Handed Alphabet Recognition & Training Tools (The Brain Part 1)
 
@@ -83,8 +83,8 @@ Deferred to subsequent releases:
 | MATH-01 | Phase 2 | Complete |
 | MATH-02 | Phase 2 | Complete |
 | MATH-03 | Phase 2 | Complete |
-| MATH-04 | Phase 2 | Pending |
-| MATH-05 | Phase 2 | Pending |
+| MATH-04 | Phase 2 | Complete |
+| MATH-05 | Phase 2 | Complete |
 | ALPH-01 | Phase 3 | Pending |
 | ALPH-02 | Phase 3 | Pending |
 | ALPH-03 | Phase 3 | Pending |
