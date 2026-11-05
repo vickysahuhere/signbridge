@@ -32,10 +32,10 @@ Requirements for initial release, mapped directly to roadmap phases.
 
 ### Pretrained Conversational Word Recognition (The Brain Part 2)
 
-- [ ] **WORD-01**: Integrates pretrained AI4Bharat INCLUDE-50 ISL conversational word temporal model exported to ONNX format.
-- [ ] **WORD-02**: Web Worker runs temporal inference on the 30-frame sliding window every 5 frames while `SIGNING_ACTIVE` is true.
-- [ ] **WORD-03**: Implements 2-step consecutive confirmation gating: a sign is only accepted if the same gloss has top-1 confidence >=0.75 across two consecutive inference windows.
-- [ ] **WORD-04**: Supports at least 50 core everyday ISL signs (Greetings, Pronouns, Questions, Actions, Essentials).
+- [x] **WORD-01**: Integrates pretrained AI4Bharat INCLUDE-50 ISL conversational word temporal model exported to ONNX format.
+- [x] **WORD-02**: Web Worker runs temporal inference on the 30-frame sliding window every 5 frames while `SIGNING_ACTIVE` is true.
+- [x] **WORD-03**: Implements 2-step consecutive confirmation gating: a sign is only accepted if the same gloss has top-1 confidence >=0.75 across two consecutive inference windows.
+- [x] **WORD-04**: Supports at least 50 core everyday ISL signs (Greetings, Pronouns, Questions, Actions, Essentials).
 
 ### Computational Linguistics & Sentence Engine (The Linguist)
 
@@ -89,10 +89,10 @@ Deferred to subsequent releases:
 | ALPH-02 | Phase 3 | Complete |
 | ALPH-03 | Phase 3 | Complete |
 | ALPH-04 | Phase 3 | Complete |
-| WORD-01 | Phase 4 | Pending |
-| WORD-02 | Phase 4 | Pending |
-| WORD-03 | Phase 4 | Pending |
-| WORD-04 | Phase 4 | Pending |
+| WORD-01 | Phase 4 | Complete |
+| WORD-02 | Phase 4 | Complete |
+| WORD-03 | Phase 4 | Complete |
+| WORD-04 | Phase 4 | Complete |
 | LING-01 | Phase 5 | Pending |
 | LING-02 | Phase 5 | Pending |
 | LING-03 | Phase 5 | Pending |
