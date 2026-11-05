@@ -189,7 +189,39 @@ async function initVision(config = {}) {
 
   try {
     self.postMessage({ type: 'WORKER_STATUS', status: 'loading', message: 'Resolving WASM binaries...' });
-    const vision = await FilesetResolver.forVisionTasks(wasmCdn);
+    let vision;
+    try {
+      // In ESM workers, prefer the module target which assigns to globalThis.ModuleFactory
+      vision = await FilesetResolver.forVisionTasks(wasmCdn, true);
+    } catch {
+      vision = await FilesetResolver.forVisionTasks(wasmCdn);
+    }
+
+    // Workaround for "ModuleFactory not set" error in ES Module Web Workers:
+    // Browser ESM workers do not support importScripts(), and cross-origin dynamic import()
+    // inside worker scope does not bind ModuleFactory to self/globalThis.
+    // We pre-fetch the loader script, evaluate it into globalThis.ModuleFactory, and delete
+    // wasmLoaderPath so createFromOptions uses the prepared global factory directly.
+    let cachedFactory = self.ModuleFactory;
+    if (!cachedFactory && vision?.wasmLoaderPath) {
+      try {
+        const resp = await fetch(vision.wasmLoaderPath);
+        if (resp.ok) {
+          let scriptText = await resp.text();
+          if (!scriptText.includes('self.ModuleFactory') && !scriptText.includes('globalThis.ModuleFactory')) {
+            scriptText += '\nself.ModuleFactory = ModuleFactory;';
+          }
+          (0, eval)(scriptText);
+          cachedFactory = self.ModuleFactory;
+        }
+      } catch (loaderErr) {
+        console.warn('[vision.worker] ModuleFactory pre-load notice:', loaderErr);
+      }
+    }
+
+    if (cachedFactory) {
+      delete vision.wasmLoaderPath;
+    }
 
     self.postMessage({ type: 'WORKER_STATUS', status: 'loading', message: 'Loading Holistic model...' });
     const resolvedModelPath = await fetchAndCacheModel(rawModelUrl);
@@ -199,6 +231,9 @@ async function initVision(config = {}) {
     // Attempt GPU acceleration first, fallback to CPU if WebGL fails in worker
     let delegate = 'GPU';
     try {
+      if (!self.ModuleFactory && cachedFactory) {
+        self.ModuleFactory = cachedFactory;
+      }
       holisticLandmarker = await HolisticLandmarker.createFromOptions(vision, {
         baseOptions: {
           modelAssetPath: resolvedModelPath,
@@ -218,6 +253,9 @@ async function initVision(config = {}) {
     } catch (gpuError) {
       console.warn('[vision.worker] GPU delegate failed, falling back to CPU:', gpuError);
       delegate = 'CPU';
+      if (!self.ModuleFactory && cachedFactory) {
+        self.ModuleFactory = cachedFactory;
+      }
       holisticLandmarker = await HolisticLandmarker.createFromOptions(vision, {
         baseOptions: {
           modelAssetPath: resolvedModelPath,
