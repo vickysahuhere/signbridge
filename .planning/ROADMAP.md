@@ -27,11 +27,11 @@ SignBridge ISL is built across 6 progressive, testable phases—transitioning fr
   2. MediaPipe Holistic models download and cache into browser Cache Storage/IndexedDB, running in `vision.worker.js` with WebGL acceleration.
   3. Canvas renders a color-coded 3D skeleton in real time: Left Hand in Sky Blue (`#38BDF8`), Right Hand in Emerald Green (`#34D399`), Upper Pose in White, and Face in Amber.
   4. Moving hands outside the framing box triggers a visible Rose Red (`#F43F5E`) alert border.
-**Plans**: 1/3 plans executed
+**Plans**: 2/3 plans executed
 
 Plans:
 - [x] 01-01: Vite + React project scaffolding, Tailwind CSS setup, dark UI layout shell, and camera permission handling via `requestVideoFrameCallback`.
-- [ ] 01-02: Background Web Worker (`vision.worker.js`) integration with `@mediapipe/tasks-vision`, shader warm-up, and model caching.
+- [x] 01-02: Background Web Worker (`vision.worker.js`) integration with `@mediapipe/tasks-vision`, shader warm-up, and model caching.
 - [ ] 01-03: Dual-layer canvas rendering (`drawSkeleton.js`) with distinct hand color coding and out-of-frame boundary detection.
 
 ---
@@ -130,7 +130,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. The Eyes | 1/3 | In Progress | - |
+| 1. The Eyes | 2/3 | In Progress | - |
 | 2. The Math | 0/2 | Not started | - |
 | 3. The Brain (Part 1) | 0/2 | Not started | - |
 | 4. The Brain (Part 2) | 0/2 | Not started | - |
