@@ -9,7 +9,7 @@ SignBridge ISL is built across 6 progressive, testable phases—transitioning fr
 **Phase Numbering:**
 - Integer phases (1, 2, 3, 4, 5, 6): Planned milestone work
 
-- [ ] **Phase 1: The Eyes** - Webcam pipeline, MediaPipe Holistic 3D tracking in Web Worker, and 60 FPS color-coded canvas overlay
+- [x] **Phase 1: The Eyes** - Webcam pipeline, MediaPipe Holistic 3D tracking in Web Worker, and 60 FPS color-coded canvas overlay
 - [ ] **Phase 2: The Math** - Shoulder-centered coordinate normalization, 30-frame ring buffer, and wrist velocity motion gating
 - [ ] **Phase 3: The Brain (Part 1)** - Two-handed ISL Alphabet (A–Z) recognition with onnxruntime-web and developer keypoint recorder
 - [ ] **Phase 4: The Brain (Part 2)** - Pretrained AI4Bharat INCLUDE-50 ISL conversational word sequence recognition
@@ -130,7 +130,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. The Eyes | 3/3 | In Progress | - |
+| 1. The Eyes | 3/3 | Complete | 2026-11-05 |
 | 2. The Math | 0/2 | Not started | - |
 | 3. The Brain (Part 1) | 0/2 | Not started | - |
 | 4. The Brain (Part 2) | 0/2 | Not started | - |
