@@ -28,9 +28,17 @@ let isWordModelReady = false;
 let frameCounter = 0;
 
 const wordConfirmationGate = new ConsecutiveConfirmationGate({
-  confidenceThreshold: 0.75,
-  requiredConsecutive: 2,
-  cooldownFrames: 6
+  confidenceThreshold: 0.80,
+  requiredConsecutive: 6,
+  cooldownFrames: 20,
+  lockUntilRelease: true
+});
+
+const alphabetConfirmationGate = new ConsecutiveConfirmationGate({
+  confidenceThreshold: 0.80,
+  requiredConsecutive: 8,
+  cooldownFrames: 18,
+  lockUntilRelease: true
 });
 const WORD_GLOSS_LABELS = ISL_WORD_LABELS.map(w => w.gloss);
 
@@ -330,8 +338,20 @@ async function processFrame(imageBitmap, timestamp) {
 
     // 4. Run Authentic Two-Handed & One-Handed ISL Alphabet Fingerspelling Classification
     let alphabetPredictions = [];
+    let confirmedLetter = null;
     if (leftHand.length > 0 || rightHand.length > 0) {
       alphabetPredictions = classifyIslAlphabet(leftHand, rightHand, pose);
+      if (alphabetPredictions.length > 0) {
+        const topCandidate = alphabetPredictions[0];
+        const confirmation = alphabetConfirmationGate.processCandidate(topCandidate);
+        if (confirmation.confirmed) {
+          confirmedLetter = confirmation.word;
+        }
+      } else {
+        alphabetConfirmationGate.reset();
+      }
+    } else {
+      alphabetConfirmationGate.reset();
     }
 
     // 5. Run Authentic ISL Word Recognition grounded in 3D joint geometry & kinematics
@@ -366,6 +386,7 @@ async function processFrame(imageBitmap, timestamp) {
       motion,
       bufferSize: ringBuffer.size(),
       alphabetPredictions,
+      latestConfirmedLetter: confirmedLetter,
       wordPredictions,
       timestamp,
       processingTimeMs

@@ -73,3 +73,33 @@ test('ConsecutiveConfirmationGate - reset() clears all internal state', () => {
   assert.strictEqual(gate.consecutiveCount, 0);
   assert.strictEqual(gate.lastConfirmedWord, null);
 });
+
+test('ConsecutiveConfirmationGate - lockUntilRelease prevents repeated firing while held', () => {
+  const gate = new ConsecutiveConfirmationGate({
+    confidenceThreshold: 0.75,
+    requiredConsecutive: 2,
+    lockUntilRelease: true
+  });
+
+  // Step 1: Frame 1 pending
+  const r1 = gate.processCandidate({ label: 'A', confidence: 0.85 });
+  assert.strictEqual(r1.confirmed, false);
+
+  // Step 2: Frame 2 confirmed
+  const r2 = gate.processCandidate({ label: 'A', confidence: 0.88 });
+  assert.strictEqual(r2.confirmed, true);
+  assert.strictEqual(r2.word, 'A');
+
+  // Step 3: Frame 3 still holding 'A' - MUST NOT re-confirm
+  const r3 = gate.processCandidate({ label: 'A', confidence: 0.90 });
+  assert.strictEqual(r3.confirmed, false);
+  assert.strictEqual(r3.isLocked, true);
+
+  // Step 4: Relax hand (confidence drops or null)
+  gate.processCandidate(null);
+
+  // Step 5: User makes 'A' again - can confirm after 2 frames
+  gate.processCandidate({ label: 'A', confidence: 0.85 });
+  const r5 = gate.processCandidate({ label: 'A', confidence: 0.88 });
+  assert.strictEqual(r5.confirmed, true);
+});

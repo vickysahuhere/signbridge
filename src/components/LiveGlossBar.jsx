@@ -1,14 +1,15 @@
 import React from 'react';
-import { Undo2, Trash2, Send, Clock, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Undo2, Trash2, Send, Clock, MessageSquare, CheckCircle2 } from 'lucide-react';
 
 /**
- * LiveGlossBar
+ * LiveGlossBar (Retro / 90s Nostalgia Edition - Proportional & Compact)
  *
- * Real-time sign composition bar (LING-02, LING-05):
- * - Displays recognized ISL gloss token pills.
- * - Shows live English translation preview reconstructed in real time.
- * - Renders an animated SVG circular 1.2s countdown ring representing pause before auto-send.
- * - Provides manual [Undo Last Sign], [Clear All], and [Send Now] controls.
+ * Real-time sign composition tool:
+ * - Fitted height that seamlessly complements SignerStage.
+ * - Displays recognized ISL gloss tokens in raised 3D chips.
+ * - Reconstructed English translation preview in a classic Notepad panel (#FFFFCC).
+ * - Segmented 1.2s pause countdown bar.
+ * - Outset 3D action controls with tactile press states.
  */
 export function LiveGlossBar({
   glosses = [],
@@ -22,148 +23,131 @@ export function LiveGlossBar({
   const isPausing = motionState.state === 'PAUSE_COUNTDOWN';
   const isCommitted = motionState.state === 'IDLE_COMMIT';
 
-  // SVG Circular countdown calculations (Radius = 18, Circumference = 2 * PI * 18 ≈ 113.1)
-  const radius = 18;
-  const circumference = 2 * Math.PI * radius;
   const pauseProgress = Math.max(0, Math.min(1, motionState.pauseProgress || 0));
-  const strokeDashoffset = circumference * (1 - pauseProgress);
   const remainingSeconds = Math.max(0, (1 - pauseProgress) * 1.2).toFixed(1);
+  const percent = Math.round(pauseProgress * 100);
 
   return (
-    <div className="w-full bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 lg:p-5 shadow-2xl backdrop-blur-md transition-all">
-      {/* Top Header: Title, Token Count & Action Controls */}
-      <div className="flex items-center justify-between border-b border-slate-700/60 pb-3 mb-3.5">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-300">
-            <Sparkles className="w-4 h-4" />
-          </div>
-          <h3 className="font-bold text-sm text-slate-100 tracking-tight">
-            Live Sign Composition
-          </h3>
-          <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-900/80 border border-slate-700 text-slate-300 font-mono">
-            {glosses.length} {glosses.length === 1 ? 'sign' : 'signs'}
-          </span>
+    <div className="retro-window w-full shadow-md flex-1 min-h-0 flex flex-col overflow-hidden">
+      {/* 1. Window Title Bar */}
+      <div className="retro-window-titlebar flex-shrink-0">
+        <div className="flex items-center gap-1.5">
+          <MessageSquare className="w-3.5 h-3.5 stroke-[2px]" />
+          <span>Live Sentence Composer - [Linguistic Buffer]</span>
         </div>
-
-        {/* Manual Editing Controls (LING-02) */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onUndo}
-            disabled={!hasGlosses}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-900/60 hover:bg-slate-700/60 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-medium text-slate-300 transition shadow-sm"
-            title="Undo last sign (LING-02)"
-          >
-            <Undo2 className="w-3.5 h-3.5 text-amber-400" />
-            <span className="hidden sm:inline">Undo Sign</span>
-          </button>
-
-          <button
-            onClick={onClear}
-            disabled={!hasGlosses}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-900/60 hover:bg-rose-500/20 hover:border-rose-500/40 hover:text-rose-300 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-medium text-slate-300 transition shadow-sm"
-            title="Clear all signs (LING-02)"
-          >
-            <Trash2 className="w-3.5 h-3.5 text-rose-400" />
-            <span className="hidden sm:inline">Clear</span>
-          </button>
-
-          <button
-            onClick={onCommit}
-            disabled={!hasGlosses}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-bold text-xs transition shadow-md shadow-emerald-500/20"
-            title="Send sentence immediately"
-          >
-            <Send className="w-3.5 h-3.5 stroke-[2.5]" />
-            <span>Send Now</span>
-          </button>
+        <div className="flex items-center gap-1">
+          <button className="retro-window-btn" aria-label="Minimize">_</button>
+          <button className="retro-window-btn" aria-label="Maximize">□</button>
+          <button className="retro-window-btn" aria-label="Close">×</button>
         </div>
       </div>
 
-      {/* Middle Row: Token Pills Stream & 1.2s Circular Pause Progress */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 min-h-[52px]">
-        {/* Token Pills Flex Stream */}
-        <div className="flex-1 flex flex-wrap items-center gap-2 overflow-x-auto py-1">
+      {/* 2. Window Content Area */}
+      <div className="p-2 bg-[#C0C0C0] flex-1 flex flex-col justify-between gap-1.5 min-h-0 overflow-hidden">
+        {/* Top Header Controls Toolbar */}
+        <div className="flex items-center justify-between gap-1 pb-1 border-b border-[#808080] flex-shrink-0">
+          <div className="flex items-center gap-1.5">
+            <span className="font-heading text-[11px] font-bold uppercase text-[#000000]">
+              Signs:
+            </span>
+            <div className="retro-inset px-1.5 py-0.2 bg-[#FFFFFF] font-mono text-[11px] font-bold text-[#000080]">
+              {glosses.length} {glosses.length === 1 ? 'TOKEN' : 'TOKENS'}
+            </div>
+          </div>
+
+          {/* Manual Editing Action Buttons */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={onUndo}
+              disabled={!hasGlosses}
+              className="retro-btn text-xs !py-0.5 !px-1.5"
+              title="Undo last sign (LING-02)"
+            >
+              <Undo2 className="w-3 h-3 stroke-[2px] text-[#000080]" />
+              <span>[ Undo ]</span>
+            </button>
+
+            <button
+              onClick={onClear}
+              disabled={!hasGlosses}
+              className="retro-btn text-xs !py-0.5 !px-1.5"
+              title="Clear all signs (LING-02)"
+            >
+              <Trash2 className="w-3 h-3 stroke-[2px] text-[#CC0000]" />
+              <span>[ Clear ]</span>
+            </button>
+
+            <button
+              onClick={onCommit}
+              disabled={!hasGlosses}
+              className="retro-btn retro-btn-success text-xs font-bold !py-0.5 !px-2"
+              title="Transmit sentence immediately"
+            >
+              <Send className="w-3 h-3 stroke-[2px]" />
+              <span>[ SEND NOW ]</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Gloss Tokens Horizontal Stream */}
+        <div className="retro-inset bg-[#FFFFFF] p-1.5 flex-1 min-h-[38px] max-h-[55px] flex items-center gap-1 overflow-x-auto">
           {hasGlosses ? (
             glosses.map((gloss, idx) => (
               <React.Fragment key={`${gloss}-${idx}`}>
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-mono font-bold text-xs shadow-sm shadow-emerald-500/10 animate-in fade-in zoom-in-95 duration-100">
+                <div className="retro-outset bg-[#000080] text-[#FFFFFF] px-1.5 py-0.5 font-mono font-bold text-[11px] flex items-center shadow-sm whitespace-nowrap">
                   <span>{gloss}</span>
                 </div>
                 {idx < glosses.length - 1 && (
-                  <span className="text-slate-500 font-mono text-xs select-none">→</span>
+                  <span className="text-[#808080] font-mono font-bold text-xs select-none">
+                    →
+                  </span>
                 )}
               </React.Fragment>
             ))
           ) : (
-            <p className="text-xs text-slate-500 italic flex items-center gap-1.5 select-none">
-              <Clock className="w-3.5 h-3.5 text-slate-500" />
-              Sign in front of camera to compose a sentence. Rest hands for 1.2s to auto-send.
+            <p className="text-[11px] text-[#808080] font-mono italic select-none">
+              [ Perform gestures to compose. Rest hands 1.2s to auto-transmit. ]
             </p>
           )}
         </div>
 
-        {/* 1.2s Pause Countdown Circular Ring (LING-05) */}
+        {/* 1.2s Pause Countdown Telemetry Bar (Conditional) */}
         {(isPausing || isCommitted) && hasGlosses && (
-          <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-700/80 shadow-inner flex-shrink-0 animate-in fade-in duration-150">
+          <div className="retro-inset bg-[#FFFFCC] p-1 flex items-center justify-between text-[11px] font-mono flex-shrink-0">
             {isCommitted ? (
-              <div className="flex items-center gap-1.5 text-xs text-sky-300 font-semibold font-mono">
-                <CheckCircle2 className="w-4 h-4 text-sky-400" />
-                <span>Auto-Committed!</span>
+              <div className="flex items-center gap-1 text-[#00AA00] font-bold">
+                <CheckCircle2 className="w-3 h-3 stroke-[2px]" />
+                <span>1.2s PAUSE DETECTED: AUTO-TRANSMITTED!</span>
               </div>
             ) : (
-              <>
-                {/* Radial SVG Ring */}
-                <div className="relative w-9 h-9 flex items-center justify-center">
-                  <svg className="w-9 h-9 -rotate-90 transform" viewBox="0 0 44 44">
-                    {/* Background track */}
-                    <circle
-                      cx="22"
-                      cy="22"
-                      r={radius}
-                      stroke="currentColor"
-                      strokeWidth="3.5"
-                      fill="transparent"
-                      className="text-slate-700"
-                    />
-                    {/* Active countdown fill */}
-                    <circle
-                      cx="22"
-                      cy="22"
-                      r={radius}
-                      stroke="currentColor"
-                      strokeWidth="3.5"
-                      strokeDasharray={circumference}
-                      strokeDashoffset={strokeDashoffset}
-                      strokeLinecap="round"
-                      fill="transparent"
-                      className="text-amber-400 transition-all duration-75"
-                    />
-                  </svg>
-                  <span className="absolute font-mono text-[10px] font-bold text-amber-300">
-                    {remainingSeconds}s
-                  </span>
+              <div className="flex items-center justify-between w-full gap-2">
+                <div className="flex items-center gap-1 text-[#000080] font-bold">
+                  <Clock className="w-3 h-3 stroke-[2px]" />
+                  <span>RESTING: AUTO-SEND IN {remainingSeconds}s</span>
                 </div>
-                <div className="flex flex-col text-left">
-                  <span className="text-[11px] font-bold text-amber-300">Pausing</span>
-                  <span className="text-[10px] text-slate-400 font-mono">Auto-send in 1.2s</span>
+                <div className="w-28 h-2 bg-[#808080] retro-inset p-0.2 flex">
+                  <div
+                    className="bg-[#000080] h-full"
+                    style={{ width: `${percent}%` }}
+                  />
                 </div>
-              </>
+              </div>
             )}
           </div>
         )}
-      </div>
 
-      {/* Bottom English Translation Preview */}
-      {previewText && (
-        <div className="mt-3.5 pt-3 border-t border-slate-700/50 flex items-center gap-2 text-sm bg-slate-900/60 rounded-xl px-3.5 py-2 border border-slate-700/40">
-          <span className="text-xs font-mono font-semibold text-sky-400 uppercase tracking-wider select-none">
-            English Preview:
-          </span>
-          <span className="text-slate-100 font-medium tracking-wide">
-            "{previewText}"
-          </span>
+        {/* English Translation Preview Area (Windows Notepad Style) */}
+        <div className="retro-inset bg-[#FFFFCC] p-1.5 border border-[#808080] flex-shrink-0">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] font-mono font-bold uppercase text-[#000080] whitespace-nowrap">
+              TRANSLATION:
+            </span>
+            <span className="text-xs font-bold text-[#000000] font-sans truncate">
+              {previewText ? `"${previewText}"` : <span className="text-[#808080] font-normal italic">[ Awaiting input ]</span>}
+            </span>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

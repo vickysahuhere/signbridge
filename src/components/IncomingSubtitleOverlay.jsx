@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { MessageSquareQuote, Sparkles } from 'lucide-react';
 
 /**
- * IncomingSubtitleOverlay
+ * IncomingSubtitleOverlay (Retro Edition)
  * 
- * Top Glass HUD Subtitle Banner (NETW-05):
- * - Positioned right below the top bezel of the webcam stage for zero eye-travel ergonomics.
- * - Allows Deaf ISL signer to read hearing partner's incoming text responses while looking directly into the camera.
- * - High-contrast glassmorphic design with subtle auto-dismissal.
+ * Closed Captioning / HUD Overlay on Video Viewport:
+ * - Authentic 90s closed-caption box with 3D bevels.
+ * - Yellow notepad (#FFFFCC) high-contrast dialog.
+ * - 0px border radius, 2px stroke icons.
  */
 export function IncomingSubtitleOverlay({ latestReply = null }) {
   const [isVisible, setIsVisible] = useState(false);
@@ -27,30 +27,28 @@ export function IncomingSubtitleOverlay({ latestReply = null }) {
   }
 
   return (
-    <aside aria-label="Incoming Subtitles" className="absolute top-4 inset-x-4 z-30 flex justify-center pointer-events-none animate-in fade-in slide-in-from-top-3 duration-300">
-      <div className="max-w-2xl w-full bg-slate-950/90 backdrop-blur-md border border-sky-500/40 text-slate-100 py-3 px-5 rounded-2xl shadow-2xl shadow-sky-950/50 flex items-center justify-between gap-3 ring-1 ring-sky-400/30">
-        <div className="flex items-center gap-3 overflow-hidden">
-          <div className="w-8 h-8 rounded-xl bg-sky-500/20 border border-sky-500/40 flex items-center justify-center text-sky-300 flex-shrink-0">
-            <MessageSquareQuote className="w-4 h-4 stroke-[2.5]" />
+    <aside
+      aria-label="Incoming Subtitles"
+      className="absolute top-2 inset-x-2 z-30 flex justify-center pointer-events-none"
+    >
+      <div className="retro-outset bg-[#FFFFCC] text-[#000000] border-2 border-[#000000] p-2 max-w-xl w-full shadow-xl flex items-center justify-between gap-2 pointer-events-auto">
+        <div className="flex items-center gap-2 overflow-hidden">
+          <div className="w-6 h-6 retro-inset bg-[#000080] text-[#FFFFFF] flex items-center justify-center flex-shrink-0">
+            <MessageSquareQuote className="w-4 h-4 stroke-[2px]" />
           </div>
           <div className="flex flex-col text-left overflow-hidden">
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-bold font-mono text-sky-300 tracking-wide uppercase">
-                {latestReply.sender || 'Partner'} Replied:
-              </span>
-              <span className="text-[10px] text-slate-400 font-mono">
-                {latestReply.timestamp || 'Just now'}
-              </span>
+            <div className="flex items-center gap-2 text-[10px] font-mono font-bold text-[#000080]">
+              <span>[SUBTITLES] {latestReply.sender || 'Partner'} SAYS:</span>
+              <span className="text-[#808080]">({latestReply.timestamp || 'Just now'})</span>
             </div>
-            <p className="text-base sm:text-lg font-bold text-slate-100 tracking-tight truncate drop-shadow-sm">
+            <p className="text-sm font-bold text-[#000000] tracking-tight truncate">
               "{latestReply.text}"
             </p>
           </div>
         </div>
 
-        <div className="hidden sm:flex items-center gap-1 text-[10px] font-mono text-sky-400/80 px-2.5 py-1 rounded-lg bg-sky-500/10 border border-sky-500/20 flex-shrink-0">
-          <Sparkles className="w-3 h-3 text-sky-400" />
-          <span>HUD Subtitles</span>
+        <div className="hidden sm:flex items-center gap-1 text-[10px] font-mono font-bold text-[#000000] px-1.5 py-0.5 retro-inset bg-[#FFFFFF] flex-shrink-0">
+          <span>HUD CC [ON]</span>
         </div>
       </div>
     </aside>

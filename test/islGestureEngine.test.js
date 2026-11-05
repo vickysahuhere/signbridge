@@ -99,3 +99,19 @@ test('islGestureEngine - Alphabet Letter L recognized accurately', () => {
   assert.strictEqual(letters[0].label, 'L');
   assert.ok(letters[0].confidence >= 0.90);
 });
+
+test('islGestureEngine - rejects resting hand at bottom of frame', () => {
+  const restingHand = [
+    { x: 0.5, y: 0.92, z: 0 }, // wrist below 0.85
+    ...Array(20).fill({ x: 0.5, y: 0.90, z: 0 })
+  ];
+
+  const analyzed = analyzeHand(restingHand);
+  assert.strictEqual(analyzed, null, 'Resting hand at bottom of frame must be ignored');
+
+  const words = classifyIslWord(null, restingHand, [], { state: 'IDLE' });
+  assert.strictEqual(words.length, 0);
+
+  const letters = classifyIslAlphabet(null, restingHand, []);
+  assert.strictEqual(letters.length, 0);
+});

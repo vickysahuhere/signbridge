@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { Camera, CameraOff, AlertCircle, RefreshCw, Eye, Activity, Lock, Sparkles, Check } from 'lucide-react';
+import { Camera, CameraOff, AlertCircle, RefreshCw, Eye, Activity, Lock, Sparkles, Check, Video, Monitor } from 'lucide-react';
 import { startCameraLoop } from '../vision/cameraLoop.js';
 import { drawSkeleton, checkBoundaryAlert } from '../vision/drawSkeleton.js';
 import { IncomingSubtitleOverlay } from './IncomingSubtitleOverlay.jsx';
@@ -12,6 +12,7 @@ export function SignerStage({
   motionState = { state: 'IDLE', pauseProgress: 0, rollingVelocity: 0 },
   bufferSize = 0,
   alphabetPredictions = [],
+  latestConfirmedLetter = null,
   wordPredictions = { topCandidates: [], confirmedWord: null },
   latestConfirmedWord = null,
   latestReply = null,
@@ -55,8 +56,8 @@ export function SignerStage({
       console.error('[SignerStage] Camera access denied or failed:', err);
       setCameraError(
         err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError'
-          ? 'Camera permission denied. Please allow camera access in your browser settings to track ISL gestures.'
-          : `Failed to access webcam: ${err.message || 'Unknown device error'}`
+          ? 'Camera permission denied. Please enable camera access in your browser to track ISL signs.'
+          : `Video capture error: ${err.message || 'Unknown device error'}`
       );
       setIsCameraActive(false);
     } finally {
@@ -100,9 +101,9 @@ export function SignerStage({
         lastFpsCalcTimeRef.current = now;
       }
 
-      // Dispatch frame to consumer (worker)
+      // Delegate frame to Web Worker via parent callback
       if (onFrame) {
-        onFrame(video, timestamp, metadata);
+        onFrame(video, timestamp);
       }
     });
 
@@ -111,453 +112,281 @@ export function SignerStage({
     };
   }, [isCameraActive, onFrame, onFpsUpdate]);
 
-  // Render 3D skeleton overlay whenever new landmarks arrive
+  // Render 3D skeleton and perform boundary detection on each landmark update
   useEffect(() => {
-    if (!canvasRef.current) return;
+    if (!canvasRef.current || !isCameraActive) return;
+
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
 
-    if (!isCameraActive || !showSkeleton) {
-      ctx.clearRect(0, 0, 640, 480);
-      return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (showSkeleton && latestLandmarks) {
+      drawSkeleton(ctx, latestLandmarks, canvas.width, canvas.height);
     }
 
-    // Check boundary alerts
-    const alertResult = checkBoundaryAlert(latestLandmarks, 0.10);
-    setBoundaryAlert(alertResult);
+    if (latestLandmarks) {
+      const alertState = checkBoundaryAlert(latestLandmarks, canvas.width, canvas.height);
+      setBoundaryAlert(alertState);
+    }
+  }, [latestLandmarks, showSkeleton, isCameraActive]);
 
-    // Render skeleton mirrored horizontally to match mirrored video feed
-    ctx.save();
-    ctx.translate(640, 0);
-    ctx.scale(-1, 1);
-    drawSkeleton(ctx, latestLandmarks, { showGuide: true, showFace: true });
-    ctx.restore();
-  }, [latestLandmarks, isCameraActive, showSkeleton]);
-
-  // Hand detection status check
-  const leftHandList = latestLandmarks?.leftHandLandmarks || [];
-  const rightHandList = latestLandmarks?.rightHandLandmarks || [];
-  const hasLeftHand = Array.isArray(leftHandList) && leftHandList.length > 0;
-  const hasRightHand = Array.isArray(rightHandList) && rightHandList.length > 0;
-  const hasAnyHand = hasLeftHand || hasRightHand;
-
-  // Cleanup stream on component unmount
-  useEffect(() => {
-    return () => {
-      stopCamera();
-    };
-  }, [stopCamera]);
+  const hasLeftHand = Boolean(latestLandmarks && latestLandmarks.leftHandLandmarks && latestLandmarks.leftHandLandmarks.length > 0);
+  const hasRightHand = Boolean(latestLandmarks && latestLandmarks.rightHandLandmarks && latestLandmarks.rightHandLandmarks.length > 0);
 
   return (
-    <div className="flex flex-col items-center w-full max-w-4xl mx-auto">
-      {/* Viewport Card */}
-      <div
-        className={`relative w-full max-w-[640px] aspect-[4/3] bg-slate-950 rounded-2xl overflow-hidden border-2 transition-all duration-300 shadow-2xl ${
-          boundaryAlert.isOutOfFrame
-            ? 'border-rose-500 shadow-rose-500/20 ring-4 ring-rose-500/30'
-            : isCameraActive
-            ? 'border-emerald-500/40 shadow-emerald-500/10'
-            : 'border-slate-700/60'
-        }`}
-      >
-        {/* Mirrored Video Feed */}
-        <video
-          ref={videoRef}
-          className="w-full h-full object-cover transform -scale-x-100"
-          playsInline
-          muted
-          autoPlay
-        />
+    <div className="retro-window w-full shadow-md flex-shrink-0 flex flex-col">
+      {/* 1. Window Title Bar */}
+      <div className="retro-window-titlebar flex-shrink-0">
+        <div className="flex items-center gap-1.5">
+          <Video className="w-3.5 h-3.5 stroke-[2px]" />
+          <span>Capture Window - [640x480 @ 30 FPS]</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <button className="retro-window-btn" aria-label="Minimize">_</button>
+          <button className="retro-window-btn" aria-label="Maximize">□</button>
+          <button className="retro-window-btn" aria-label="Close">×</button>
+        </div>
+      </div>
 
-        {/* Synchronized 640x480 Canvas Skeleton Overlay */}
-        <canvas
-          ref={canvasRef}
-          width={640}
-          height={480}
-          className="absolute inset-0 w-full h-full object-cover pointer-events-none z-10"
-        />
+      {/* 2. Window Body Content */}
+      <div className="p-2 bg-[#C0C0C0]">
+        {/* Main Video Viewport (Proportionate height, fits desktop viewport without scrolling) */}
+        <div className="relative w-full h-[220px] sm:h-[260px] max-w-[640px] mx-auto retro-inset bg-[#000000] overflow-hidden">
+          {/* Incoming Subtitle HUD */}
+          <IncomingSubtitleOverlay latestReply={latestReply} />
 
-        {/* Top Glass HUD Subtitle Banner (NETW-05: Zero Eye-Travel Ergonomics) */}
-        <IncomingSubtitleOverlay latestReply={latestReply} />
+          {/* Hidden Video Source Element */}
+          <video
+            ref={videoRef}
+            playsInline
+            muted
+            className={`w-full h-full object-cover -scale-x-100 ${
+              isCameraActive ? 'block' : 'hidden'
+            }`}
+          />
 
-        {/* Boundary Alert Warning Badge */}
-        {boundaryAlert.isOutOfFrame && (
-          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-500/90 text-slate-950 font-bold text-xs shadow-lg backdrop-blur-md animate-pulse">
-            <AlertCircle className="w-4 h-4 text-slate-950" />
-            <span>{boundaryAlert.message}</span>
-          </div>
-        )}
+          {/* Transparent Canvas for Skeleton Landmark Overlay */}
+          <canvas
+            ref={canvasRef}
+            width={640}
+            height={480}
+            className={`absolute inset-0 w-full h-full object-cover -scale-x-100 pointer-events-none z-10 ${
+              isCameraActive ? 'block' : 'hidden'
+            }`}
+          />
 
-        {/* Upper Body & Hands Positioning Hint */}
-        {isCameraActive && !hasAnyHand && !boundaryAlert.isOutOfFrame && (
-          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/90 border border-sky-400/50 text-sky-200 text-xs shadow-xl backdrop-blur-md">
-            <span>👋 Step back so upper body and hands are in frame</span>
-          </div>
-        )}
-
-        {/* 1.2s Auto-Commit Pause Countdown Progress Bar */}
-        {isCameraActive && motionState.state === 'PAUSE_COUNTDOWN' && (
-          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 w-72 bg-slate-900/90 backdrop-blur-md rounded-xl p-2.5 border border-amber-500/50 shadow-xl shadow-amber-500/10">
-            <div className="flex items-center justify-between text-[11px] font-mono text-amber-300 mb-1.5">
-              <span className="font-semibold flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-                Auto-Commit Countdown
-              </span>
-              <span>{Math.round((motionState.pauseProgress || 0) * 100)}%</span>
+          {/* Out-of-frame Boundary Alert Notice */}
+          {boundaryAlert.isOutOfFrame && isCameraActive && (
+            <div className="absolute top-1.5 inset-x-1.5 z-20 flex justify-center pointer-events-none">
+              <div className="retro-outset bg-[#FFFF00] text-[#000000] border-2 border-[#000000] px-2 py-0.5 font-mono font-bold text-[10px] flex items-center gap-1 shadow-md">
+                <AlertCircle className="w-3 h-3 text-[#FF0000] stroke-[2px]" />
+                <span>WARNING: {boundaryAlert.message}</span>
+              </div>
             </div>
-            <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-700/60">
-              <div
-                className="h-full bg-gradient-to-r from-amber-500 to-amber-400 transition-all duration-75 rounded-full"
-                style={{ width: `${Math.min(100, Math.round((motionState.pauseProgress || 0) * 100))}%` }}
-              />
-            </div>
-          </div>
-        )}
+          )}
 
-        {/* Auto-Commit Flash Banner */}
-        {isCameraActive && motionState.state === 'IDLE_COMMIT' && (
-          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 flex items-center gap-2 px-4 py-2 rounded-full bg-sky-500/95 text-slate-950 font-bold text-xs shadow-xl shadow-sky-500/25 backdrop-blur-md animate-bounce">
-            <span>✨ Sentence Boundary Emitted</span>
-          </div>
-        )}
+          {/* Active HUD Overlays (Upper Right: Top Candidate Recognition Box) */}
+          {isCameraActive && recognitionMode === 'word' && wordPredictions.topCandidates && wordPredictions.topCandidates.length > 0 && (
+            <div className="absolute top-1.5 right-1.5 z-20 retro-outset bg-[#C0C0C0] p-1 border border-[#000000] shadow-md max-w-[190px]">
+              <div className="bg-[#000080] text-[#FFFFFF] px-1 py-0.2 text-[9px] font-bold flex items-center justify-between mb-0.5">
+                <span>ISL RECOGNITION</span>
+                <span className="text-[#00FF00] font-mono text-[8px]">LIVE</span>
+              </div>
 
-        {/* Confirmed ISL Word Lock Banner (during active word recognition) */}
-        {isCameraActive && recognitionMode === 'word' && (wordPredictions?.confirmedWord || latestConfirmedWord) && (
-          <div className="absolute top-16 left-1/2 transform -translate-x-1/2 z-20 flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500 text-slate-950 font-bold text-xs shadow-xl shadow-emerald-500/30 backdrop-blur-md animate-in fade-in zoom-in duration-150">
-            <Check className="w-4 h-4 stroke-[3]" />
-            <span>CONFIRMED: {wordPredictions?.confirmedWord || latestConfirmedWord}</span>
-          </div>
-        )}
-
-        {/* Top-3 Word Prediction HUD (during Word Mode) */}
-        {isCameraActive && recognitionMode === 'word' && wordPredictions?.topCandidates?.length > 0 && (
-          <div className="absolute top-4 right-4 z-20 flex flex-col gap-1.5 w-52 bg-slate-900/90 backdrop-blur-md rounded-xl p-2.5 border border-slate-700/70 shadow-2xl">
-            <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 border-b border-slate-800 pb-1">
-              <span className="flex items-center gap-1 font-semibold text-emerald-400">
-                <Sparkles className="w-3 h-3 text-emerald-400" />
-                ISL Words (INCLUDE)
-              </span>
-              <span>Top-3</span>
-            </div>
-
-            {/* Top-1 Word Candidate */}
-            {wordPredictions.topCandidates[0] && (
-              <div
-                className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg border transition-all ${
-                  wordPredictions.topCandidates[0].isConfident
-                    ? 'bg-emerald-500/20 border-emerald-500/60 text-emerald-300 shadow-md shadow-emerald-500/20 ring-1 ring-emerald-400/40'
-                    : 'bg-amber-500/10 border-amber-500/40 text-amber-300'
-                }`}
-              >
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-sm font-black font-mono tracking-wider">
+              {wordPredictions.topCandidates[0] && (
+                <div className="retro-inset bg-[#FFFFCC] p-1 mb-0.5 text-black font-sans">
+                  <div className="flex items-center justify-between">
+                    <span className="font-heading text-xs font-bold text-[#000080]">
                       {wordPredictions.topCandidates[0].label}
                     </span>
-                    {wordPredictions.topCandidates[0].isConfident && (
-                      <span className="flex items-center gap-0.5 text-[9px] px-1 py-0.2 rounded bg-emerald-500/30 text-emerald-200 font-mono font-semibold">
-                        <Lock className="w-2.5 h-2.5" />
-                        LOCK
-                      </span>
-                    )}
+                    <span className="font-mono text-[10px] font-bold text-[#00AA00]">
+                      {Math.round(wordPredictions.topCandidates[0].confidence * 100)}%
+                    </span>
                   </div>
-                </div>
-                <div className="text-right">
-                  <span className="text-xs font-mono font-bold">
-                    {Math.round(wordPredictions.topCandidates[0].confidence * 100)}%
-                  </span>
-                  <div className="w-14 h-1.5 bg-slate-800 rounded-full mt-1 overflow-hidden">
+                  <div className="w-full bg-[#808080] h-1.5 mt-0.5 retro-inset p-0.2 flex">
                     <div
-                      className={`h-full rounded-full transition-all duration-100 ${
-                        wordPredictions.topCandidates[0].isConfident
-                          ? 'bg-emerald-400'
-                          : 'bg-amber-400'
-                      }`}
+                      className="bg-[#00AA00] h-full"
                       style={{
                         width: `${Math.min(100, Math.round(wordPredictions.topCandidates[0].confidence * 100))}%`
                       }}
                     />
                   </div>
                 </div>
-              </div>
-            )}
-
-            {/* Runners-up 2 and 3 */}
-            <div className="grid grid-cols-2 gap-1.5 pt-0.5">
-              {wordPredictions.topCandidates.slice(1, 3).map((pred) => (
-                <div
-                  key={pred.rank}
-                  className="flex items-center justify-between px-2 py-1 rounded-md bg-slate-800/80 border border-slate-700/60 text-[10px] font-mono text-slate-300"
-                >
-                  <span className="font-bold text-slate-200 truncate max-w-[65px]" title={pred.label}>
-                    {pred.label}
-                  </span>
-                  <span className="text-[9px] text-slate-400">
-                    {Math.round(pred.confidence * 100)}%
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Helper prompt in Word mode when no candidates yet */}
-        {isCameraActive && recognitionMode === 'word' && (!wordPredictions?.topCandidates || wordPredictions.topCandidates.length === 0) && (
-          <div className="absolute top-4 right-4 z-20 flex flex-col gap-1 w-52 bg-slate-900/85 backdrop-blur-md rounded-xl p-2.5 border border-emerald-500/30 shadow-xl text-[11px] font-mono text-slate-300">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-emerald-400 font-bold">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Word Mode (INCLUDE)</span>
-              </div>
-              {onToggleMode && (
-                <button
-                  onClick={() => onToggleMode('alphabet')}
-                  className="text-[9px] px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 hover:bg-sky-500/30 border border-sky-500/40 cursor-pointer"
-                  title="Switch to A-Z letter fingerspelling"
-                >
-                  Try A–Z
-                </button>
               )}
-            </div>
-            <p className="text-[10px] text-slate-400 leading-tight">
-              {hasAnyHand ? 'Perform sign motion for ~1s' : 'Show hands to start signing'}
-            </p>
-          </div>
-        )}
 
-        {/* Waiting for gesture in Alphabet mode */}
-        {isCameraActive && recognitionMode === 'alphabet' && alphabetPredictions.length === 0 && (
-          <div className="absolute top-4 right-4 z-20 flex flex-col gap-1 w-48 bg-slate-900/85 backdrop-blur-md rounded-xl p-2.5 border border-sky-500/30 shadow-xl text-[11px] font-mono text-slate-300">
-            <div className="flex items-center gap-1.5 text-sky-400 font-bold">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>A–Z Alphabet Mode</span>
-            </div>
-            <p className="text-[10px] text-slate-400 leading-tight">
-              {hasAnyHand ? 'Analyzing hand shape...' : 'Show hands to camera'}
-            </p>
-          </div>
-        )}
-
-        {/* Top-3 Alphabet Prediction HUD (during active fingerspelling) */}
-        {isCameraActive && recognitionMode === 'alphabet' && alphabetPredictions.length > 0 && (
-          <div className="absolute top-4 right-4 z-20 flex flex-col gap-1.5 w-48 bg-slate-900/90 backdrop-blur-md rounded-xl p-2.5 border border-slate-700/70 shadow-2xl">
-            <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 border-b border-slate-800 pb-1">
-              <span className="flex items-center gap-1 font-semibold text-sky-300">
-                <Sparkles className="w-3 h-3 text-sky-400" />
-                ISL Alphabet
-              </span>
-              <span>Top-3</span>
-            </div>
-
-            {/* Top-1 Candidate */}
-            {alphabetPredictions[0] && (
-              <div
-                className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg border transition-all ${
-                  alphabetPredictions[0].isConfident
-                    ? 'bg-emerald-500/20 border-emerald-500/60 text-emerald-300 shadow-md shadow-emerald-500/20 ring-1 ring-emerald-400/40'
-                    : 'bg-amber-500/10 border-amber-500/40 text-amber-300'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-xl font-black font-mono tracking-wider">
-                    {alphabetPredictions[0].label}
-                  </span>
-                  {alphabetPredictions[0].isConfident && (
-                    <span className="flex items-center gap-0.5 text-[10px] px-1 py-0.5 rounded bg-emerald-500/30 text-emerald-200 font-mono font-semibold">
-                      <Lock className="w-2.5 h-2.5" />
-                      LOCK
+              {/* Runners-up 2 and 3 */}
+              <div className="space-y-0.2">
+                {wordPredictions.topCandidates.slice(1, 3).map((candidate) => (
+                  <div
+                    key={candidate.rank}
+                    className="flex items-center justify-between px-1 py-0.2 bg-[#FFFFFF] retro-inset text-[9px] font-mono"
+                  >
+                    <span className="font-bold text-[#000000]">
+                      #{candidate.rank} {candidate.label}
                     </span>
-                  )}
-                </div>
-                <div className="text-right">
-                  <span className="text-xs font-mono font-bold">
-                    {Math.round(alphabetPredictions[0].confidence * 100)}%
-                  </span>
-                  <div className="w-14 h-1.5 bg-slate-800 rounded-full mt-1 overflow-hidden">
+                    <span className="text-[#808080]">
+                      {Math.round(candidate.confidence * 100)}%
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Active HUD Overlays (Alphabet Fingerspelling Mode) */}
+          {isCameraActive && recognitionMode === 'alphabet' && alphabetPredictions && alphabetPredictions.length > 0 && (
+            <div className="absolute top-1.5 right-1.5 z-20 retro-outset bg-[#C0C0C0] p-1 border border-[#000000] shadow-md max-w-[170px]">
+              <div className="bg-[#000080] text-[#FFFFFF] px-1 py-0.2 text-[9px] font-bold flex items-center justify-between mb-0.5">
+                <span>FINGER SPELLING (A-Z)</span>
+                <span className="text-[#FFFF00] font-mono text-[8px]">ACTIVE</span>
+              </div>
+
+              {alphabetPredictions[0] && (
+                <div className="retro-inset bg-[#FFFFCC] p-1 mb-0.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-heading text-lg font-black text-[#000080]">
+                      {alphabetPredictions[0].label}
+                    </span>
+                    <div className="text-right">
+                      <span className="font-mono text-[10px] font-bold text-[#00AA00]">
+                        {Math.round(alphabetPredictions[0].confidence * 100)}%
+                      </span>
+                      {latestConfirmedLetter === alphabetPredictions[0].label ? (
+                        <div className="text-[8px] bg-[#00AA00] text-white px-1 font-bold animate-pulse">
+                          TYPED
+                        </div>
+                      ) : alphabetPredictions[0].isConfident ? (
+                        <div className="text-[8px] bg-[#000080] text-white px-1 font-bold">
+                          HOLD...
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div className="w-full bg-[#808080] h-1.5 mt-0.5 retro-inset p-0.2 flex">
                     <div
-                      className={`h-full rounded-full transition-all duration-100 ${
-                        alphabetPredictions[0].isConfident
-                          ? 'bg-emerald-400'
-                          : 'bg-amber-400'
-                      }`}
+                      className="bg-[#0000FF] h-full"
                       style={{
                         width: `${Math.min(100, Math.round(alphabetPredictions[0].confidence * 100))}%`
                       }}
                     />
                   </div>
                 </div>
-              </div>
-            )}
-
-            {/* Runners-up 2 and 3 */}
-            <div className="grid grid-cols-2 gap-1.5 pt-0.5">
-              {alphabetPredictions.slice(1, 3).map((pred) => (
-                <div
-                  key={pred.rank}
-                  className="flex items-center justify-between px-2 py-1 rounded-md bg-slate-800/80 border border-slate-700/60 text-[11px] font-mono text-slate-300"
-                >
-                  <span className="font-bold text-slate-200">
-                    {pred.rank}: {pred.label}
-                  </span>
-                  <span className="text-[10px] text-slate-400">
-                    {Math.round(pred.confidence * 100)}%
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Hand Color Legend & RingBuffer Telemetry (during active camera) */}
-        {isCameraActive && showSkeleton && (
-          <div className="absolute bottom-3 left-3 right-3 z-20 flex items-center justify-between pointer-events-none">
-            <div className="flex items-center gap-3 px-3 py-1.5 rounded-lg bg-slate-900/80 backdrop-blur-md border border-slate-700/60 text-[11px] font-mono pointer-events-auto">
-              <div className="flex items-center gap-1.5">
-                <span className={`w-2.5 h-2.5 rounded-full transition-colors ${hasLeftHand ? 'bg-sky-400 ring-2 ring-sky-400/40 shadow-sm shadow-sky-400' : 'bg-slate-600'}`} />
-                <span className={hasLeftHand ? 'text-sky-300 font-semibold' : 'text-slate-400'}>
-                  Left Hand {hasLeftHand ? '✓' : ''}
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className={`w-2.5 h-2.5 rounded-full transition-colors ${hasRightHand ? 'bg-emerald-400 ring-2 ring-emerald-400/40 shadow-sm shadow-emerald-400' : 'bg-slate-600'}`} />
-                <span className={hasRightHand ? 'text-emerald-300 font-semibold' : 'text-slate-400'}>
-                  Right Hand {hasRightHand ? '✓' : ''}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900/80 backdrop-blur-md border border-slate-700/60 text-[11px] font-mono text-slate-400 pointer-events-auto">
-              <span>Buffer:</span>
-              <span className="text-sky-300 font-semibold">{bufferSize}/30 frames</span>
-              <span className="text-slate-600">•</span>
-              <span>v:</span>
-              <span className="text-emerald-300 font-semibold">{Number(motionState.rollingVelocity || 0).toFixed(3)}</span>
-            </div>
-          </div>
-        )}
-
-        {/* Inactive Camera Placeholder */}
-        {!isCameraActive && !cameraError && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-slate-900/90 backdrop-blur-sm z-20">
-            <div className="w-16 h-16 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center mb-4 text-slate-400">
-              <Camera className="w-8 h-8 text-sky-400" />
-            </div>
-            <h3 className="text-lg font-bold text-slate-200 mb-1">Webcam Inactive</h3>
-            <p className="text-sm text-slate-400 max-w-md mb-6">
-              Enable your camera to initialize real-time 3D landmark tracking at 30+ FPS directly in your browser.
-            </p>
-            <button
-              onClick={startCamera}
-              disabled={isLoadingCamera}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/25 transition-all transform active:scale-95 disabled:opacity-50"
-            >
-              {isLoadingCamera ? (
-                <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Requesting Access...</span>
-                </>
-              ) : (
-                <>
-                  <Camera className="w-4 h-4" />
-                  <span>Start Camera Feed</span>
-                </>
               )}
-            </button>
-          </div>
-        )}
-
-        {/* Camera Permission Denied Card */}
-        {cameraError && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-slate-900/95 backdrop-blur-md z-20">
-            <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center mb-4 text-rose-400">
-              <AlertCircle className="w-8 h-8" />
             </div>
-            <h3 className="text-lg font-bold text-rose-300 mb-2">Camera Access Required</h3>
-            <p className="text-sm text-slate-300 max-w-md mb-6 leading-relaxed">
-              {cameraError}
-            </p>
-            <button
-              onClick={startCamera}
-              className="flex items-center gap-2 px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-600 text-sm font-semibold transition"
-            >
-              <RefreshCw className="w-4 h-4" />
-              <span>Retry Permission</span>
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Camera Controls Bar */}
-      <div className="flex items-center justify-between w-full max-w-[640px] mt-4 px-2">
-        <div className="flex items-center gap-2">
-          {isCameraActive ? (
-            <button
-              onClick={stopCamera}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 text-xs font-semibold transition"
-            >
-              <CameraOff className="w-4 h-4" />
-              <span>Stop Camera</span>
-            </button>
-          ) : (
-            <button
-              onClick={startCamera}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 text-xs font-semibold transition"
-            >
-              <Camera className="w-4 h-4" />
-              <span>Start Camera</span>
-            </button>
           )}
 
-          {isCameraActive && (
-            <button
-              onClick={() => setShowSkeleton(!showSkeleton)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold transition ${
-                showSkeleton
-                  ? 'bg-sky-500/20 border-sky-500/30 text-sky-300'
-                  : 'bg-slate-800 border-slate-700 text-slate-400'
-              }`}
-            >
-              <Activity className="w-3.5 h-3.5" />
-              <span>{showSkeleton ? 'Hide Skeleton' : 'Show Skeleton'}</span>
-            </button>
+          {/* Inactive Camera Placeholder Screen */}
+          {!isCameraActive && !cameraError && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-3 text-center bg-[#000080] text-[#FFFFFF] z-20">
+              <div className="retro-outset bg-[#C0C0C0] text-[#000000] p-3 max-w-xs w-full border-2 border-[#000000] shadow-xl">
+                <div className="bg-[#000080] text-[#FFFFFF] px-1.5 py-0.2 font-bold text-[11px] mb-2 flex items-center justify-between">
+                  <span>SYSTEM DIALOG</span>
+                  <span>[X]</span>
+                </div>
+
+                <div className="flex items-center gap-2 mb-2 text-left">
+                  <div className="w-8 h-8 retro-inset bg-[#FFFFFF] flex items-center justify-center flex-shrink-0 text-[#000080]">
+                    <Monitor className="w-5 h-5 stroke-[2px]" />
+                  </div>
+                  <div>
+                    <h4 className="font-heading text-xs font-bold text-[#000000]">Webcam Inactive</h4>
+                    <p className="text-[10px] text-[#000000]">
+                      Initialize device to track 3D gestures.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={startCamera}
+                  disabled={isLoadingCamera}
+                  className="retro-btn retro-btn-primary w-full py-1 text-xs font-bold"
+                >
+                  {isLoadingCamera ? (
+                    <>
+                      <RefreshCw className="w-3 h-3 stroke-[2px] animate-spin" />
+                      <span>INITIALIZING...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Camera className="w-3 h-3 stroke-[2px]" />
+                      <span>START CAMERA FEED</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
           )}
 
-          {/* Inline Recognition Mode Switcher */}
-          {isCameraActive && onToggleMode && (
-            <div className="flex items-center p-0.5 rounded-xl bg-slate-900 border border-slate-700 text-xs font-medium">
-              <button
-                onClick={() => onToggleMode('alphabet')}
-                className={`px-2.5 py-1.5 rounded-lg transition text-[11px] font-mono flex items-center gap-1 ${
-                  recognitionMode === 'alphabet'
-                    ? 'bg-sky-500/25 text-sky-300 border border-sky-500/50 font-bold shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-                title="Two-Handed Fingerspelling (A–Z)"
-              >
-                🔤 A–Z
-              </button>
-              <button
-                onClick={() => onToggleMode('word')}
-                className={`px-2.5 py-1.5 rounded-lg transition text-[11px] font-mono flex items-center gap-1 ${
-                  recognitionMode === 'word'
-                    ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/50 font-bold shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-                title="AI4Bharat 50 ISL Words"
-              >
-                💬 Words
-              </button>
+          {/* Camera Permission Error Screen */}
+          {cameraError && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-3 text-center bg-[#000080] text-[#FFFFFF] z-20">
+              <div className="retro-outset bg-[#C0C0C0] text-[#000000] p-3 max-w-xs w-full border-2 border-[#000000] shadow-xl">
+                <div className="bg-[#CC0000] text-[#FFFFFF] px-1.5 py-0.2 font-bold text-[11px] mb-2 flex items-center justify-between">
+                  <span>DEVICE ERROR</span>
+                  <span>[!]</span>
+                </div>
+                <div className="flex items-center gap-2 mb-2 text-left">
+                  <AlertCircle className="w-6 h-6 text-[#CC0000] stroke-[2px] flex-shrink-0" />
+                  <p className="text-[10px] text-[#000000] leading-tight">
+                    {cameraError}
+                  </p>
+                </div>
+                <button
+                  onClick={startCamera}
+                  className="retro-btn retro-btn-danger w-full py-1 text-xs font-bold"
+                >
+                  <RefreshCw className="w-3 h-3 stroke-[2px]" />
+                  <span>RETRY CAMERA</span>
+                </button>
+              </div>
             </div>
           )}
         </div>
 
-        <div className="text-xs text-slate-400 font-mono flex items-center gap-3">
-          <span className="flex items-center gap-1.5">
-            <Eye className="w-3.5 h-3.5 text-sky-400" />
-            <span>640 x 480 Native</span>
-          </span>
-          <span className="text-slate-600">•</span>
-          <span className="text-slate-400">Mirrored</span>
+        {/* 3. Lower Camera Control & Telemetry Bar */}
+        <div className="flex items-center justify-between gap-1.5 mt-1.5 pt-1 border-t border-[#808080]">
+          <div className="flex items-center gap-1">
+            {isCameraActive ? (
+              <button
+                onClick={stopCamera}
+                className="retro-btn retro-btn-danger text-xs !py-0.5 !px-2"
+              >
+                <CameraOff className="w-3 h-3 stroke-[2px]" />
+                <span>[ Stop ]</span>
+              </button>
+            ) : (
+              <button
+                onClick={startCamera}
+                className="retro-btn retro-btn-success text-xs !py-0.5 !px-2"
+              >
+                <Camera className="w-3 h-3 stroke-[2px]" />
+                <span>[ Start ]</span>
+              </button>
+            )}
+
+            {isCameraActive && (
+              <button
+                onClick={() => setShowSkeleton(!showSkeleton)}
+                className={`retro-btn text-xs !py-0.5 !px-1.5 ${showSkeleton ? 'retro-btn-primary' : ''}`}
+              >
+                <Activity className="w-3 h-3 stroke-[2px]" />
+                <span>Skeleton {showSkeleton ? 'ON' : 'OFF'}</span>
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1 font-mono text-[10px]">
+            <div className="retro-inset px-1 py-0.2 bg-[#C0C0C0] text-[#000000]">
+              L: <span className={hasLeftHand ? 'text-[#00AA00] font-bold' : 'text-[#808080]'}>{hasLeftHand ? 'OK' : '--'}</span>
+            </div>
+            <div className="retro-inset px-1 py-0.2 bg-[#C0C0C0] text-[#000000]">
+              R: <span className={hasRightHand ? 'text-[#00AA00] font-bold' : 'text-[#808080]'}>{hasRightHand ? 'OK' : '--'}</span>
+            </div>
+            <div className="retro-inset px-1 py-0.2 bg-[#C0C0C0] text-[#000000]">
+              BUF: <span className="font-bold text-[#000080]">{bufferSize}/30</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

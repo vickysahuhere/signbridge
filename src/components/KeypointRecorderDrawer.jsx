@@ -5,11 +5,9 @@ import {
   Download,
   Trash2,
   Database,
-  CheckCircle,
   FileText,
   FileSpreadsheet,
-  AlertCircle,
-  Clock
+  AlertTriangle
 } from 'lucide-react';
 
 export function KeypointRecorderDrawer({
@@ -105,7 +103,6 @@ export function KeypointRecorderDrawer({
 
   // Download single sample as CSV
   const exportSampleCSV = (sample) => {
-    // Build CSV Header: frame,k0_x,k0_y,k0_z,...,k79_z,label
     const headers = ['frame'];
     for (let k = 0; k < 80; k++) {
       headers.push(`k${k}_x`, `k${k}_y`, `k${k}_z`);
@@ -155,185 +152,195 @@ export function KeypointRecorderDrawer({
 
   return (
     <aside
-      className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-slate-900 border-l border-slate-700/80 shadow-2xl flex flex-col backdrop-blur-xl animate-in slide-in-from-right duration-200"
+      className="fixed inset-y-0 right-0 z-50 w-full max-w-md retro-outset bg-[#C0C0C0] border-l-2 border-[#000000] shadow-2xl flex flex-col select-none"
       aria-label="Keypoint Dataset Recorder Drawer"
     >
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-800/40">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-300 flex items-center justify-center border border-purple-500/40">
-            <Database className="w-4 h-4" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-slate-100">Keypoint Dataset Recorder</h3>
-            <p className="text-[11px] text-slate-400">Capture 100-frame normalized ISL samples</p>
-          </div>
+      {/* 1. Title Bar */}
+      <div className="retro-window-titlebar">
+        <div className="flex items-center gap-1.5">
+          <Database className="w-3.5 h-3.5 stroke-[2px]" />
+          <span>Dataset Recorder - [Feature Vector Utility]</span>
         </div>
         <button
           onClick={onClose}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition"
+          className="retro-window-btn"
+          title="Close Utility"
+          aria-label="Close Utility"
         >
-          <X className="w-5 h-5" />
+          ×
         </button>
       </div>
 
-      {/* Content Body */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 font-sans text-xs">
-        {/* Sign Label Form */}
-        <div className="bg-slate-800/60 rounded-xl p-3.5 border border-slate-700/60 space-y-3">
-          <div>
-            <label className="block text-[11px] font-mono text-slate-300 mb-1">
-              Sign / Gesture Label
-            </label>
-            <input
-              type="text"
-              value={labelName}
-              onChange={e => setLabelName(e.target.value)}
-              placeholder="e.g. A, B, NAMASTE, HELLO"
-              disabled={isRecording || isCountingDown}
-              className="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-100 font-mono font-bold focus:outline-none focus:border-sky-500 transition"
-            />
+      {/* 2. Construction Warning Stripes Banner (Checklist Item #11) */}
+      <div className="retro-stripes h-4 border-b border-[#000000] flex items-center justify-center">
+        <span className="bg-[#FFFF00] text-[#000000] font-mono font-bold text-[9px] px-2 tracking-widest border border-[#000000]">
+          CAUTION: AI TRAINING ZONE • LIVE RECORDING
+        </span>
+      </div>
+
+      {/* 3. Drawer Body */}
+      <div className="flex-1 overflow-y-auto p-3 space-y-3 font-sans text-xs bg-[#C0C0C0]">
+        {/* Form Container */}
+        <div className="retro-window p-2.5 bg-[#C0C0C0]">
+          <div className="font-heading text-xs font-bold text-[#000080] mb-2 uppercase border-b border-[#808080] pb-1">
+            Capture Parameters
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-2">
             <div>
-              <label className="block text-[11px] font-mono text-slate-400 mb-1">
-                Signer Tag
+              <label className="block text-[11px] font-mono font-bold text-[#000000] mb-0.5">
+                GESTURE LABEL:
               </label>
               <input
                 type="text"
-                value={signerName}
-                onChange={e => setSignerName(e.target.value)}
+                value={labelName}
+                onChange={e => setLabelName(e.target.value)}
+                placeholder="e.g. A, B, NAMASTE, HELLO"
                 disabled={isRecording || isCountingDown}
-                className="w-full px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 font-mono focus:outline-none focus:border-sky-500"
+                className="retro-input w-full font-mono font-bold"
               />
             </div>
-            <div>
-              <label className="block text-[11px] font-mono text-slate-400 mb-1">
-                Target Frames
-              </label>
-              <input
-                type="number"
-                value={targetFrames}
-                onChange={e => setTargetFrames(Number(e.target.value) || 100)}
-                disabled={isRecording || isCountingDown}
-                className="w-full px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 font-mono focus:outline-none focus:border-sky-500"
-              />
-            </div>
-          </div>
 
-          {/* Trigger Recording Button */}
-          {!isRecording && !isCountingDown ? (
-            <button
-              onClick={startRecordingFlow}
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-slate-950 font-bold text-xs shadow-lg shadow-purple-500/20 transition active:scale-98"
-            >
-              <Play className="w-3.5 h-3.5 fill-current" />
-              <span>Record Gesture ({targetFrames} Frames)</span>
-            </button>
-          ) : isCountingDown ? (
-            <div className="flex flex-col items-center justify-center py-3 bg-purple-500/10 rounded-xl border border-purple-500/30">
-              <span className="text-2xl font-black font-mono text-purple-300 animate-bounce">
-                {countdown}
-              </span>
-              <span className="text-[11px] text-purple-200 mt-1">Get ready to sign...</span>
-            </div>
-          ) : (
-            <div className="space-y-2 py-2">
-              <div className="flex items-center justify-between text-[11px] font-mono text-purple-300">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-purple-400 animate-ping" />
-                  Recording: {recordedFrames.length} / {targetFrames} frames
-                </span>
-                <span>{Math.round((recordedFrames.length / targetFrames) * 100)}%</span>
-              </div>
-              <div className="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden border border-slate-700">
-                <div
-                  className="h-full bg-gradient-to-r from-purple-500 to-sky-400 transition-all duration-75"
-                  style={{ width: `${(recordedFrames.length / targetFrames) * 100}%` }}
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-[11px] font-mono font-bold text-[#000000] mb-0.5">
+                  SIGNER ID:
+                </label>
+                <input
+                  type="text"
+                  value={signerName}
+                  onChange={e => setSignerName(e.target.value)}
+                  disabled={isRecording || isCountingDown}
+                  className="retro-input w-full font-mono"
                 />
               </div>
-              <button
-                onClick={cancelRecording}
-                className="w-full py-1.5 text-center text-[11px] text-rose-400 hover:text-rose-300"
-              >
-                Cancel Capture
-              </button>
+              <div>
+                <label className="block text-[11px] font-mono font-bold text-[#000000] mb-0.5">
+                  TARGET FRAMES:
+                </label>
+                <input
+                  type="number"
+                  value={targetFrames}
+                  onChange={e => setTargetFrames(Number(e.target.value) || 100)}
+                  disabled={isRecording || isCountingDown}
+                  className="retro-input w-full font-mono"
+                />
+              </div>
             </div>
-          )}
+
+            {/* Trigger Button */}
+            {!isRecording && !isCountingDown ? (
+              <button
+                onClick={startRecordingFlow}
+                className="retro-btn retro-btn-primary w-full py-2 font-bold text-xs mt-2"
+              >
+                <Play className="w-3.5 h-3.5 stroke-[2px]" />
+                <span>[ START RECORDING ({targetFrames} FRAMES) ]</span>
+              </button>
+            ) : isCountingDown ? (
+              <div className="retro-inset bg-[#FFFFCC] p-3 text-center">
+                <span className="text-2xl font-black font-mono text-[#CC0000] animate-bounce block">
+                  {countdown}
+                </span>
+                <span className="text-[11px] font-bold text-[#000000]">GET READY TO SIGN...</span>
+              </div>
+            ) : (
+              <div className="retro-inset bg-[#FFFFCC] p-2 space-y-1">
+                <div className="flex items-center justify-between text-[11px] font-mono font-bold text-[#000080]">
+                  <span>RECORDING IN PROGRESS...</span>
+                  <span>{recordedFrames.length} / {targetFrames}</span>
+                </div>
+                {/* 90s Segmented Progress Bar */}
+                <div className="w-full bg-[#808080] h-3 retro-inset p-0.5 flex">
+                  <div
+                    className="bg-[#00AA00] h-full"
+                    style={{ width: `${(recordedFrames.length / targetFrames) * 100}%` }}
+                  />
+                </div>
+                <button
+                  onClick={cancelRecording}
+                  className="retro-btn retro-btn-danger w-full text-[11px] py-1 mt-1"
+                >
+                  [ CANCEL RECORDING ]
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Live Vector Feed Status */}
-        <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-slate-800/40 border border-slate-700/50 text-[11px] font-mono text-slate-400">
-          <span>Normalized Vector:</span>
-          <span className={latestNormalizedFeatures ? 'text-emerald-400 font-semibold' : 'text-slate-500'}>
-            {latestNormalizedFeatures ? 'Streaming (240 floats)' : 'Waiting for camera...'}
+        <div className="retro-inset bg-[#FFFFFF] p-2 flex items-center justify-between text-[11px] font-mono">
+          <span className="text-[#808080] font-bold">VECTOR STREAM:</span>
+          <span className={latestNormalizedFeatures ? 'text-[#00AA00] font-bold' : 'text-[#808080]'}>
+            {latestNormalizedFeatures ? 'ONLINE (240 FLOATS)' : 'WAITING FOR CAMERA'}
           </span>
         </div>
 
-        {/* Session Recorded Samples */}
-        <div className="space-y-2">
+        {/* Recorded Samples Table */}
+        <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <h4 className="text-xs font-bold text-slate-200">
-              Session Samples ({recordedSamples.length})
+            <h4 className="font-heading text-xs font-bold text-[#000000] uppercase">
+              Recorded Samples ({recordedSamples.length})
             </h4>
             {recordedSamples.length > 0 && (
               <button
                 onClick={exportAllJSON}
-                className="flex items-center gap-1 text-[11px] text-purple-400 hover:text-purple-300 font-medium"
+                className="retro-btn !px-2 !py-0.5 text-[11px]"
               >
-                <Download className="w-3 h-3" />
+                <Download className="w-3 h-3 stroke-[2px]" />
                 <span>Export All (JSON)</span>
               </button>
             )}
           </div>
 
           {recordedSamples.length === 0 ? (
-            <div className="p-6 text-center rounded-xl border border-dashed border-slate-800 text-slate-500">
-              No samples recorded yet. Enter a label above and start recording.
+            <div className="retro-inset bg-[#FFFFFF] p-6 text-center text-[#808080] font-mono text-xs">
+              [ NO SAMPLES RECORDED THIS SESSION ]
             </div>
           ) : (
-            <div className="space-y-2">
-              {recordedSamples.map(sample => (
+            <div className="space-y-1 retro-inset bg-[#FFFFFF] p-1 max-h-[220px] overflow-y-auto">
+              {recordedSamples.map((sample, idx) => (
                 <div
                   key={sample.id}
-                  className="p-3 rounded-xl bg-slate-800/80 border border-slate-700/60 flex items-center justify-between hover:border-slate-600 transition"
+                  className={`p-1.5 border-b border-[#808080] flex items-center justify-between ${
+                    idx % 2 === 0 ? 'bg-[#FFFFFF]' : 'bg-[#E8E8E8]'
+                  }`}
                 >
                   <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold font-mono text-sky-300">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-mono font-bold text-xs text-[#000080]">
                         {sample.label}
                       </span>
-                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-700 text-slate-300 font-mono">
+                      <span className="retro-inset px-1 text-[9px] font-mono bg-[#C0C0C0]">
                         {sample.frameCount} frames
                       </span>
                     </div>
-                    <p className="text-[10px] text-slate-500 mt-0.5">
+                    <p className="text-[10px] text-[#808080] font-mono">
                       {new Date(sample.timestamp).toLocaleTimeString()} • {sample.signer}
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1">
                     <button
                       onClick={() => exportSampleJSON(sample)}
-                      className="p-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-sky-300 transition"
+                      className="retro-btn !p-1 text-[10px]"
                       title="Export as JSON"
                     >
-                      <FileText className="w-3.5 h-3.5" />
+                      <FileText className="w-3 h-3 stroke-[2px]" />
                     </button>
                     <button
                       onClick={() => exportSampleCSV(sample)}
-                      className="p-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-emerald-300 transition"
+                      className="retro-btn !p-1 text-[10px]"
                       title="Export as CSV"
                     >
-                      <FileSpreadsheet className="w-3.5 h-3.5" />
+                      <FileSpreadsheet className="w-3 h-3 stroke-[2px]" />
                     </button>
                     <button
                       onClick={() => deleteSample(sample.id)}
-                      className="p-1.5 rounded-lg bg-slate-700 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 transition"
+                      className="retro-btn retro-btn-danger !p-1 text-[10px]"
                       title="Delete Sample"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-3 h-3 stroke-[2px]" />
                     </button>
                   </div>
                 </div>

@@ -38,6 +38,13 @@ export function analyzeHand(hand) {
   }
 
   const wrist = hand[0];
+  if (!wrist) return null;
+
+  // Ignore hands at bottom of frame or resting in lap/desk
+  if (wrist.y > 0.85) {
+    return null;
+  }
+
   const palmCenter = hand[9] || hand[0];
 
   const checkExtension = (tipIdx, pipIdx, mcpIdx) => {
@@ -180,9 +187,16 @@ export function classifyIslAlphabet(leftHand, rightHand, pose) {
 
   // 2. Single-Handed ISL / Universal Letters
   for (const h of hands) {
-    // Letter 'C': Hand curved into 'C' shape (thumb & index curved, middle/ring/pinky aligned)
+    // Letter 'C': Hand curved into deliberate 'C' shape (thumb & index curved, middle/ring/pinky aligned)
+    // Rejects neutral/resting hands by requiring active arched index/thumb posture and raised position
     const dThumbIndex = dist3D(h.points[4], h.points[8]);
-    if (dThumbIndex > 0.06 && dThumbIndex < 0.18 && !h.isOpenPalm && !h.isFist) {
+    const indexPip = h.points[6];
+    const indexTip = h.points[8];
+    const thumbTip = h.points[4];
+    const isArched = indexPip && indexTip && thumbTip &&
+      Math.abs(indexTip.x - thumbTip.x) < 0.14 &&
+      dThumbIndex > 0.08 && dThumbIndex < 0.18;
+    if (isArched && !h.isOpenPalm && !h.isFist && h.curledCount >= 1 && h.extendedCount <= 2 && h.wrist.y < 0.78) {
       score('C', 0.88);
     }
 
@@ -314,7 +328,9 @@ export function classifyIslWord(leftHand, rightHand, pose, motion) {
   for (const h of hands) {
     if (h.thumb.isExtended && h.curledCount >= 3) {
       const thumbPointingUp = h.points[4].y < h.points[2].y - 0.04;
-      if (thumbPointingUp && h.wrist.y > nose.y + 0.10) {
+      const othersCurled = !h.index.isExtended && !h.middle.isExtended;
+      const inChestZone = h.wrist.y > nose.y + 0.10 && h.wrist.y < 0.80;
+      if (thumbPointingUp && othersCurled && inChestZone) {
         score('GOOD', 0.96);
       }
     }
@@ -324,7 +340,7 @@ export function classifyIslWord(leftHand, rightHand, pose, motion) {
   for (const h of hands) {
     if (h.thumb.isExtended && h.curledCount >= 3) {
       const thumbPointingDown = h.points[4].y > h.points[2].y + 0.04;
-      if (thumbPointingDown) {
+      if (thumbPointingDown && h.wrist.y < 0.80) {
         score('BAD', 0.94);
       }
     }
@@ -332,9 +348,11 @@ export function classifyIslWord(leftHand, rightHand, pose, motion) {
 
   // 5. THANK YOU (Flat hand moving from chin/lips forward and down)
   for (const h of hands) {
-    if (h.isOpenPalm) {
-      const nearChin = dist2D(h.points[12], nose) < 0.22 && h.wrist.y > nose.y;
-      if (nearChin) {
+    if (h.isOpenPalm && h.wrist.y < 0.78) {
+      const chinY = nose.y + 0.08;
+      const nearChin = Math.abs(h.points[12].y - chinY) < 0.12 && dist2D(h.points[12], { x: nose.x, y: chinY }) < 0.18;
+      const wristBelowChin = h.wrist.y > chinY;
+      if (nearChin && wristBelowChin) {
         score('THANK YOU', 0.92);
       }
     }
@@ -353,8 +371,9 @@ export function classifyIslWord(leftHand, rightHand, pose, motion) {
   for (const h of hands) {
     if (h.isOpenPalm && h.extendedCount === 5) {
       const fingersUp = h.points[12].y < h.wrist.y - 0.12;
-      const inFront = dist2D(h.wrist, chestCenter) < 0.35;
-      if (fingersUp && inFront && h.wrist.y > nose.y + 0.05) {
+      const inFront = dist2D(h.wrist, chestCenter) < 0.30;
+      const inChestZone = h.wrist.y > nose.y + 0.05 && h.wrist.y < 0.78;
+      if (fingersUp && inFront && inChestZone) {
         score('STOP', 0.92);
       }
     }
@@ -362,9 +381,10 @@ export function classifyIslWord(leftHand, rightHand, pose, motion) {
 
   // 8. EAT (Pinched fingertips brought repeatedly toward mouth/lips)
   for (const h of hands) {
+    const mouthY = nose.y + 0.04;
     const dPinched = dist3D(h.points[4], h.points[8]) + dist3D(h.points[4], h.points[12]);
-    const nearMouth = dist2D(h.points[8], nose) < 0.14 && h.points[8].y > nose.y - 0.02;
-    if (dPinched < 0.16 && nearMouth) {
+    const nearMouth = dist2D(h.points[8], { x: nose.x, y: mouthY }) < 0.11;
+    if (dPinched < 0.14 && nearMouth && h.wrist.y < 0.78) {
       score('EAT', 0.93);
     }
   }

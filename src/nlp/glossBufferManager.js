@@ -23,13 +23,19 @@ export class GlossBufferManager {
     if (!cleanToken) return false;
 
     const isSingleChar = /^[A-Z0-9]$/i.test(cleanToken);
+    const now = Date.now();
 
     // If pushing a letter and the previous token is a spelled word, concatenate
     if (type === 'letter' && isSingleChar && this.buffer.length > 0) {
       const last = this.buffer[this.buffer.length - 1];
       if (last.isSpelled) {
+        // Debounce: prevent adding the exact same character unless at least 450ms has passed
+        const lastChar = last.gloss.slice(-1);
+        if (lastChar === cleanToken.toUpperCase() && (now - last.timestamp) < 450) {
+          return false;
+        }
         last.gloss += cleanToken.toUpperCase();
-        last.timestamp = Date.now();
+        last.timestamp = now;
         return true;
       }
     }
@@ -46,7 +52,7 @@ export class GlossBufferManager {
       gloss: cleanToken,
       type,
       isSpelled: type === 'letter' && isSingleChar,
-      timestamp: Date.now()
+      timestamp: now
     });
 
     return true;

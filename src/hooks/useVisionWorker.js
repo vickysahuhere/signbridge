@@ -8,6 +8,7 @@ export function useVisionWorker() {
   const [latestLandmarks, setLatestLandmarks] = useState(null);
   const [latestNormalizedFeatures, setLatestNormalizedFeatures] = useState(null);
   const [alphabetPredictions, setAlphabetPredictions] = useState([]);
+  const [latestConfirmedLetter, setLatestConfirmedLetter] = useState(null);
   const [wordPredictions, setWordPredictions] = useState({ topCandidates: [], confirmedWord: null });
   const [latestConfirmedWord, setLatestConfirmedWord] = useState(null);
   const [motionState, setMotionState] = useState({
@@ -56,6 +57,9 @@ export function useVisionWorker() {
             }
             if (Array.isArray(data.alphabetPredictions)) {
               setAlphabetPredictions(data.alphabetPredictions);
+            }
+            if (data.latestConfirmedLetter) {
+              setLatestConfirmedLetter(data.latestConfirmedLetter);
             }
             if (data.wordPredictions) {
               setWordPredictions(data.wordPredictions);
@@ -149,6 +153,7 @@ export function useVisionWorker() {
     latestLandmarks,
     latestNormalizedFeatures,
     alphabetPredictions,
+    latestConfirmedLetter,
     wordPredictions,
     latestConfirmedWord,
     motionState,

@@ -10,12 +10,25 @@ import { useRoomConnection } from './hooks/useRoomConnection.js';
 import { useWebRTC } from './hooks/useWebRTC.js';
 import { GlossBufferManager } from './nlp/glossBufferManager.js';
 import { formatIslSentence } from './nlp/islSentenceFormatter.js';
+import { Globe, Mail, Monitor, Database, BookOpen } from 'lucide-react';
 
 export function App() {
   const [fps, setFps] = useState(0);
   const [recognitionMode, setRecognitionMode] = useState('word'); // 'alphabet' | 'word'
   const [isRecorderOpen, setIsRecorderOpen] = useState(false);
   const [isDictionaryOpen, setIsDictionaryOpen] = useState(false);
+  const [currentTime, setCurrentTime] = useState('');
+
+  // Clock in bottom Windows 95 taskbar
+  useEffect(() => {
+    const updateTime = () => {
+      const d = new Date();
+      setCurrentTime(d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Linguistic Buffer State
   const glossBufferRef = useRef(new GlossBufferManager());
@@ -60,6 +73,7 @@ export function App() {
     latestLandmarks,
     latestNormalizedFeatures,
     alphabetPredictions,
+    latestConfirmedLetter,
     wordPredictions,
     latestConfirmedWord,
     motionState,
@@ -72,28 +86,25 @@ export function App() {
     sendFrame(videoElement, timestamp);
   }, [sendFrame]);
 
-  // Append confirmed word to active gloss buffer (LING-01)
+  // Append confirmed word to active gloss buffer (LING-01) - only in word mode
   useEffect(() => {
-    if (role === 'signer' && latestConfirmedWord) {
+    if (role === 'signer' && recognitionMode === 'word' && latestConfirmedWord) {
       const added = glossBufferRef.current.push(latestConfirmedWord, 'word');
       if (added) {
         setGlosses([...glossBufferRef.current.getGlosses()]);
       }
     }
-  }, [role, latestConfirmedWord]);
+  }, [role, recognitionMode, latestConfirmedWord]);
 
-  // In alphabet mode, append confirmed letter predictions
+  // In alphabet mode, append confirmed letter predictions with deliberate dwell hold gate
   useEffect(() => {
-    if (role === 'signer' && recognitionMode === 'alphabet' && alphabetPredictions && alphabetPredictions.length > 0) {
-      const top1 = alphabetPredictions[0];
-      if (top1 && top1.isConfident) {
-        const added = glossBufferRef.current.push(top1.label, 'letter');
-        if (added) {
-          setGlosses([...glossBufferRef.current.getGlosses()]);
-        }
+    if (role === 'signer' && recognitionMode === 'alphabet' && latestConfirmedLetter) {
+      const added = glossBufferRef.current.push(latestConfirmedLetter, 'letter');
+      if (added) {
+        setGlosses([...glossBufferRef.current.getGlosses()]);
       }
     }
-  }, [role, recognitionMode, alphabetPredictions]);
+  }, [role, recognitionMode, latestConfirmedLetter]);
 
   const previewText = formatIslSentence(glosses);
 
@@ -152,7 +163,26 @@ export function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans relative overflow-x-hidden">
+    <div className="h-screen max-h-screen w-full flex flex-col text-[#000000] font-sans overflow-hidden select-none">
+      {/* 1. Authentic 90s GeoCities Marquee Announcement Bar */}
+      <div className="bg-[#000080] text-[#FFFFFF] border-b-2 border-[#000000] py-0.5 px-2 overflow-hidden flex items-center select-none shadow-sm flex-shrink-0 h-6">
+        <span className="bg-[#FFFF00] text-[#000000] font-mono font-bold text-[9px] px-1 py-0.2 mr-1.5 flex-shrink-0 animate-pulse-glow">
+          NEWS
+        </span>
+        <div className="overflow-hidden whitespace-nowrap flex-1">
+          <div className="marquee-content font-mono text-[11px] font-bold tracking-wide">
+            <span className="text-[#FFFF00]">★ SIGNBRIDGE ISL '98 ★</span>{' '}
+            <span className="text-[#FFFFFF]">100% PRIVATE CLIENT-SIDE NEURAL NETWORK</span> •{' '}
+            <span className="text-[#00FF00]">50 CORE ISL WORDS + A-Z FINGER SPELLING</span> •{' '}
+            <span className="text-[#00FFFF]">BEST VIEWED AT 800x600 IN NETSCAPE 4.0 OR IE 4.0</span> •{' '}
+            <span className="text-[#FF5555]">Y2K COMPLIANT</span> •{' '}
+            <span className="text-[#FFFFCC]">DIAL-UP OPTIMIZED 56.6 KBPS</span> •{' '}
+            <span className="text-[#00FF00]">ZERO LATENCY EDGE AI ★</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Compact Windows 95 Navigation & Menu Bar */}
       <Navbar
         fps={fps}
         workerStatus={workerStatus}
@@ -175,18 +205,20 @@ export function App() {
         }}
       />
 
-      <main className="flex-1 p-3 sm:p-4 lg:p-6 max-w-7xl mx-auto w-full flex flex-col justify-center">
+      {/* 3. Main Application Workspace Area (Fills remaining height, zero page scrolling) */}
+      <main className="flex-1 min-h-0 w-full px-2 py-1.5 flex flex-col justify-stretch overflow-hidden">
         {workerError && role === 'signer' && (
-          <div className="mb-4 px-4 py-2 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs text-center">
-            Worker Notice: {workerError}
+          <div className="mb-1 retro-outset bg-[#FFFFCC] border-2 border-[#CC0000] p-1 text-[11px] text-[#CC0000] font-mono font-bold flex items-center gap-1.5 flex-shrink-0">
+            <span>[!] SYSTEM NOTICE:</span>
+            <span>{workerError}</span>
           </div>
         )}
 
-        {/* 12-Column Responsive Workspace */}
         {role === 'signer' ? (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-            {/* Left 7 Columns: Vision Stage + LiveGlossBar */}
-            <div className="lg:col-span-7 flex flex-col items-center gap-4 w-full">
+          /* 12-Column Balanced Proportions Grid: Left (Video + GlossBar) & Right (Chat Messenger) */
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 h-full min-h-0 overflow-hidden items-stretch">
+            {/* Left 7 Columns: Video Viewport & Live Sentence Composer */}
+            <div className="lg:col-span-7 flex flex-col gap-2 h-full min-h-0 overflow-hidden">
               <SignerStage
                 onFrame={handleFrame}
                 onFpsUpdate={setFps}
@@ -195,6 +227,7 @@ export function App() {
                 motionState={motionState}
                 bufferSize={bufferSize}
                 alphabetPredictions={alphabetPredictions}
+                latestConfirmedLetter={latestConfirmedLetter}
                 wordPredictions={wordPredictions}
                 latestConfirmedWord={latestConfirmedWord}
                 latestReply={latestIncomingReply}
@@ -212,8 +245,8 @@ export function App() {
               />
             </div>
 
-            {/* Right 5 Columns: Two-Way Chat Workspace */}
-            <div className="lg:col-span-5 w-full h-[580px] lg:h-[620px]">
+            {/* Right 5 Columns: Two-Way Instant Messenger Window */}
+            <div className="lg:col-span-5 h-full min-h-0 overflow-hidden flex flex-col">
               <ChatPanel
                 messages={allMessages}
                 incomingPartialSigning={null}
@@ -227,18 +260,18 @@ export function App() {
             </div>
           </div>
         ) : (
-          /* Text Partner View: Focused Conversational Interface */
-          <div className="max-w-3xl mx-auto w-full flex flex-col gap-4">
-            <div className="text-center mb-2">
-              <h2 className="text-xl sm:text-2xl font-bold text-slate-100 tracking-tight">
-                SignBridge Hearing Partner Portal
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto mt-1">
-                Connected to ISL Signer in Room <span className="font-mono text-emerald-400 font-bold">#{roomId}</span>. Receive live sign translations and reply by typing below.
+          /* Text Partner View: Focused Chat Workspace */
+          <div className="max-w-3xl mx-auto w-full h-full flex flex-col gap-2 min-h-0 overflow-hidden">
+            <div className="retro-window p-2 text-center bg-[#C0C0C0] flex-shrink-0">
+              <div className="bg-[#000080] text-[#FFFFFF] px-2 py-0.5 font-bold text-xs mb-1">
+                HEARING PARTNER TERMINAL - ROOM #{roomId}
+              </div>
+              <p className="text-[11px] font-sans text-[#000000]">
+                Connected to Deaf ISL Signer. Live sign translations appear in real time below.
               </p>
             </div>
 
-            <div className="h-[620px] w-full">
+            <div className="flex-1 min-h-0 h-full overflow-hidden">
               <ChatPanel
                 messages={allMessages}
                 incomingPartialSigning={incomingPartialSigning}
@@ -254,6 +287,87 @@ export function App() {
         )}
       </main>
 
+      {/* 4. Docked Windows 95 Taskbar & Status Dock at Bottom */}
+      <footer className="h-7 retro-outset bg-[#C0C0C0] border-t-2 border-[#000000] flex items-center justify-between px-1.5 text-xs select-none flex-shrink-0 z-30 shadow-md">
+        {/* Left: Start Button & Active Tasks */}
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => alert("SignBridge ISL '98\\n\\nStart Menu:\\n• ISL Dictionary (50 Words)\\n• Keypoint Dataset Recorder\\n• 100% Client-Side Private AI\\n• Y2K Compliant")}
+            className="retro-btn !px-2 !py-0.5 font-heading text-xs font-black flex items-center gap-1 active:translate-y-[1px]"
+          >
+            <span className="text-[#000080] font-bold">⊞</span>
+            <span>Start</span>
+          </button>
+
+          <div className="retro-inset px-2 py-0.5 bg-[#FFFFFF] text-[11px] font-bold text-[#000080] hidden sm:flex items-center gap-1">
+            <Monitor className="w-3 h-3 stroke-[2px]" />
+            <span>SignBridge '98</span>
+          </div>
+
+          <button
+            onClick={() => setIsDictionaryOpen(true)}
+            className="retro-btn !px-1.5 !py-0.5 text-[11px] hidden md:flex items-center gap-1"
+          >
+            <BookOpen className="w-3 h-3 stroke-[2px] text-[#000080]" />
+            <span>Dictionary</span>
+          </button>
+
+          {role === 'signer' && (
+            <button
+              onClick={() => setIsRecorderOpen(true)}
+              className="retro-btn !px-1.5 !py-0.5 text-[11px] hidden md:flex items-center gap-1"
+            >
+              <Database className="w-3 h-3 stroke-[2px] text-[#800080]" />
+              <span>Recorder</span>
+            </button>
+          )}
+        </div>
+
+        {/* Center: Hit Counter & WebRing Quick Links */}
+        <div className="flex items-center gap-2">
+          {/* Hit Counter Display (Always visible) */}
+          <div className="flex items-center gap-1">
+            <span className="text-[10px] font-mono font-bold hidden lg:inline">VISITORS:</span>
+            <div className="retro-hit-counter text-[11px] !py-0 !px-1.5">
+              0048291
+            </div>
+          </div>
+
+          {/* WebRing Navigation */}
+          <div className="hidden xl:flex items-center gap-1 text-[10px] font-mono">
+            <span className="font-bold text-[#000080]">WebRing:</span>
+            <a href="#prev" onClick={(e) => e.preventDefault()} className="retro-link font-bold">[&lt;]</a>
+            <a href="#dir" onClick={(e) => e.preventDefault()} className="retro-link font-bold">[Hub]</a>
+            <a href="#next" onClick={(e) => e.preventDefault()} className="retro-link font-bold">[&gt;]</a>
+          </div>
+
+          {/* Guestbook Link */}
+          <a
+            href="#guestbook"
+            onClick={(e) => {
+              e.preventDefault();
+              alert("SignBridge ISL '98 Guestbook:\\n\\n142 signatures recorded since 1997. Welcome to our retro homepage!");
+            }}
+            className="retro-link text-[10px] font-mono font-bold hidden sm:inline"
+          >
+            [Guestbook (142)]
+          </a>
+        </div>
+
+        {/* Right: System Tray & Clock */}
+        <div className="flex items-center gap-1 font-mono text-[10px]">
+          <div className="retro-inset px-1.5 py-0.2 bg-[#C0C0C0] text-[#00AA00] font-bold hidden sm:block">
+            Y2K OK
+          </div>
+          <div className="retro-inset px-1.5 py-0.2 bg-[#C0C0C0] text-[#000080] font-bold hidden sm:block">
+            56.6k
+          </div>
+          <div className="retro-inset px-1.5 py-0.2 bg-[#C0C0C0] text-[#000000] font-bold">
+            {currentTime || '11:48 PM'}
+          </div>
+        </div>
+      </footer>
+
       {/* Developer Training / Keypoint Dataset Recorder Drawer */}
       <KeypointRecorderDrawer
         isOpen={isRecorderOpen}
@@ -267,10 +381,6 @@ export function App() {
         isOpen={isDictionaryOpen}
         onClose={() => setIsDictionaryOpen(false)}
       />
-
-      <footer className="border-t border-slate-800/80 py-3.5 px-6 text-center text-xs text-slate-500 font-mono">
-        SignBridge ISL • Phase 6: The Bridge • 100% Client-Side Private Edge AI
-      </footer>
     </div>
   );
 }
