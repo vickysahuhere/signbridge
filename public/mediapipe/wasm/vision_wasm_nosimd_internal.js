@@ -8335,15 +8335,13 @@ function UseBottomLeftGpuOrigin() {
 }
 
 function custom_emscripten_dbgn(str, len) {
+  const msg = UTF8ToString(str, len);
   if (typeof (dbg) !== "undefined") {
-    dbg(UTF8ToString(str, len));
+    dbg(msg);
+  } else if (typeof (custom_dbg) !== "undefined") {
+    custom_dbg(msg);
   } else {
-    if (typeof (custom_dbg) === "undefined") {
-      function custom_dbg(text) {
-        console.warn.apply(console, arguments);
-      }
-    }
-    custom_dbg(UTF8ToString(str, len));
+    console.warn(msg);
   }
 }
 
@@ -8817,6 +8815,6 @@ if (typeof exports === 'object' && typeof module === 'object') {
   define([], () => ModuleFactory);
 
 globalThis.ModuleFactory = ModuleFactory;
-export default ModuleFactory;
+globalThis.custom_dbg = console.warn.bind(console);
 
 

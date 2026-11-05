@@ -1,5 +1,13 @@
 import { FilesetResolver, HolisticLandmarker } from '@mediapipe/tasks-vision';
 import * as ort from 'onnxruntime-web';
+
+// Polyfill custom_dbg required by MediaPipe Emscripten debug logging in strict mode
+if (typeof self !== 'undefined') {
+  self.custom_dbg = console.warn.bind(console);
+}
+if (typeof globalThis !== 'undefined') {
+  globalThis.custom_dbg = console.warn.bind(console);
+}
 import { extractAndNormalizeFrame, getLandmarkArray } from '../vision/normalizeLandmarks.js';
 import { RingBuffer } from '../vision/RingBuffer.js';
 import { VelocityGate } from '../vision/velocityGate.js';
@@ -28,6 +36,8 @@ const WORD_GLOSS_LABELS = ISL_WORD_LABELS.map(w => w.gloss);
 // Configure ONNX WASM execution
 if (typeof ort !== 'undefined' && ort?.env?.wasm) {
   ort.env.wasm.numThreads = 1;
+  const baseOrigin = (typeof self !== 'undefined' && self.location?.origin) || '';
+  ort.env.wasm.wasmPaths = baseOrigin ? `${baseOrigin}/onnx/` : '/onnx/';
 }
 
 // 30-frame temporal buffer storing 240-float feature vectors
