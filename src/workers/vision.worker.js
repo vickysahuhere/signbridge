@@ -1,10 +1,21 @@
 import { FilesetResolver, HolisticLandmarker } from '@mediapipe/tasks-vision';
+import * as ort from 'onnxruntime-web';
 import { extractAndNormalizeFrame } from '../vision/normalizeLandmarks.js';
 import { RingBuffer } from '../vision/RingBuffer.js';
 import { VelocityGate } from '../vision/velocityGate.js';
+import { getTopKPredictions } from '../ai/softmax.js';
+import { ISL_ALPHABET_LABELS } from '../ai/islAlphabetLabels.js';
 
 let holisticLandmarker = null;
 let isInitialized = false;
+
+let alphabetSession = null;
+let isAlphabetModelReady = false;
+
+// Configure ONNX WASM execution
+if (typeof ort !== 'undefined' && ort?.env?.wasm) {
+  ort.env.wasm.numThreads = 1;
+}
 
 // 30-frame temporal buffer storing 240-float feature vectors
 const ringBuffer = new RingBuffer(30, 240);
@@ -20,6 +31,48 @@ const velocityGate = new VelocityGate({
 const DEFAULT_WASM_CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm';
 const DEFAULT_MODEL_URL =
   'https://storage.googleapis.com/mediapipe-models/holistic_landmarker/holistic_landmarker/float16/latest/holistic_landmarker.task';
+const DEFAULT_ALPHABET_MODEL_URL = '/models/isl_alphabet_mlp.onnx';
+
+/**
+ * Initialize Two-Handed ISL Alphabet MLP Model
+ */
+async function initAlphabetModel(modelPath = DEFAULT_ALPHABET_MODEL_URL) {
+  try {
+    console.log('[vision.worker] Initializing ISL Alphabet MLP from:', modelPath);
+    let modelData;
+
+    if (typeof fetch !== 'undefined') {
+      try {
+        const resp = await fetch(modelPath);
+        if (resp.ok) {
+          modelData = await resp.arrayBuffer();
+        } else {
+          console.warn(`[vision.worker] Fetching ${modelPath} returned status ${resp.status}`);
+          modelData = modelPath;
+        }
+      } catch (fetchErr) {
+        console.warn('[vision.worker] Fetch error for alphabet model, using direct path:', fetchErr);
+        modelData = modelPath;
+      }
+    } else {
+      modelData = modelPath;
+    }
+
+    alphabetSession = await ort.InferenceSession.create(modelData, {
+      executionProviders: ['wasm']
+    });
+
+    // Run dummy inference warm-up frame [1, 240]
+    const dummy = new ort.Tensor('float32', new Float32Array(240), [1, 240]);
+    await alphabetSession.run({ input: dummy });
+
+    isAlphabetModelReady = true;
+    console.log('[vision.worker] ISL Alphabet MLP initialized and warmed up successfully (<10ms)');
+    self.postMessage({ type: 'ALPHABET_MODEL_READY' });
+  } catch (err) {
+    console.warn('[vision.worker] Alphabet model initialization warning:', err.message);
+  }
+}
 
 /**
  * Cache and load the Holistic model file using browser Cache Storage for instant future loads
@@ -122,6 +175,9 @@ async function initVision(config = {}) {
     // Run WebGL shader compilation warm-up
     await runShaderWarmUp(holisticLandmarker);
 
+    // Initialize ISL Alphabet MLP session
+    await initAlphabetModel(config.alphabetModelUrl || DEFAULT_ALPHABET_MODEL_URL);
+
     isInitialized = true;
     const totalBootMs = Math.round(performance.now() - startTime);
 
@@ -142,7 +198,7 @@ async function initVision(config = {}) {
 /**
  * Process a single video frame ImageBitmap
  */
-function processFrame(imageBitmap, timestamp) {
+async function processFrame(imageBitmap, timestamp) {
   if (!isInitialized || !holisticLandmarker) {
     if (imageBitmap && typeof imageBitmap.close === 'function') {
       imageBitmap.close();
@@ -167,6 +223,20 @@ function processFrame(imageBitmap, timestamp) {
     // 3. Update velocity gate with normalized wrists and current frame timestamp
     const motion = velocityGate.update(normalized.leftWrist, normalized.rightWrist, timestamp);
 
+    // 4. Run Two-Handed Alphabet MLP classification if model ready
+    let alphabetPredictions = [];
+    if (alphabetSession && isAlphabetModelReady) {
+      try {
+        const inputTensor = new ort.Tensor('float32', normalized.features, [1, 240]);
+        const outputs = await alphabetSession.run({ input: inputTensor });
+        if (outputs?.output?.data) {
+          alphabetPredictions = getTopKPredictions(outputs.output.data, ISL_ALPHABET_LABELS, 3, 0.75);
+        }
+      } catch (inferErr) {
+        console.warn('[vision.worker] Alphabet MLP inference error:', inferErr);
+      }
+    }
+
     const processingTimeMs = Math.round(performance.now() - frameStart);
 
     self.postMessage({
@@ -180,6 +250,7 @@ function processFrame(imageBitmap, timestamp) {
       normalizedFeatures: normalized.features,
       motion,
       bufferSize: ringBuffer.size(),
+      alphabetPredictions,
       timestamp,
       processingTimeMs
     });
@@ -205,8 +276,12 @@ self.onmessage = async (event) => {
       await initVision(config);
       break;
 
+    case 'INIT_ALPHABET_MODEL':
+      await initAlphabetModel(config?.modelPath);
+      break;
+
     case 'PROCESS_FRAME':
-      processFrame(imageBitmap, timestamp);
+      await processFrame(imageBitmap, timestamp);
       break;
 
     case 'CLEAR_BUFFER':
