@@ -12,8 +12,8 @@ Requirements for initial release, mapped directly to roadmap phases.
 - [x] **VISN-01**: Application accesses webcam stream via `requestVideoFrameCallback` at native 30+ FPS without main-thread UI jank.
 - [x] **VISN-02**: Offloads MediaPipe Holistic Landmarker (543 3D keypoints) execution to a dedicated Web Worker (`vision.worker.js`) with WebGL/WASM acceleration.
 - [x] **VISN-03**: Performs initial dummy tensor warm-up during worker boot to precompile WebGL shaders and avoid runtime stutter.
-- [ ] **VISN-04**: Renders synchronized 2D canvas skeleton overlay with distinct color coding: Left Hand in Sky Blue (`#38BDF8`), Right Hand in Emerald Green (`#34D399`), Upper Pose in White, and Lips/Eyebrows in Amber.
-- [ ] **VISN-05**: Displays framing guide box on canvas with Rose Red (`#F43F5E`) alert if hands move outside the active tracking zone.
+- [x] **VISN-04**: Renders synchronized 2D canvas skeleton overlay with distinct color coding: Left Hand in Sky Blue (`#38BDF8`), Right Hand in Emerald Green (`#34D399`), Upper Pose in White, and Lips/Eyebrows in Amber.
+- [x] **VISN-05**: Displays framing guide box on canvas with Rose Red (`#F43F5E`) alert if hands move outside the active tracking zone.
 
 ### Coordinate Math & Motion Gating (The Math)
 
@@ -78,8 +78,8 @@ Deferred to subsequent releases:
 | VISN-01 | Phase 1 | Complete |
 | VISN-02 | Phase 1 | Complete |
 | VISN-03 | Phase 1 | Complete |
-| VISN-04 | Phase 1 | Pending |
-| VISN-05 | Phase 1 | Pending |
+| VISN-04 | Phase 1 | Complete |
+| VISN-05 | Phase 1 | Complete |
 | MATH-01 | Phase 2 | Pending |
 | MATH-02 | Phase 2 | Pending |
 | MATH-03 | Phase 2 | Pending |
