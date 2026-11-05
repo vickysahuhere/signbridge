@@ -79,11 +79,11 @@ Plans:
   1. Pretrained INCLUDE-50 word model (`.onnx`) loads and executes on 30-frame sliding windows every 5 frames during `SIGNING_ACTIVE`.
   2. 2-step consecutive confirmation rejects single-frame noise spikes and accepts words only when the same gloss wins top-1 with >=0.75 confidence across two consecutive windows.
   3. Everyday conversational ISL words (`NAMASTE`, `YOU`, `NAME`, `WHAT`, `HELP`, `DOCTOR`, `GO`, `HOSPITAL`) are accurately classified and emitted to the UI.
-**Plans**: 2 plans
+**Plans**: 0/2 plans executed
 
 Plans:
-- [ ] 04-01: INCLUDE-50 model loading, class label mapping (`isl_labels.json`), and sliding window tensor processing in `vision.worker.js`.
-- [ ] 04-02: 2-step consecutive confirmation filter, mode toggling between ISL Word Mode and A-Z Alphabet Mode, and live gloss pill preview.
+- [ ] 04-01: AI4Bharat INCLUDE-50 ONNX model synthesis, 50-word ISL dictionary, and 2-step consecutive confirmation gate.
+- [ ] 04-02: Web Worker 5-frame temporal inference cadence, SignerStage word HUD, and interactive WordDictionaryModal.
 
 ---
 
