@@ -1,0 +1,119 @@
+import { useState, useEffect, useRef, useCallback } from 'react';
+
+export function useVisionWorker() {
+  const workerRef = useRef(null);
+  const [isWorkerReady, setIsWorkerReady] = useState(false);
+  const [workerStatus, setWorkerStatus] = useState('idle');
+  const [workerLatencyMs, setWorkerLatencyMs] = useState(0);
+  const [latestLandmarks, setLatestLandmarks] = useState(null);
+  const [workerError, setWorkerError] = useState(null);
+
+  // Prevent queuing frames when worker is busy
+  const isProcessingFrameRef = useRef(false);
+
+  useEffect(() => {
+    let worker = null;
+
+    try {
+      worker = new Worker(new URL('../workers/vision.worker.js', import.meta.url), {
+        type: 'module'
+      });
+      workerRef.current = worker;
+      setWorkerStatus('loading');
+
+      worker.onmessage = (event) => {
+        const data = event.data || {};
+
+        switch (data.type) {
+          case 'WORKER_STATUS':
+            setWorkerStatus(data.status);
+            break;
+
+          case 'WORKER_READY':
+            setIsWorkerReady(true);
+            setWorkerStatus('ready');
+            setWorkerLatencyMs(data.latencyMs || 0);
+            console.log(`[useVisionWorker] Worker ready with ${data.delegate} acceleration`);
+            break;
+
+          case 'LANDMARK_RESULTS':
+            isProcessingFrameRef.current = false;
+            setLatestLandmarks(data.landmarks);
+            setWorkerLatencyMs(data.processingTimeMs);
+            break;
+
+          case 'FRAME_ERROR':
+            isProcessingFrameRef.current = false;
+            break;
+
+          case 'WORKER_ERROR':
+            setWorkerStatus('error');
+            setWorkerError(data.error);
+            setIsWorkerReady(false);
+            break;
+
+          default:
+            break;
+        }
+      };
+
+      worker.onerror = (err) => {
+        console.error('[useVisionWorker] Web Worker top-level error:', err);
+        setWorkerStatus('error');
+        setWorkerError(err.message || 'Worker thread execution error');
+      };
+
+      // Trigger initialization
+      worker.postMessage({ type: 'INIT_VISION' });
+    } catch (err) {
+      console.error('[useVisionWorker] Failed to create Web Worker:', err);
+      setWorkerStatus('error');
+      setWorkerError(err.message);
+    }
+
+    return () => {
+      if (worker) {
+        worker.terminate();
+        workerRef.current = null;
+      }
+    };
+  }, []);
+
+  // Dispatch frame to background worker
+  const sendFrame = useCallback(async (videoElement, timestamp) => {
+    if (!workerRef.current || !isWorkerReady || isProcessingFrameRef.current) {
+      return;
+    }
+
+    if (!videoElement || videoElement.readyState < 2) {
+      return;
+    }
+
+    try {
+      isProcessingFrameRef.current = true;
+      const imageBitmap = await createImageBitmap(videoElement);
+      workerRef.current.postMessage(
+        {
+          type: 'PROCESS_FRAME',
+          imageBitmap,
+          timestamp
+        },
+        [imageBitmap]
+      );
+    } catch (err) {
+      isProcessingFrameRef.current = false;
+      // Normal during video pauses or tab switching
+    }
+  }, [isWorkerReady]);
+
+  return {
+    isWorkerReady,
+    workerStatus,
+    workerLatencyMs,
+    latestLandmarks,
+    workerError,
+    sendFrame
+  };
+}
+
+export default useVisionWorker;

@@ -1,11 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Navbar } from './components/Navbar.jsx';
 import { SignerStage } from './components/SignerStage.jsx';
+import { useVisionWorker } from './hooks/useVisionWorker.js';
 
 export function App() {
   const [fps, setFps] = useState(0);
-  const [workerStatus, setWorkerStatus] = useState('idle');
-  const [workerLatencyMs, setWorkerLatencyMs] = useState(0);
+  const {
+    isWorkerReady,
+    workerStatus,
+    workerLatencyMs,
+    latestLandmarks,
+    workerError,
+    sendFrame
+  } = useVisionWorker();
+
+  const handleFrame = useCallback((videoElement, timestamp) => {
+    sendFrame(videoElement, timestamp);
+  }, [sendFrame]);
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
@@ -25,8 +36,17 @@ export function App() {
           </p>
         </div>
 
+        {workerError && (
+          <div className="mb-4 px-4 py-2 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs">
+            Worker Notice: {workerError}
+          </div>
+        )}
+
         <SignerStage
+          onFrame={handleFrame}
           onFpsUpdate={setFps}
+          latestLandmarks={latestLandmarks}
+          isWorkerReady={isWorkerReady}
         />
       </main>
 
