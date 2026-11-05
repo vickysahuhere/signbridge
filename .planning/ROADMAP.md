@@ -46,10 +46,10 @@ Plans:
   3. A 30-frame FIFO RingBuffer stores the rolling 7,200-float sliding temporal sequence.
   4. Rolling wrist velocity computes real-time energy states (`SIGNING_ACTIVE`, `PAUSE_COUNTDOWN`, `IDLE_COMMIT`).
   5. Pausing hands for >=1.2 seconds triggers the `IDLE_COMMIT` event when the active sign buffer is non-empty.
-**Plans**: 2 plans
+**Plans**: 1/2 plans executed
 
 Plans:
-- [ ] 02-01: Implement `normalizeLandmarks.js` for shoulder-centered translation & scale normalization with zero-padding and create `RingBuffer.js`.
+- [x] 02-01: Implement `normalizeLandmarks.js` for shoulder-centered translation & scale normalization with zero-padding and create `RingBuffer.js`.
 - [ ] 02-02: Implement `velocityGate.js` for wrist velocity energy calculation, 5-frame rolling average, and 1.2s pause timer emission.
 
 ---
@@ -131,7 +131,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. The Eyes | 3/3 | Complete | 2026-11-05 |
-| 2. The Math | 0/2 | Not started | - |
+| 2. The Math | 1/2 | In Progress | - |
 | 3. The Brain (Part 1) | 0/2 | Not started | - |
 | 4. The Brain (Part 2) | 0/2 | Not started | - |
 | 5. The Linguist | 0/2 | Not started | - |
