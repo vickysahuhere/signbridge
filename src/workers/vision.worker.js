@@ -41,9 +41,8 @@ const velocityGate = new VelocityGate({
   windowSize: 5
 });
 
-const DEFAULT_WASM_CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm';
-const DEFAULT_MODEL_URL =
-  'https://storage.googleapis.com/mediapipe-models/holistic_landmarker/holistic_landmarker/float16/latest/holistic_landmarker.task';
+const DEFAULT_WASM_PATH = '/mediapipe/wasm';
+const DEFAULT_MODEL_URL = '/models/holistic_landmarker.task';
 const DEFAULT_ALPHABET_MODEL_URL = '/models/isl_alphabet_mlp.onnx';
 const DEFAULT_WORD_MODEL_URL = '/models/isl_include_50.onnx';
 
@@ -184,24 +183,17 @@ async function runShaderWarmUp(landmarker) {
  */
 async function initVision(config = {}) {
   const startTime = performance.now();
-  const wasmCdn = config.wasmCdn || DEFAULT_WASM_CDN;
-  const rawModelUrl = config.modelUrl || DEFAULT_MODEL_URL;
+  const baseOrigin = (typeof self !== 'undefined' && self.location?.origin) || '';
+  const wasmPath = config.wasmPath || (baseOrigin ? `${baseOrigin}/mediapipe/wasm` : DEFAULT_WASM_PATH);
+  const rawModelUrl = config.modelUrl || (baseOrigin ? `${baseOrigin}/models/holistic_landmarker.task` : DEFAULT_MODEL_URL);
 
   try {
     self.postMessage({ type: 'WORKER_STATUS', status: 'loading', message: 'Resolving WASM binaries...' });
-    let vision;
-    try {
-      // In ESM workers, prefer the module target which assigns to globalThis.ModuleFactory
-      vision = await FilesetResolver.forVisionTasks(wasmCdn, true);
-    } catch {
-      vision = await FilesetResolver.forVisionTasks(wasmCdn);
-    }
+    const vision = await FilesetResolver.forVisionTasks(wasmPath);
 
     // Workaround for "ModuleFactory not set" error in ES Module Web Workers:
-    // Browser ESM workers do not support importScripts(), and cross-origin dynamic import()
-    // inside worker scope does not bind ModuleFactory to self/globalThis.
-    // We pre-fetch the loader script, evaluate it into globalThis.ModuleFactory, and delete
-    // wasmLoaderPath so createFromOptions uses the prepared global factory directly.
+    // Pre-fetch and evaluate the loader script into globalThis.ModuleFactory, and delete
+    // wasmLoaderPath so createFromOptions uses the local factory directly without dynamic import.
     let cachedFactory = self.ModuleFactory;
     if (!cachedFactory && vision?.wasmLoaderPath) {
       try {
