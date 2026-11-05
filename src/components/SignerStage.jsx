@@ -1,18 +1,21 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { Camera, CameraOff, AlertCircle, RefreshCw, Eye } from 'lucide-react';
+import { Camera, CameraOff, AlertCircle, RefreshCw, Eye, Activity } from 'lucide-react';
 import { startCameraLoop } from '../vision/cameraLoop.js';
+import { drawSkeleton, checkBoundaryAlert } from '../vision/drawSkeleton.js';
 
 export function SignerStage({
   onFrame,
-  canvasOverlay,
-  isBoundaryAlert = false,
-  boundaryMessage = '',
+  latestLandmarks,
+  isWorkerReady = false,
   onFpsUpdate
 }) {
   const videoRef = useRef(null);
+  const canvasRef = useRef(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState(null);
   const [isLoadingCamera, setIsLoadingCamera] = useState(false);
+  const [showSkeleton, setShowSkeleton] = useState(true);
+  const [boundaryAlert, setBoundaryAlert] = useState({ isOutOfFrame: false, message: '' });
 
   // FPS calculation refs
   const frameCountRef = useRef(0);
@@ -60,7 +63,14 @@ export function SignerStage({
       videoRef.current.srcObject = null;
     }
     setIsCameraActive(false);
+    setBoundaryAlert({ isOutOfFrame: false, message: '' });
     if (onFpsUpdate) onFpsUpdate(0);
+
+    // Clear canvas
+    if (canvasRef.current) {
+      const ctx = canvasRef.current.getContext('2d');
+      ctx.clearRect(0, 0, 640, 480);
+    }
   }, [onFpsUpdate]);
 
   // Wire hardware-synchronized camera loop
@@ -81,7 +91,7 @@ export function SignerStage({
         lastFpsCalcTimeRef.current = now;
       }
 
-      // Dispatch frame to consumer
+      // Dispatch frame to consumer (worker)
       if (onFrame) {
         onFrame(video, timestamp, metadata);
       }
@@ -91,6 +101,29 @@ export function SignerStage({
       stopLoop();
     };
   }, [isCameraActive, onFrame, onFpsUpdate]);
+
+  // Render 3D skeleton overlay whenever new landmarks arrive
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+
+    if (!isCameraActive || !showSkeleton) {
+      ctx.clearRect(0, 0, 640, 480);
+      return;
+    }
+
+    // Check boundary alerts
+    const alertResult = checkBoundaryAlert(latestLandmarks, 0.10);
+    setBoundaryAlert(alertResult);
+
+    // Render skeleton mirrored horizontally to match mirrored video feed
+    ctx.save();
+    ctx.translate(640, 0);
+    ctx.scale(-1, 1);
+    drawSkeleton(ctx, latestLandmarks, { showGuide: true, showFace: true });
+    ctx.restore();
+  }, [latestLandmarks, isCameraActive, showSkeleton]);
 
   // Cleanup stream on component unmount
   useEffect(() => {
@@ -104,7 +137,7 @@ export function SignerStage({
       {/* Viewport Card */}
       <div
         className={`relative w-full max-w-[640px] aspect-[4/3] bg-slate-950 rounded-2xl overflow-hidden border-2 transition-all duration-300 shadow-2xl ${
-          isBoundaryAlert
+          boundaryAlert.isOutOfFrame
             ? 'border-rose-500 shadow-rose-500/20 ring-4 ring-rose-500/30'
             : isCameraActive
             ? 'border-emerald-500/40 shadow-emerald-500/10'
@@ -120,20 +153,39 @@ export function SignerStage({
           autoPlay
         />
 
-        {/* Canvas Skeleton Overlay slot */}
-        {canvasOverlay}
+        {/* Synchronized 640x480 Canvas Skeleton Overlay */}
+        <canvas
+          ref={canvasRef}
+          width={640}
+          height={480}
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none z-10"
+        />
 
         {/* Boundary Alert Warning Badge */}
-        {isBoundaryAlert && (
-          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 flex items-center gap-2 px-3 py-1.5 rounded-full bg-rose-500/90 text-slate-950 font-bold text-xs shadow-lg backdrop-blur-md animate-bounce">
-            <AlertCircle className="w-4 h-4" />
-            <span>{boundaryMessage || 'Keep hands inside frame'}</span>
+        {boundaryAlert.isOutOfFrame && (
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-500/90 text-slate-950 font-bold text-xs shadow-lg backdrop-blur-md animate-pulse">
+            <AlertCircle className="w-4 h-4 text-slate-950" />
+            <span>{boundaryAlert.message}</span>
+          </div>
+        )}
+
+        {/* Hand Color Legend Overlay (during active signing) */}
+        {isCameraActive && showSkeleton && (
+          <div className="absolute bottom-3 left-3 z-20 flex items-center gap-3 px-3 py-1.5 rounded-lg bg-slate-900/80 backdrop-blur-md border border-slate-700/60 text-[11px] font-mono">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-sky-400" />
+              <span className="text-slate-300">Left Hand</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+              <span className="text-slate-300">Right Hand</span>
+            </div>
           </div>
         )}
 
         {/* Inactive Camera Placeholder */}
         {!isCameraActive && !cameraError && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-slate-900/90 backdrop-blur-sm z-10">
+          <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-slate-900/90 backdrop-blur-sm z-20">
             <div className="w-16 h-16 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center mb-4 text-slate-400">
               <Camera className="w-8 h-8 text-sky-400" />
             </div>
@@ -163,7 +215,7 @@ export function SignerStage({
 
         {/* Camera Permission Denied Card */}
         {cameraError && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-slate-900/95 backdrop-blur-md z-10">
+          <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-slate-900/95 backdrop-blur-md z-20">
             <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center mb-4 text-rose-400">
               <AlertCircle className="w-8 h-8" />
             </div>
@@ -202,6 +254,20 @@ export function SignerStage({
               <span>Start Camera</span>
             </button>
           )}
+
+          {isCameraActive && (
+            <button
+              onClick={() => setShowSkeleton(!showSkeleton)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold transition ${
+                showSkeleton
+                  ? 'bg-sky-500/20 border-sky-500/30 text-sky-300'
+                  : 'bg-slate-800 border-slate-700 text-slate-400'
+              }`}
+            >
+              <Activity className="w-3.5 h-3.5" />
+              <span>{showSkeleton ? 'Hide Skeleton' : 'Show Skeleton'}</span>
+            </button>
+          )}
         </div>
 
         <div className="text-xs text-slate-400 font-mono flex items-center gap-3">
@@ -210,7 +276,7 @@ export function SignerStage({
             <span>640 x 480 Native</span>
           </span>
           <span className="text-slate-600">•</span>
-          <span className="text-slate-400">Mirrored Video</span>
+          <span className="text-slate-400">Mirrored</span>
         </div>
       </div>
     </div>
