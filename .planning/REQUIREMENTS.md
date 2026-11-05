@@ -25,10 +25,10 @@ Requirements for initial release, mapped directly to roadmap phases.
 
 ### Two-Handed Alphabet Recognition & Training Tools (The Brain Part 1)
 
-- [ ] **ALPH-01**: Loads and runs a two-handed ISL Alphabet MLP model in `vision.worker.js` via `onnxruntime-web` for static/short-sequence letter recognition (A–Z and 0–9).
-- [ ] **ALPH-02**: Calculates Softmax probability distribution and enforces a >=0.75 confidence threshold before accepting letter predictions.
-- [ ] **ALPH-03**: Displays top-3 predicted ISL letters with real-time confidence indicator bars on `<SignerStage />`.
-- [ ] **ALPH-04**: Provides an in-browser "Developer Training / Keypoint Recorder" drawer allowing users to capture 100-frame normalized ISL keypoint samples and export them as JSON/CSV.
+- [x] **ALPH-01**: Loads and runs a two-handed ISL Alphabet MLP model in `vision.worker.js` via `onnxruntime-web` for static/short-sequence letter recognition (A–Z and 0–9).
+- [x] **ALPH-02**: Calculates Softmax probability distribution and enforces a >=0.75 confidence threshold before accepting letter predictions.
+- [x] **ALPH-03**: Displays top-3 predicted ISL letters with real-time confidence indicator bars on `<SignerStage />`.
+- [x] **ALPH-04**: Provides an in-browser "Developer Training / Keypoint Recorder" drawer allowing users to capture 100-frame normalized ISL keypoint samples and export them as JSON/CSV.
 
 ### Pretrained Conversational Word Recognition (The Brain Part 2)
 
@@ -85,10 +85,10 @@ Deferred to subsequent releases:
 | MATH-03 | Phase 2 | Complete |
 | MATH-04 | Phase 2 | Complete |
 | MATH-05 | Phase 2 | Complete |
-| ALPH-01 | Phase 3 | Pending |
-| ALPH-02 | Phase 3 | Pending |
-| ALPH-03 | Phase 3 | Pending |
-| ALPH-04 | Phase 3 | Pending |
+| ALPH-01 | Phase 3 | Complete |
+| ALPH-02 | Phase 3 | Complete |
+| ALPH-03 | Phase 3 | Complete |
+| ALPH-04 | Phase 3 | Complete |
 | WORD-01 | Phase 4 | Pending |
 | WORD-02 | Phase 4 | Pending |
 | WORD-03 | Phase 4 | Pending |
