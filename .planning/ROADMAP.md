@@ -131,8 +131,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. The Eyes | 3/3 | Complete | 2026-11-05 |
-| 2. The Math | 1/2 | In Progress | - |
-| 3. The Brain (Part 1) | 0/2 | Not started | - |
-| 4. The Brain (Part 2) | 0/2 | Not started | - |
-| 5. The Linguist | 0/2 | Not started | - |
-| 6. The Bridge | 0/3 | Not started | - |
+| 2. The Math | 2/2 | Complete | 2026-11-05 |
+| 3. The Brain (Part 1) | 2/2 | Complete | 2026-11-05 |
+| 4. The Brain (Part 2) | 2/2 | Complete | 2026-11-05 |
+| 5. The Linguist | 2/2 | Complete | 2026-11-05 |
+| 6. The Bridge | 0/3 | Planned | - |
