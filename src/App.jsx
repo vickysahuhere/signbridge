@@ -10,7 +10,7 @@ import { useRoomConnection } from './hooks/useRoomConnection.js';
 import { useWebRTC } from './hooks/useWebRTC.js';
 import { GlossBufferManager } from './nlp/glossBufferManager.js';
 import { formatIslSentence } from './nlp/islSentenceFormatter.js';
-import { Globe, Mail, Monitor, Database, BookOpen } from 'lucide-react';
+import { Monitor, BookOpen, Database } from 'lucide-react';
 
 export function App() {
   const [fps, setFps] = useState(0);
@@ -73,7 +73,6 @@ export function App() {
     latestLandmarks,
     latestNormalizedFeatures,
     alphabetPredictions,
-    latestConfirmedLetter,
     wordPredictions,
     latestConfirmedWord,
     motionState,
@@ -86,25 +85,28 @@ export function App() {
     sendFrame(videoElement, timestamp);
   }, [sendFrame]);
 
-  // Append confirmed word to active gloss buffer (LING-01) - only in word mode
+  // Append confirmed word to active gloss buffer (LING-01)
   useEffect(() => {
-    if (role === 'signer' && recognitionMode === 'word' && latestConfirmedWord) {
+    if (role === 'signer' && latestConfirmedWord) {
       const added = glossBufferRef.current.push(latestConfirmedWord, 'word');
       if (added) {
         setGlosses([...glossBufferRef.current.getGlosses()]);
       }
     }
-  }, [role, recognitionMode, latestConfirmedWord]);
+  }, [role, latestConfirmedWord]);
 
-  // In alphabet mode, append confirmed letter predictions with deliberate dwell hold gate
+  // In alphabet mode, append confirmed letter predictions
   useEffect(() => {
-    if (role === 'signer' && recognitionMode === 'alphabet' && latestConfirmedLetter) {
-      const added = glossBufferRef.current.push(latestConfirmedLetter, 'letter');
-      if (added) {
-        setGlosses([...glossBufferRef.current.getGlosses()]);
+    if (role === 'signer' && recognitionMode === 'alphabet' && alphabetPredictions && alphabetPredictions.length > 0) {
+      const top1 = alphabetPredictions[0];
+      if (top1 && top1.isConfident) {
+        const added = glossBufferRef.current.push(top1.label, 'letter');
+        if (added) {
+          setGlosses([...glossBufferRef.current.getGlosses()]);
+        }
       }
     }
-  }, [role, recognitionMode, latestConfirmedLetter]);
+  }, [role, recognitionMode, alphabetPredictions]);
 
   const previewText = formatIslSentence(glosses);
 
@@ -205,8 +207,8 @@ export function App() {
         }}
       />
 
-      {/* 3. Main Application Workspace Area (Fills remaining height, zero page scrolling) */}
-      <main className="flex-1 min-h-0 w-full px-2 py-1.5 flex flex-col justify-stretch overflow-hidden">
+      {/* 3. Main Workspace Area: Rock-solid two-pane desktop communication layout */}
+      <main className="flex-1 min-h-0 w-full p-2 flex flex-col justify-stretch overflow-hidden">
         {workerError && role === 'signer' && (
           <div className="mb-1 retro-outset bg-[#FFFFCC] border-2 border-[#CC0000] p-1 text-[11px] text-[#CC0000] font-mono font-bold flex items-center gap-1.5 flex-shrink-0">
             <span>[!] SYSTEM NOTICE:</span>
@@ -215,10 +217,10 @@ export function App() {
         )}
 
         {role === 'signer' ? (
-          /* 12-Column Balanced Proportions Grid: Left (Video + GlossBar) & Right (Chat Messenger) */
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 h-full min-h-0 overflow-hidden items-stretch">
-            {/* Left 7 Columns: Video Viewport & Live Sentence Composer */}
-            <div className="lg:col-span-7 flex flex-col gap-2 h-full min-h-0 overflow-hidden">
+          /* Side-by-side flex panes on all tablet & desktop screens (md:flex-row) */
+          <div className="flex flex-col md:flex-row gap-2 h-full min-h-0 overflow-hidden items-stretch">
+            {/* Left Pane (58% width): Generous Video Stage on top + Compact Sentence Composer below */}
+            <div className="w-full md:w-[58%] lg:w-[60%] flex flex-col gap-2 h-full min-h-0 overflow-hidden flex-shrink-0">
               <SignerStage
                 onFrame={handleFrame}
                 onFpsUpdate={setFps}
@@ -227,7 +229,6 @@ export function App() {
                 motionState={motionState}
                 bufferSize={bufferSize}
                 alphabetPredictions={alphabetPredictions}
-                latestConfirmedLetter={latestConfirmedLetter}
                 wordPredictions={wordPredictions}
                 latestConfirmedWord={latestConfirmedWord}
                 latestReply={latestIncomingReply}
@@ -245,8 +246,8 @@ export function App() {
               />
             </div>
 
-            {/* Right 5 Columns: Two-Way Instant Messenger Window */}
-            <div className="lg:col-span-5 h-full min-h-0 overflow-hidden flex flex-col">
+            {/* Right Pane (42% width): Instant Messenger matching full height */}
+            <div className="w-full md:w-[42%] lg:w-[40%] h-full min-h-0 overflow-hidden flex flex-col flex-1">
               <ChatPanel
                 messages={allMessages}
                 incomingPartialSigning={null}
@@ -260,7 +261,7 @@ export function App() {
             </div>
           </div>
         ) : (
-          /* Text Partner View: Focused Chat Workspace */
+          /* Hearing Partner Focused View */
           <div className="max-w-3xl mx-auto w-full h-full flex flex-col gap-2 min-h-0 overflow-hidden">
             <div className="retro-window p-2 text-center bg-[#C0C0C0] flex-shrink-0">
               <div className="bg-[#000080] text-[#FFFFFF] px-2 py-0.5 font-bold text-xs mb-1">
@@ -325,7 +326,6 @@ export function App() {
 
         {/* Center: Hit Counter & WebRing Quick Links */}
         <div className="flex items-center gap-2">
-          {/* Hit Counter Display (Always visible) */}
           <div className="flex items-center gap-1">
             <span className="text-[10px] font-mono font-bold hidden lg:inline">VISITORS:</span>
             <div className="retro-hit-counter text-[11px] !py-0 !px-1.5">
@@ -333,7 +333,6 @@ export function App() {
             </div>
           </div>
 
-          {/* WebRing Navigation */}
           <div className="hidden xl:flex items-center gap-1 text-[10px] font-mono">
             <span className="font-bold text-[#000080]">WebRing:</span>
             <a href="#prev" onClick={(e) => e.preventDefault()} className="retro-link font-bold">[&lt;]</a>
@@ -341,7 +340,6 @@ export function App() {
             <a href="#next" onClick={(e) => e.preventDefault()} className="retro-link font-bold">[&gt;]</a>
           </div>
 
-          {/* Guestbook Link */}
           <a
             href="#guestbook"
             onClick={(e) => {

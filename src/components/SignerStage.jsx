@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { Camera, CameraOff, AlertCircle, RefreshCw, Eye, Activity, Lock, Sparkles, Check, Video, Monitor } from 'lucide-react';
+import { Camera, CameraOff, AlertCircle, RefreshCw, Activity, Video, Monitor } from 'lucide-react';
 import { startCameraLoop } from '../vision/cameraLoop.js';
 import { drawSkeleton, checkBoundaryAlert } from '../vision/drawSkeleton.js';
 import { IncomingSubtitleOverlay } from './IncomingSubtitleOverlay.jsx';
@@ -12,7 +12,6 @@ export function SignerStage({
   motionState = { state: 'IDLE', pauseProgress: 0, rollingVelocity: 0 },
   bufferSize = 0,
   alphabetPredictions = [],
-  latestConfirmedLetter = null,
   wordPredictions = { topCandidates: [], confirmedWord: null },
   latestConfirmedWord = null,
   latestReply = null,
@@ -56,7 +55,7 @@ export function SignerStage({
       console.error('[SignerStage] Camera access denied or failed:', err);
       setCameraError(
         err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError'
-          ? 'Camera permission denied. Please enable camera access in your browser to track ISL signs.'
+          ? 'Camera permission denied. Please allow camera access in browser settings.'
           : `Video capture error: ${err.message || 'Unknown device error'}`
       );
       setIsCameraActive(false);
@@ -76,7 +75,6 @@ export function SignerStage({
     setBoundaryAlert({ isOutOfFrame: false, message: '' });
     if (onFpsUpdate) onFpsUpdate(0);
 
-    // Clear canvas
     if (canvasRef.current) {
       const ctx = canvasRef.current.getContext('2d');
       ctx.clearRect(0, 0, 640, 480);
@@ -90,7 +88,6 @@ export function SignerStage({
     const videoEl = videoRef.current;
 
     const stopLoop = startCameraLoop(videoEl, (video, timestamp, metadata) => {
-      // FPS measurement
       frameCountRef.current += 1;
       const now = performance.now();
       const delta = now - lastFpsCalcTimeRef.current;
@@ -101,7 +98,6 @@ export function SignerStage({
         lastFpsCalcTimeRef.current = now;
       }
 
-      // Delegate frame to Web Worker via parent callback
       if (onFrame) {
         onFrame(video, timestamp);
       }
@@ -135,12 +131,12 @@ export function SignerStage({
   const hasRightHand = Boolean(latestLandmarks && latestLandmarks.rightHandLandmarks && latestLandmarks.rightHandLandmarks.length > 0);
 
   return (
-    <div className="retro-window w-full shadow-md flex-shrink-0 flex flex-col">
+    <div className="retro-window w-full shadow-md flex-1 min-h-0 flex flex-col overflow-hidden">
       {/* 1. Window Title Bar */}
       <div className="retro-window-titlebar flex-shrink-0">
         <div className="flex items-center gap-1.5">
           <Video className="w-3.5 h-3.5 stroke-[2px]" />
-          <span>Capture Window - [640x480 @ 30 FPS]</span>
+          <span>Capture Window - [ISL Video Feed 640x480 @ 30 FPS]</span>
         </div>
         <div className="flex items-center gap-1">
           <button className="retro-window-btn" aria-label="Minimize">_</button>
@@ -149,10 +145,9 @@ export function SignerStage({
         </div>
       </div>
 
-      {/* 2. Window Body Content */}
-      <div className="p-2 bg-[#C0C0C0]">
-        {/* Main Video Viewport (Proportionate height, fits desktop viewport without scrolling) */}
-        <div className="relative w-full h-[220px] sm:h-[260px] max-w-[640px] mx-auto retro-inset bg-[#000000] overflow-hidden">
+      {/* 2. Main Video Viewport (Takes all remaining height in the window) */}
+      <div className="p-1.5 bg-[#C0C0C0] flex-1 min-h-0 flex flex-col justify-between overflow-hidden">
+        <div className="relative w-full flex-1 min-h-0 retro-inset bg-[#000000] overflow-hidden flex items-center justify-center">
           {/* Incoming Subtitle HUD */}
           <IncomingSubtitleOverlay latestReply={latestReply} />
 
@@ -161,7 +156,8 @@ export function SignerStage({
             ref={videoRef}
             playsInline
             muted
-            className={`w-full h-full object-cover -scale-x-100 ${
+            disablePictureInPicture
+            className={`w-full h-full object-contain -scale-x-100 ${
               isCameraActive ? 'block' : 'hidden'
             }`}
           />
@@ -171,7 +167,7 @@ export function SignerStage({
             ref={canvasRef}
             width={640}
             height={480}
-            className={`absolute inset-0 w-full h-full object-cover -scale-x-100 pointer-events-none z-10 ${
+            className={`absolute inset-0 w-full h-full object-contain -scale-x-100 pointer-events-none z-10 ${
               isCameraActive ? 'block' : 'hidden'
             }`}
           />
@@ -188,7 +184,7 @@ export function SignerStage({
 
           {/* Active HUD Overlays (Upper Right: Top Candidate Recognition Box) */}
           {isCameraActive && recognitionMode === 'word' && wordPredictions.topCandidates && wordPredictions.topCandidates.length > 0 && (
-            <div className="absolute top-1.5 right-1.5 z-20 retro-outset bg-[#C0C0C0] p-1 border border-[#000000] shadow-md max-w-[190px]">
+            <div className="absolute top-1.5 right-1.5 z-20 retro-outset bg-[#C0C0C0] p-1 border border-[#000000] shadow-md max-w-[170px]">
               <div className="bg-[#000080] text-[#FFFFFF] px-1 py-0.2 text-[9px] font-bold flex items-center justify-between mb-0.5">
                 <span>ISL RECOGNITION</span>
                 <span className="text-[#00FF00] font-mono text-[8px]">LIVE</span>
@@ -236,7 +232,7 @@ export function SignerStage({
 
           {/* Active HUD Overlays (Alphabet Fingerspelling Mode) */}
           {isCameraActive && recognitionMode === 'alphabet' && alphabetPredictions && alphabetPredictions.length > 0 && (
-            <div className="absolute top-1.5 right-1.5 z-20 retro-outset bg-[#C0C0C0] p-1 border border-[#000000] shadow-md max-w-[170px]">
+            <div className="absolute top-1.5 right-1.5 z-20 retro-outset bg-[#C0C0C0] p-1 border border-[#000000] shadow-md max-w-[160px]">
               <div className="bg-[#000080] text-[#FFFFFF] px-1 py-0.2 text-[9px] font-bold flex items-center justify-between mb-0.5">
                 <span>FINGER SPELLING (A-Z)</span>
                 <span className="text-[#FFFF00] font-mono text-[8px]">ACTIVE</span>
@@ -252,15 +248,11 @@ export function SignerStage({
                       <span className="font-mono text-[10px] font-bold text-[#00AA00]">
                         {Math.round(alphabetPredictions[0].confidence * 100)}%
                       </span>
-                      {latestConfirmedLetter === alphabetPredictions[0].label ? (
-                        <div className="text-[8px] bg-[#00AA00] text-white px-1 font-bold animate-pulse">
-                          TYPED
+                      {alphabetPredictions[0].isConfident && (
+                        <div className="text-[8px] bg-[#00AA00] text-white px-1 font-bold">
+                          LOCK
                         </div>
-                      ) : alphabetPredictions[0].isConfident ? (
-                        <div className="text-[8px] bg-[#000080] text-white px-1 font-bold">
-                          HOLD...
-                        </div>
-                      ) : null}
+                      )}
                     </div>
                   </div>
                   <div className="w-full bg-[#808080] h-1.5 mt-0.5 retro-inset p-0.2 flex">
@@ -345,7 +337,7 @@ export function SignerStage({
         </div>
 
         {/* 3. Lower Camera Control & Telemetry Bar */}
-        <div className="flex items-center justify-between gap-1.5 mt-1.5 pt-1 border-t border-[#808080]">
+        <div className="flex items-center justify-between gap-1.5 mt-1 pt-0.5 border-t border-[#808080] flex-shrink-0">
           <div className="flex items-center gap-1">
             {isCameraActive ? (
               <button
