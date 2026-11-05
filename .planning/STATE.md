@@ -1,12 +1,12 @@
 ---
 gsd_state_version: '1.0'
-status: complete
+status: planned
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 3
+  total_plans: 5
   completed_plans: 3
-  percent: 100
+  percent: 60
 ---
 
 # Project State
@@ -20,12 +20,12 @@ See: .planning/PROJECT.md (updated 2026-11-04)
 
 ## Current Position
 
-Phase: 1 of 6 (The Eyes) — Completed & Verified  
-Plan: 3 of 3 completed in Phase 1  
-Status: Phase complete (100% verified)  
-Last activity: 2026-11-05 — Completed Phase 1 (The Eyes): Web Worker MediaPipe Holistic, shader warm-up, and dual-color canvas skeleton
+Phase: 2 of 6 (The Math)  
+Plan: 0 of 2 in current phase (02-01, 02-02 planned across 2 waves)  
+Status: Ready to execute  
+Last activity: 2026-11-05 — Planned Phase 2 (The Math): coordinate normalization, 30-frame RingBuffer, wrist velocity motion gating, and unit tests
 
-Progress: [██████████] 100% (Phase 1)
+Progress: [██████░░░░] 60%
 
 ## Performance Metrics
 
@@ -55,10 +55,13 @@ Progress: [██████████] 100% (Phase 1)
 
 - [Phase 1]: Used `videoElement.requestVideoFrameCallback()` with fallback to `requestAnimationFrame` for hardware V-Sync.
 - [Phase 1]: MediaPipe Holistic isolated in dedicated Web Worker (`vision.worker.js`) with WebGL GPU acceleration and Cache Storage caching.
-- [Phase 1]: Precompiled WebGL shaders during worker boot with a dummy frame warm-up to eliminate live inference latency spikes.
-- [Phase 1]: Left Hand bones drawn in Sky Blue (`#38BDF8`), Right Hand bones in Emerald Green (`#34D399`) to disambiguate crossed hands in ISL.
-- [Phase 1]: Mirrored canvas coordinates (`translate + scale(-1, 1)`) to match user's mirrored webcam feed without drift.
-- [Phase 1]: 10% perimeter margin boundary check alerts the signer in Rose Red (`#F43F5E`) if hands drift out of camera view.
+- [Phase 1]: Precompiled WebGL shaders during worker boot with a dummy frame warm-up.
+- [Phase 1]: Left Hand bones drawn in Sky Blue (`#38BDF8`), Right Hand bones in Emerald Green (`#34D399`).
+- [Phase 2]: Filter down 543 landmarks to 80 critical keypoints (240 floats) for scale- and translation-invariance.
+- [Phase 2]: Zero-pad missing hands with `0.0` (zero `NaN` values).
+- [Phase 2]: Shoulder midpoint centering and shoulder width scaling for distance invariance.
+- [Phase 2]: 30-frame circular RingBuffer for temporal models.
+- [Phase 2]: Rolling 5-frame wrist velocity motion energy gating with 1.2s idle hand pause auto-commit.
 
 ### Pending Todos
 
@@ -70,6 +73,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-11-05 18:55
-Stopped at: Phase 1 (The Eyes) completed and verified (01-VERIFICATION.md passed). Ready to plan Phase 2 (The Math).
+Last session: 2026-11-05 19:03
+Stopped at: Phase 2 planned (02-01 and 02-02 verified). Ready to execute via `/gsd-execute-phase 2`.
 Resume file: None
