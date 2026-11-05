@@ -7,7 +7,8 @@ export default defineConfig({
     format: 'es'
   },
   server: {
-    port: 3000,
+    port: 5180,
+    strictPort: false,
     headers: {
       'Cross-Origin-Opener-Policy': 'same-origin',
       'Cross-Origin-Embedder-Policy': 'require-corp'
