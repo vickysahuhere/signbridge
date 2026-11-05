@@ -54,7 +54,7 @@ export const COLOR_TOKENS = {
 /**
  * Draws a connected set of landmark points
  */
-function drawConnections(ctx, landmarks, connections, color, lineWidth = 2) {
+function drawConnections(ctx, landmarks, connections, color, lineWidth = 2, checkVisibility = false) {
   if (!landmarks || landmarks.length === 0) return;
 
   ctx.strokeStyle = color;
@@ -67,9 +67,11 @@ function drawConnections(ctx, landmarks, connections, color, lineWidth = 2) {
     const p2 = landmarks[endIdx];
 
     if (!p1 || !p2) continue;
-    // Skip if visibility is reported low
-    if (typeof p1.visibility === 'number' && p1.visibility < 0.4) continue;
-    if (typeof p2.visibility === 'number' && p2.visibility < 0.4) continue;
+    // Only check visibility for pose landmarks; hand landmarks do not use visibility
+    if (checkVisibility) {
+      if (typeof p1.visibility === 'number' && p1.visibility < 0.3) continue;
+      if (typeof p2.visibility === 'number' && p2.visibility < 0.3) continue;
+    }
 
     ctx.beginPath();
     ctx.moveTo(p1.x * ctx.canvas.width, p1.y * ctx.canvas.height);
@@ -81,17 +83,47 @@ function drawConnections(ctx, landmarks, connections, color, lineWidth = 2) {
 /**
  * Draws landmark joint circles
  */
-function drawJoints(ctx, landmarks, color, radius = 3) {
+function drawJoints(ctx, landmarks, color, radius = 3, checkVisibility = false) {
   if (!landmarks || landmarks.length === 0) return;
 
   ctx.fillStyle = color;
 
   for (const p of landmarks) {
     if (!p) continue;
-    if (typeof p.visibility === 'number' && p.visibility < 0.4) continue;
+    if (checkVisibility && typeof p.visibility === 'number' && p.visibility < 0.3) continue;
 
     ctx.beginPath();
     ctx.arc(p.x * ctx.canvas.width, p.y * ctx.canvas.height, radius, 0, 2 * Math.PI);
+    ctx.fill();
+  }
+}
+
+// 5 fingertip joint indices (Thumb, Index, Middle, Ring, Pinky)
+const FINGERTIP_INDICES = [4, 8, 12, 16, 20];
+
+/**
+ * Draws prominent glowing fingertips to make finger articulation obvious
+ */
+function drawFingertips(ctx, landmarks, color, radius = 5.5) {
+  if (!landmarks || landmarks.length === 0) return;
+
+  for (const idx of FINGERTIP_INDICES) {
+    const p = landmarks[idx];
+    if (!p) continue;
+
+    const x = p.x * ctx.canvas.width;
+    const y = p.y * ctx.canvas.height;
+
+    // Outer glow ring
+    ctx.beginPath();
+    ctx.arc(x, y, radius + 2, 0, 2 * Math.PI);
+    ctx.fillStyle = color === COLOR_TOKENS.leftHand ? 'rgba(56, 189, 248, 0.4)' : 'rgba(52, 211, 153, 0.4)';
+    ctx.fill();
+
+    // Inner bright fingertip dot
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, 2 * Math.PI);
+    ctx.fillStyle = '#FFFFFF';
     ctx.fill();
   }
 }
@@ -173,8 +205,8 @@ export function drawSkeleton(ctx, landmarks, options = {}) {
 
   // 1. Upper Body Pose (White)
   if (pose.length > 0) {
-    drawConnections(ctx, pose, UPPER_POSE_CONNECTIONS, COLOR_TOKENS.pose, 2);
-    drawJoints(ctx, [pose[11], pose[12], pose[13], pose[14]], COLOR_TOKENS.pose, 3);
+    drawConnections(ctx, pose, UPPER_POSE_CONNECTIONS, COLOR_TOKENS.pose, 2, true);
+    drawJoints(ctx, [pose[11], pose[12], pose[13], pose[14]], COLOR_TOKENS.pose, 3, true);
   }
 
   // 2. Facial Expressions (Amber)
@@ -184,16 +216,18 @@ export function drawSkeleton(ctx, landmarks, options = {}) {
     drawContour(ctx, face, FACE_CONTOURS.lips, COLOR_TOKENS.face, 1.5, true);
   }
 
-  // 3. Left Hand (Sky Blue - #38BDF8)
+  // 3. Left Hand & Fingers (Sky Blue - #38BDF8)
   if (leftHand.length > 0) {
-    drawConnections(ctx, leftHand, HAND_CONNECTIONS, COLOR_TOKENS.leftHand, 2.5);
-    drawJoints(ctx, leftHand, COLOR_TOKENS.leftHand, 3.5);
+    drawConnections(ctx, leftHand, HAND_CONNECTIONS, COLOR_TOKENS.leftHand, 2.5, false);
+    drawJoints(ctx, leftHand, COLOR_TOKENS.leftHand, 3.5, false);
+    drawFingertips(ctx, leftHand, COLOR_TOKENS.leftHand, 5.5);
   }
 
-  // 4. Right Hand (Emerald Green - #34D399)
+  // 4. Right Hand & Fingers (Emerald Green - #34D399)
   if (rightHand.length > 0) {
-    drawConnections(ctx, rightHand, HAND_CONNECTIONS, COLOR_TOKENS.rightHand, 2.5);
-    drawJoints(ctx, rightHand, COLOR_TOKENS.rightHand, 3.5);
+    drawConnections(ctx, rightHand, HAND_CONNECTIONS, COLOR_TOKENS.rightHand, 2.5, false);
+    drawJoints(ctx, rightHand, COLOR_TOKENS.rightHand, 3.5, false);
+    drawFingertips(ctx, rightHand, COLOR_TOKENS.rightHand, 5.5);
   }
 }
 

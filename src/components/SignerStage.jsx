@@ -188,6 +188,13 @@ export function SignerStage({
           </div>
         )}
 
+        {/* Upper Body & Hands Positioning Hint */}
+        {isCameraActive && !hasAnyHand && !boundaryAlert.isOutOfFrame && (
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/90 border border-sky-400/50 text-sky-200 text-xs shadow-xl backdrop-blur-md">
+            <span>👋 Step back so upper body and hands are in frame</span>
+          </div>
+        )}
+
         {/* 1.2s Auto-Commit Pause Countdown Progress Bar */}
         {isCameraActive && motionState.state === 'PAUSE_COUNTDOWN' && (
           <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 w-72 bg-slate-900/90 backdrop-blur-md rounded-xl p-2.5 border border-amber-500/50 shadow-xl shadow-amber-500/10">

@@ -242,15 +242,11 @@ async function initVision(config = {}) {
           delegate: 'GPU'
         },
         runningMode: 'VIDEO',
-        minHandDetectionConfidence: 0.3,
-        minHandPresenceConfidence: 0.3,
-        minHandTrackingConfidence: 0.3,
-        minFaceDetectionConfidence: 0.35,
-        minFacePresenceConfidence: 0.35,
-        minFaceTrackingConfidence: 0.35,
-        minPoseDetectionConfidence: 0.35,
-        minPosePresenceConfidence: 0.35,
-        minPoseTrackingConfidence: 0.35
+        minHandLandmarksConfidence: 0.2,
+        minPoseDetectionConfidence: 0.25,
+        minPosePresenceConfidence: 0.25,
+        minFaceDetectionConfidence: 0.3,
+        minFacePresenceConfidence: 0.3
       });
     } catch (gpuError) {
       console.warn('[vision.worker] GPU delegate failed, falling back to CPU:', gpuError);
@@ -263,7 +259,12 @@ async function initVision(config = {}) {
           modelAssetPath: resolvedModelPath,
           delegate: 'CPU'
         },
-        runningMode: 'VIDEO'
+        runningMode: 'VIDEO',
+        minHandLandmarksConfidence: 0.2,
+        minPoseDetectionConfidence: 0.25,
+        minPosePresenceConfidence: 0.25,
+        minFaceDetectionConfidence: 0.3,
+        minFacePresenceConfidence: 0.3
       });
     }
 
