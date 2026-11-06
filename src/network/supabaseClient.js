@@ -1,12 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
+import { joinRoom } from 'trystero/nostr';
 
 /**
  * supabaseClient.js
  * 
- * Manages the Supabase client and Realtime signaling channels (NETW-01, NETW-03).
- * Provides dual-mode operation:
+ * Manages signaling channels for WebRTC peer connection (NETW-01, NETW-03):
  * 1. Cloud-connected Supabase Realtime when VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set.
- * 2. In-memory / Cross-tab BroadcastChannel fallback for zero-configuration local runs and automated tests.
+ * 2. Decentralized, zero-database, zero-account public WebRTC relay (via Nostr public relays)
+ *    combined with local BroadcastChannel for seamless cross-device and cross-tab multi-user operation.
  */
 
 const envUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) || '';
@@ -95,52 +96,162 @@ export function getRoomChannel(roomId, options = {}) {
     };
   }
 
-  // Cross-tab BroadcastChannel fallback for offline / demo runs
+  // Decentralized, Zero-Database, Zero-Account Public WebRTC Relay
+  // Uses public Nostr ephemeral in-memory relays across the internet + local BroadcastChannel for cross-tab sync
   const bc = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel(`signbridge_${channelName}`) : null;
-  const handlers = new Map();
+  const broadcastHandlers = new Map();
+  const presenceSyncHandlers = [];
+  const presences = new Map();
+  let currentPresenceState = null;
 
+  let trysteroRoom = null;
+  let trysteroSendBroadcast = null;
+  let trysteroSendPresence = null;
+
+  const notifyPresenceSync = () => {
+    const presenceObj = {};
+    presences.forEach((val, key) => {
+      presenceObj[key] = val;
+    });
+    presenceSyncHandlers.forEach((handler) => {
+      try {
+        handler(presenceObj);
+      } catch (err) {
+        console.warn('[Signaling] presenceSyncHandler error:', err);
+      }
+    });
+  };
+
+  // Only initialize decentralized Nostr relay in live browser environments
+  const isBrowser = typeof window !== 'undefined' && typeof window.document !== 'undefined';
+  if (isBrowser) {
+    try {
+      trysteroRoom = joinRoom({ appId: 'signbridge-isl-98' }, roomId);
+
+      const chatAction = trysteroRoom.makeAction('chat_broadcast');
+      const presenceAction = trysteroRoom.makeAction('presence_sync');
+
+      trysteroSendBroadcast = (data) => chatAction.send(data);
+      trysteroSendPresence = (state, peerId) => presenceAction.send(state, peerId);
+
+      // When remote peer connects across the internet
+      trysteroRoom.onPeerJoin = (peerId) => {
+        if (currentPresenceState && trysteroSendPresence) {
+          trysteroSendPresence(currentPresenceState, peerId);
+        }
+      };
+
+      // When remote peer disconnects
+      trysteroRoom.onPeerLeave = (peerId) => {
+        presences.delete(peerId);
+        notifyPresenceSync();
+      };
+
+      // Receive broadcast event from remote peer across the internet
+      chatAction.onReceive = (data) => {
+        if (data && data.event && broadcastHandlers.has(data.event)) {
+          broadcastHandlers.get(data.event).forEach((fn) => {
+            try {
+              fn(data.payload);
+            } catch (err) {
+              console.warn('[Signaling] broadcast handler error:', err);
+            }
+          });
+        }
+      };
+
+      // Receive presence state from remote peer across the internet
+      presenceAction.onReceive = (peerState, peerId) => {
+        if (peerState) {
+          presences.set(peerId, [{ ...peerState, userId: peerId }]);
+          notifyPresenceSync();
+        }
+      };
+    } catch (err) {
+      console.warn('[Signaling] Decentralized relay initialization notice:', err);
+    }
+  }
+
+  // Cross-tab local synchronization (same machine)
   if (bc) {
     bc.onmessage = (msg) => {
       const data = msg.data;
-      if (data && data.event && handlers.has(data.event)) {
-        handlers.get(data.event).forEach(fn => fn(data.payload));
+      if (!data) return;
+
+      if (data.event === '__presence_sync__' && data.payload) {
+        const peerKey = data.payload.userId || 'local_tab';
+        presences.set(peerKey, [data.payload]);
+        notifyPresenceSync();
+      } else if (data.event && broadcastHandlers.has(data.event)) {
+        broadcastHandlers.get(data.event).forEach((fn) => {
+          try {
+            fn(data.payload);
+          } catch (err) {
+            console.warn('[Signaling] Local BC handler error:', err);
+          }
+        });
       }
     };
   }
 
   return {
-    type: 'broadcast-channel-fallback',
+    type: 'decentralized-zero-database',
     channel: bc,
     subscribe: (callback) => {
       if (callback) callback('SUBSCRIBED');
       return Promise.resolve('SUBSCRIBED');
     },
     unsubscribe: () => {
-      if (bc) bc.close();
+      if (trysteroRoom) {
+        try {
+          trysteroRoom.leave();
+        } catch {}
+      }
+      if (bc) {
+        try {
+          bc.close();
+        } catch {}
+      }
     },
     sendBroadcast: async (event, payload) => {
+      // 1. Send to remote peers across the internet
+      if (trysteroSendBroadcast) {
+        try {
+          trysteroSendBroadcast({ event, payload });
+        } catch {}
+      }
+      // 2. Send to local tabs on same machine
       if (bc) {
-        bc.postMessage({ event, payload });
+        try {
+          bc.postMessage({ event, payload });
+        } catch {}
       }
       return { status: 'ok' };
     },
     trackPresence: async (state) => {
+      currentPresenceState = state;
+      // 1. Announce to remote peers across the internet
+      if (trysteroSendPresence) {
+        try {
+          trysteroSendPresence(state);
+        } catch {}
+      }
+      // 2. Announce to local tabs on same machine
       if (bc) {
-        bc.postMessage({ event: 'presence_sync', payload: state });
+        try {
+          bc.postMessage({ event: '__presence_sync__', payload: state });
+        } catch {}
       }
       return 'ok';
     },
     onBroadcast: (event, handler) => {
-      if (!handlers.has(event)) {
-        handlers.set(event, []);
+      if (!broadcastHandlers.has(event)) {
+        broadcastHandlers.set(event, []);
       }
-      handlers.get(event).push(handler);
+      broadcastHandlers.get(event).push(handler);
     },
     onPresenceSync: (handler) => {
-      if (!handlers.has('presence_sync')) {
-        handlers.set('presence_sync', []);
-      }
-      handlers.get('presence_sync').push(handler);
+      presenceSyncHandlers.push(handler);
     }
   };
 }
