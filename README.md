@@ -32,6 +32,7 @@
 - [Key Features](#-key-features)
 - [Project Structure](#-project-structure)
 - [Quick Start Guide](#-quick-start-guide)
+- [Contributing & Agent Rules](#-contributing--agent-rules)
 - [Tech Stack & Free Tier Architecture](#-tech-stack--free-tier-architecture)
 - [License](#-license)
 
@@ -461,12 +462,17 @@ npm test
 
 ---
 
-## 🤝 Contributing
+## 🤝 Contributing & Agent Rules
 
-Contributions to SignBridge / Sanket are warmly welcomed! You can help by:
-- Adding new ISL words and phrases to `src/nlp/islSentenceFormatter.js`.
+Contributions to SignBridge / Sanket are warmly welcomed!
+
+- 📖 **For Human Developers**: Check out [**`CONTRIBUTING.md`**](./CONTRIBUTING.md) for local environment setup, testing guidelines, and PR procedures.
+- 🤖 **For AI Agents & LLMs**: Read [**`AGENTS.md`**](./AGENTS.md) **before generating or modifying code**. It contains the 8 non-negotiable architectural invariants, data contracts, and recipes to ensure the 30 FPS vision loop, grammar engine, and retro aesthetic are never broken.
+
+### How You Can Help
+- Adding new ISL words and phrases to `src/nlp/islSentenceFormatter.js` and `src/ai/islGestureEngine.js`.
 - Recording new gesture datasets with the built-in **Keypoint Recorder Drawer**.
-- Improving recognition accuracy for subtle fingerspelling signs.
+- Improving recognition accuracy for subtle two-handed fingerspelling signs.
 
 ---
 
