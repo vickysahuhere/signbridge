@@ -6,12 +6,13 @@ import { ChatPanel } from './components/ChatPanel.jsx';
 import { KeypointRecorderDrawer } from './components/KeypointRecorderDrawer.jsx';
 import { WordDictionaryModal } from './components/WordDictionaryModal.jsx';
 import { AboutModal } from './components/AboutModal.jsx';
+import { HowItWorksModal } from './components/HowItWorksModal.jsx';
 import { useVisionWorker } from './hooks/useVisionWorker.js';
 import { useRoomConnection } from './hooks/useRoomConnection.js';
 import { useWebRTC } from './hooks/useWebRTC.js';
 import { GlossBufferManager } from './nlp/glossBufferManager.js';
 import { formatIslSentence, formatRawGlosses } from './nlp/islSentenceFormatter.js';
-import { Monitor, BookOpen, Database, ShieldCheck } from 'lucide-react';
+import { Monitor, BookOpen, Database, ShieldCheck, HelpCircle } from 'lucide-react';
 
 export function App() {
   const [fps, setFps] = useState(0);
@@ -19,6 +20,15 @@ export function App() {
   const [isRecorderOpen, setIsRecorderOpen] = useState(false);
   const [isDictionaryOpen, setIsDictionaryOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isStartMenuOpen, setIsStartMenuOpen] = useState(false);
+  const [isGuideOpen, setIsGuideOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const hasSeen = localStorage.getItem('sanket_has_seen_guide');
+      const skipAuto = localStorage.getItem('sanket_skip_guide_auto') === 'true';
+      return !hasSeen && !skipAuto;
+    }
+    return false;
+  });
   const [currentTime, setCurrentTime] = useState('');
 
   // Clock in bottom Windows 95 taskbar
@@ -31,6 +41,18 @@ export function App() {
     const interval = setInterval(updateTime, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  // Close start menu when clicking outside
+  useEffect(() => {
+    if (!isStartMenuOpen) return;
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('#start-menu') && !e.target.closest('#start-btn')) {
+        setIsStartMenuOpen(false);
+      }
+    };
+    window.addEventListener('click', handleClickOutside);
+    return () => window.removeEventListener('click', handleClickOutside);
+  }, [isStartMenuOpen]);
 
   // Linguistic Buffer State
   const glossBufferRef = useRef(new GlossBufferManager());
@@ -203,6 +225,7 @@ export function App() {
         onToggleMode={setRecognitionMode}
         onOpenRecorder={() => setIsRecorderOpen(true)}
         onOpenDictionary={() => setIsDictionaryOpen(true)}
+        onOpenGuide={() => setIsGuideOpen(true)}
         roomId={roomId}
         connectionMode={connectionMode}
         rttMs={rttMs}
@@ -244,6 +267,7 @@ export function App() {
               onStreamChange={setLocalStream}
               remoteStream={remoteStream}
               peerPresence={peerPresence}
+              onOpenGuide={() => setIsGuideOpen(true)}
             />
 
             <LiveGlossBar
@@ -272,17 +296,96 @@ export function App() {
         </div>
       </main>
 
+      {/* Windows 95 Start Menu Popup */}
+      {isStartMenuOpen && (
+        <div
+          id="start-menu"
+          className="fixed bottom-7 left-1 z-40 retro-window bg-[#C0C0C0] border-2 border-[#000000] shadow-2xl flex select-none"
+          style={{ width: '240px' }}
+        >
+          {/* Windows 95 Left Blue Vertical Ribbon */}
+          <div className="w-8 bg-gradient-to-t from-[#000080] via-[#1084D0] to-[#000080] flex items-end justify-center pb-2 flex-shrink-0">
+            <span
+              className="text-[#FFFFFF] font-black text-xs tracking-widest uppercase -rotate-90 origin-bottom select-none whitespace-nowrap mb-2"
+            >
+              SignBridge<span className="text-[#FFFF00] font-normal">98</span>
+            </span>
+          </div>
+
+          {/* Menu Items List */}
+          <div className="flex-1 py-1 text-xs bg-[#C0C0C0]">
+            <button
+              onClick={() => {
+                setIsStartMenuOpen(false);
+                setIsGuideOpen(true);
+              }}
+              className="w-full text-left px-3 py-1.5 hover:bg-[#000080] hover:text-[#FFFFFF] flex items-center gap-2 group font-bold"
+            >
+              <HelpCircle className="w-4 h-4 text-[#000080] group-hover:text-[#FFFF00]" />
+              <span>How It Works &amp; Features</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setIsStartMenuOpen(false);
+                setIsDictionaryOpen(true);
+              }}
+              className="w-full text-left px-3 py-1.5 hover:bg-[#000080] hover:text-[#FFFFFF] flex items-center gap-2 group font-bold"
+            >
+              <BookOpen className="w-4 h-4 text-[#000080] group-hover:text-[#FFFF00]" />
+              <span>50-Word ISL Dictionary</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setIsStartMenuOpen(false);
+                setIsRecorderOpen(true);
+              }}
+              className="w-full text-left px-3 py-1.5 hover:bg-[#000080] hover:text-[#FFFFFF] flex items-center gap-2 group font-bold"
+            >
+              <Database className="w-4 h-4 text-[#800080] group-hover:text-[#FFFFFF]" />
+              <span>Dataset Recorder</span>
+            </button>
+
+            <div className="my-1 border-t border-[#808080] border-b border-[#FFFFFF]" />
+
+            <button
+              onClick={() => {
+                setIsStartMenuOpen(false);
+                setIsAboutOpen(true);
+              }}
+              className="w-full text-left px-3 py-1.5 hover:bg-[#000080] hover:text-[#FFFFFF] flex items-center gap-2 group font-bold"
+            >
+              <ShieldCheck className="w-4 h-4 text-[#000080] group-hover:text-[#FFFF00]" />
+              <span>System &amp; Agent Panel</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 4. Docked Windows 95 Taskbar & Status Dock at Bottom */}
       <footer className="h-7 retro-outset bg-[#C0C0C0] border-t-2 border-[#000000] flex items-center justify-between px-1.5 text-xs select-none flex-shrink-0 z-30 shadow-md">
         {/* Left: Start Button & Active Tasks */}
         <div className="flex items-center gap-1">
           <button
-            onClick={() => setIsAboutOpen(true)}
-            className="retro-btn !px-2 !py-0.5 font-heading text-xs font-black flex items-center gap-1 active:translate-y-[1px]"
-            title="Start Menu - System & Agent Contributor Panel"
+            id="start-btn"
+            onClick={() => setIsStartMenuOpen(prev => !prev)}
+            className={`retro-btn !px-2 !py-0.5 font-heading text-xs font-black flex items-center gap-1 active:translate-y-[1px] ${
+              isStartMenuOpen ? 'retro-inset-gray bg-[#B0B0B0]' : ''
+            }`}
+            title="Start Menu"
           >
             <span className="text-[#000080] font-bold">⊞</span>
             <span>Start</span>
+          </button>
+
+          <button
+            onClick={() => setIsGuideOpen(true)}
+            className="retro-btn !px-1.5 !py-0.5 text-[11px] font-bold flex items-center gap-1 bg-[#FFFFCC] text-[#000000]"
+            title="How Sanket Works & Key Features Guide"
+          >
+            <HelpCircle className="w-3 h-3 stroke-[2px] text-[#000080]" />
+            <span>How It Works</span>
           </button>
 
           <button
@@ -371,6 +474,13 @@ export function App() {
       <AboutModal
         isOpen={isAboutOpen}
         onClose={() => setIsAboutOpen(false)}
+      />
+
+      {/* Non-Technical Features & How-It-Works Guide Modal */}
+      <HowItWorksModal
+        isOpen={isGuideOpen}
+        onClose={() => setIsGuideOpen(false)}
+        onOpenDictionary={() => setIsDictionaryOpen(true)}
       />
     </div>
   );

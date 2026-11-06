@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { Camera, CameraOff, AlertCircle, RefreshCw, Activity, Video, Monitor } from 'lucide-react';
+import { Camera, CameraOff, AlertCircle, RefreshCw, Activity, Video, Monitor, HelpCircle } from 'lucide-react';
 import { startCameraLoop } from '../vision/cameraLoop.js';
 import { drawSkeleton, checkBoundaryAlert } from '../vision/drawSkeleton.js';
 import { IncomingSubtitleOverlay } from './IncomingSubtitleOverlay.jsx';
@@ -19,7 +19,8 @@ export function SignerStage({
   onToggleMode = null,
   onStreamChange = null,
   remoteStream = null,
-  peerPresence = { isOnline: false, name: '' }
+  peerPresence = { isOnline: false, name: '' },
+  onOpenGuide = null
 }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -358,6 +359,17 @@ export function SignerStage({
                     </>
                   )}
                 </button>
+
+                {onOpenGuide && (
+                  <button
+                    onClick={onOpenGuide}
+                    className="retro-btn w-full mt-2 py-1 text-xs font-bold bg-[#FFFFCC] text-[#000000] flex items-center justify-center gap-1.5"
+                    title="Learn how to sign and explore features"
+                  >
+                    <HelpCircle className="w-3.5 h-3.5 text-[#000080]" />
+                    <span>HOW IT WORKS &amp; FEATURES</span>
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -383,6 +395,17 @@ export function SignerStage({
                   <RefreshCw className="w-3 h-3 stroke-[2px]" />
                   <span>RETRY CAMERA</span>
                 </button>
+
+                {onOpenGuide && (
+                  <button
+                    onClick={onOpenGuide}
+                    className="retro-btn w-full mt-2 py-1 text-xs font-bold bg-[#FFFFCC] text-[#000000] flex items-center justify-center gap-1.5"
+                    title="Learn how to sign and explore features"
+                  >
+                    <HelpCircle className="w-3.5 h-3.5 text-[#000080]" />
+                    <span>HOW IT WORKS &amp; FEATURES</span>
+                  </button>
+                )}
               </div>
             </div>
           )}

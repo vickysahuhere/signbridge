@@ -14,7 +14,8 @@ import {
   Sparkles,
   Flame,
   Construction,
-  Monitor
+  Monitor,
+  HelpCircle
 } from 'lucide-react';
 
 export function Navbar({
@@ -26,6 +27,7 @@ export function Navbar({
   onToggleMode,
   onOpenRecorder,
   onOpenDictionary,
+  onOpenGuide,
   roomId = '',
   connectionMode = 'p2p',
   rttMs = 18,
@@ -132,6 +134,18 @@ export function Navbar({
             >
               <BookOpen className="w-3 h-3 stroke-[2px] text-[#000080]" />
               <span>Dictionary (50)</span>
+            </button>
+          )}
+
+          {/* How It Works & Features Guide Trigger */}
+          {onOpenGuide && (
+            <button
+              onClick={onOpenGuide}
+              className="retro-btn text-xs !py-0.5 !px-2 bg-[#FFFFCC] text-[#000000] font-bold flex items-center gap-1"
+              title="Learn How Sanket Works and Explore Features"
+            >
+              <HelpCircle className="w-3 h-3 stroke-[2px] text-[#000080]" />
+              <span>How It Works</span>
             </button>
           )}
 
