@@ -20,7 +20,13 @@ export function SignerStage({
   onStreamChange = null,
   remoteStream = null,
   peerPresence = { isOnline: false, name: '' },
-  onOpenGuide = null
+  onOpenGuide = null,
+  candidates = [],
+  isCandidateLive = false,
+  onSelectCandidate = null,
+  onDismissCandidates = null,
+  onSetInteracting = null,
+  currentGlosses = []
 }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -30,6 +36,7 @@ export function SignerStage({
   const [isLoadingCamera, setIsLoadingCamera] = useState(false);
   const [showSkeleton, setShowSkeleton] = useState(true);
   const [boundaryAlert, setBoundaryAlert] = useState({ isOutOfFrame: false, message: '' });
+  const [isHoveredCandidate, setIsHoveredCandidate] = useState(false);
 
   // Attach remote video stream when received
   useEffect(() => {
@@ -203,91 +210,164 @@ export function SignerStage({
             </div>
           )}
 
-          {/* Active HUD Overlays (Upper Right: Top Candidate Recognition Box) */}
-          {isCameraActive && recognitionMode === 'word' && wordPredictions.topCandidates && wordPredictions.topCandidates.length > 0 && (
-            <div className="absolute top-1.5 right-1.5 z-20 retro-outset bg-[#C0C0C0] p-1 border border-[#000000] shadow-md max-w-[170px]">
-              <div className="bg-[#000080] text-[#FFFFFF] px-1 py-0.2 text-[9px] font-bold flex items-center justify-between mb-0.5">
-                <span>ISL RECOGNITION</span>
-                <span className="text-[#00FF00] font-mono text-[8px]">LIVE</span>
-              </div>
+          {/* Active HUD Overlays: Stabilized Candidate Box (Does NOT disappear every second; words stay tappable) */}
+          {isCameraActive && (candidates.length > 0 || (recognitionMode === 'word' ? wordPredictions?.topCandidates?.length > 0 : alphabetPredictions?.length > 0)) && (() => {
+            const displayList = candidates.length > 0
+              ? candidates
+              : (recognitionMode === 'word' ? (wordPredictions?.topCandidates || []) : (alphabetPredictions || []));
 
-              {wordPredictions.topCandidates[0] && (
-                <div className="retro-inset bg-[#FFFFCC] p-1 mb-0.5 text-black font-sans">
-                  <div className="flex items-center justify-between">
-                    <span className="font-heading text-xs font-bold text-[#000080]">
-                      {wordPredictions.topCandidates[0].label}
-                    </span>
-                    <span className="font-mono text-[10px] font-bold text-[#00AA00]">
-                      {Math.round(wordPredictions.topCandidates[0].confidence * 100)}%
-                    </span>
+            if (!displayList || displayList.length === 0) return null;
+
+            return (
+              <div
+                onMouseEnter={() => {
+                  setIsHoveredCandidate(true);
+                  if (onSetInteracting) onSetInteracting(true);
+                }}
+                onMouseLeave={() => {
+                  setIsHoveredCandidate(false);
+                  if (onSetInteracting) onSetInteracting(false);
+                }}
+                className="absolute top-1.5 right-1.5 z-20 retro-outset bg-[#C0C0C0] p-1 border border-[#000000] shadow-xl w-[205px] max-w-[85%] select-none"
+              >
+                {/* Titlebar with status & dismiss */}
+                <div className="bg-[#000080] text-[#FFFFFF] px-1.5 py-0.5 text-[9px] font-bold flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-1 font-mono">
+                    <span>{recognitionMode === 'word' ? 'ISL DETECTED' : 'FINGERSPELLING'}</span>
+                    {isCandidateLive ? (
+                      <span className="text-[#00FF00] text-[8px] animate-pulse">● LIVE</span>
+                    ) : (
+                      <span className="text-[#FFFF00] text-[8px]">● HELD</span>
+                    )}
                   </div>
-                  <div className="w-full bg-[#808080] h-1.5 mt-0.5 retro-inset p-0.2 flex">
-                    <div
-                      className="bg-[#00AA00] h-full"
-                      style={{
-                        width: `${Math.min(100, Math.round(wordPredictions.topCandidates[0].confidence * 100))}%`
-                      }}
-                    />
-                  </div>
+                  {onDismissCandidates && (
+                    <button
+                      onClick={onDismissCandidates}
+                      className="retro-btn !p-0 w-3.5 h-3.5 text-[8px] font-bold leading-none flex items-center justify-center hover:bg-[#CC0000] hover:text-[#FFFFFF]"
+                      title="Dismiss suggestions"
+                    >
+                      ×
+                    </button>
+                  )}
                 </div>
-              )}
 
-              {/* Runners-up 2 and 3 */}
-              <div className="space-y-0.2">
-                {wordPredictions.topCandidates.slice(1, 3).map((candidate) => (
-                  <div
-                    key={candidate.rank}
-                    className="flex items-center justify-between px-1 py-0.2 bg-[#FFFFFF] retro-inset text-[9px] font-mono"
-                  >
-                    <span className="font-bold text-[#000000]">
-                      #{candidate.rank} {candidate.label}
-                    </span>
-                    <span className="text-[#808080]">
-                      {Math.round(candidate.confidence * 100)}%
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Active HUD Overlays (Alphabet Fingerspelling Mode) */}
-          {isCameraActive && recognitionMode === 'alphabet' && alphabetPredictions && alphabetPredictions.length > 0 && (
-            <div className="absolute top-1.5 right-1.5 z-20 retro-outset bg-[#C0C0C0] p-1 border border-[#000000] shadow-md max-w-[160px]">
-              <div className="bg-[#000080] text-[#FFFFFF] px-1 py-0.2 text-[9px] font-bold flex items-center justify-between mb-0.5">
-                <span>FINGER SPELLING (A-Z)</span>
-                <span className="text-[#FFFF00] font-mono text-[8px]">ACTIVE</span>
-              </div>
-
-              {alphabetPredictions[0] && (
-                <div className="retro-inset bg-[#FFFFCC] p-1 mb-0.5">
-                  <div className="flex items-center justify-between">
-                    <span className="font-heading text-lg font-black text-[#000080]">
-                      {alphabetPredictions[0].label}
-                    </span>
-                    <div className="text-right">
-                      <span className="font-mono text-[10px] font-bold text-[#00AA00]">
-                        {Math.round(alphabetPredictions[0].confidence * 100)}%
-                      </span>
-                      {alphabetPredictions[0].isConfident && (
-                        <div className="text-[8px] bg-[#00AA00] text-white px-1 font-bold">
-                          LOCK
+                {/* Top Match Hero Card */}
+                {displayList[0] && (
+                  <div className="retro-inset bg-[#FFFFCC] p-1.5 mb-1 text-black font-sans">
+                    <div className="flex items-start justify-between">
+                      <div className="min-w-0 flex-1 mr-1">
+                        <div className="text-[8px] font-mono font-bold text-[#808080] uppercase">
+                          Top Match #1
                         </div>
-                      )}
+                        <div className="font-heading text-sm font-black text-[#000080] truncate">
+                          {displayList[0].label}
+                        </div>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <span className="font-mono text-[11px] font-bold text-[#008000] bg-[#FFFFFF] px-1 retro-inset inline-block">
+                          {Math.round(displayList[0].confidence * 100)}%
+                        </span>
+                      </div>
                     </div>
+
+                    {/* Progress bar */}
+                    <div className="w-full bg-[#808080] h-1.5 my-1 retro-inset p-0.2 flex">
+                      <div
+                        className="bg-[#00AA00] h-full transition-all duration-150"
+                        style={{
+                          width: `${Math.min(100, Math.round(displayList[0].confidence * 100))}%`
+                        }}
+                      />
+                    </div>
+
+                    {/* Tap to select / swap hero sign */}
+                    {onSelectCandidate && (
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <button
+                          onClick={() => onSelectCandidate(displayList[0].label, 'smart')}
+                          className="retro-btn flex-1 !py-0.5 text-[10px] font-bold bg-[#E0E0E0] hover:bg-[#000080] hover:text-[#FFFFFF] flex items-center justify-center gap-1 active:translate-y-[1px]"
+                          title={`Tap to select "${displayList[0].label}"`}
+                        >
+                          <span>+ TAP TO USE</span>
+                        </button>
+                        {currentGlosses && currentGlosses.length > 0 && currentGlosses[currentGlosses.length - 1] !== displayList[0].label && (
+                          <button
+                            onClick={() => onSelectCandidate(displayList[0].label, 'replace')}
+                            className="retro-btn !py-0.5 !px-1.5 text-[9px] font-mono text-[#000080] hover:bg-[#000080] hover:text-[#FFFFFF] active:translate-y-[1px]"
+                            title={`Swap last sign with "${displayList[0].label}"`}
+                          >
+                            ⇄ Swap
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <div className="w-full bg-[#808080] h-1.5 mt-0.5 retro-inset p-0.2 flex">
-                    <div
-                      className="bg-[#0000FF] h-full"
-                      style={{
-                        width: `${Math.min(100, Math.round(alphabetPredictions[0].confidence * 100))}%`
-                      }}
-                    />
+                )}
+
+                {/* Alternative Candidates with Good Confidence (Runners-up) */}
+                {displayList.length > 1 && (
+                  <div className="space-y-1">
+                    <div className="text-[8px] font-mono font-bold text-[#000080] uppercase px-0.5 flex items-center justify-between">
+                      <span>ALTERNATIVES (TAP TO USE):</span>
+                    </div>
+
+                    {displayList.slice(1, 4).map((candidate) => {
+                      const isGoodConfidence = candidate.confidence >= 0.20;
+                      if (!isGoodConfidence) return null;
+
+                      return (
+                        <div
+                          key={candidate.label}
+                          className="p-1 bg-[#FFFFFF] retro-inset flex flex-col gap-0.5"
+                        >
+                          <div className="flex items-center justify-between text-[9px] font-mono">
+                            <span className="font-bold text-[#000000] truncate max-w-[110px]">
+                              #{candidate.rank || ''} {candidate.label}
+                            </span>
+                            <span className="font-bold text-[#008000]">
+                              {Math.round(candidate.confidence * 100)}%
+                            </span>
+                          </div>
+
+                          {/* Micro progress bar */}
+                          <div className="w-full bg-[#E0E0E0] h-1 retro-inset p-0.1 flex">
+                            <div
+                              className="bg-[#000080] h-full"
+                              style={{
+                                width: `${Math.min(100, Math.round(candidate.confidence * 100))}%`
+                              }}
+                            />
+                          </div>
+
+                          {/* Quick action buttons */}
+                          {onSelectCandidate && (
+                            <div className="flex items-center gap-1 mt-0.5">
+                              <button
+                                onClick={() => onSelectCandidate(candidate.label, 'smart')}
+                                className="retro-btn flex-1 !py-0 !px-1 text-[9px] font-bold hover:bg-[#000080] hover:text-[#FFFFFF] active:translate-y-[1px]"
+                                title={`Select "${candidate.label}"`}
+                              >
+                                + Tap
+                              </button>
+                              {currentGlosses && currentGlosses.length > 0 && (
+                                <button
+                                  onClick={() => onSelectCandidate(candidate.label, 'replace')}
+                                  className="retro-btn !py-0 !px-1 text-[9px] font-mono text-[#000080] hover:bg-[#000080] hover:text-[#FFFFFF] active:translate-y-[1px]"
+                                  title={`Swap last sign with "${candidate.label}"`}
+                                >
+                                  ⇄ Swap
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
-                </div>
-              )}
-            </div>
-          )}
+                )}
+              </div>
+            );
+          })()}
 
           {/* Picture-in-Picture Remote Peer Video Feed */}
           {remoteStream && (

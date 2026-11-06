@@ -69,6 +69,34 @@ export class GlossBufferManager {
   }
 
   /**
+   * Replaces the most recently added sign in the buffer with an alternative choice.
+   * If the buffer is empty, acts as push().
+   * @param {string} token - New sign gloss identifier or alphabet character.
+   * @param {'word'|'letter'} [type='word'] - Type of the gesture.
+   * @returns {boolean} True if replaced or pushed, false if invalid token.
+   */
+  replaceLast(token, type = 'word') {
+    if (!token || typeof token !== 'string') return false;
+    const cleanToken = token.trim();
+    if (!cleanToken) return false;
+
+    if (this.buffer.length === 0) {
+      return this.push(cleanToken, type);
+    }
+
+    const isSingleChar = /^[A-Z0-9]$/i.test(cleanToken);
+    const now = Date.now();
+
+    this.buffer[this.buffer.length - 1] = {
+      gloss: cleanToken,
+      type,
+      isSpelled: type === 'letter' && isSingleChar,
+      timestamp: now
+    };
+    return true;
+  }
+
+  /**
    * Empties the entire buffer (LING-02).
    */
   clear() {

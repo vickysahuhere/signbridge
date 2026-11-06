@@ -15,6 +15,8 @@ export function LiveGlossBar({
   glosses = [],
   previewText = '',
   motionState = { state: 'IDLE', pauseProgress: 0 },
+  candidates = [],
+  onSelectCandidate = null,
   onUndo,
   onClear,
   onCommit
@@ -28,7 +30,7 @@ export function LiveGlossBar({
   const percent = Math.round(pauseProgress * 100);
 
   return (
-    <div className="retro-window w-full shadow-md flex-shrink-0 flex flex-col overflow-hidden h-[105px]">
+    <div className="retro-window w-full shadow-md flex-shrink-0 flex flex-col overflow-hidden min-h-[105px]">
       {/* 1. Header & Controls Toolbar */}
       <div className="flex items-center justify-between px-2 py-0.5 bg-[#000080] text-[#FFFFFF] text-xs font-sans flex-shrink-0">
         <div className="flex items-center gap-1.5 font-bold">
@@ -72,6 +74,31 @@ export function LiveGlossBar({
           </button>
         </div>
       </div>
+
+      {/* Optional Candidate Suggestion Strip (High-confidence signs/letters to tap) */}
+      {candidates && candidates.length > 0 && (
+        <div className="px-1.5 py-0.5 bg-[#D4D0C8] border-b border-[#808080] flex items-center gap-1.5 text-[10px] overflow-x-auto flex-shrink-0 select-none">
+          <span className="font-bold text-[#000080] flex items-center gap-1 whitespace-nowrap text-[9px] uppercase font-mono flex-shrink-0">
+            <span>💡 Suggestions:</span>
+          </span>
+          <div className="flex items-center gap-1 overflow-x-auto">
+            {candidates.map((c) => (
+              <button
+                key={c.label}
+                onClick={() => onSelectCandidate && onSelectCandidate(c.label, 'smart')}
+                className="retro-btn !py-0 !px-1.5 text-[9px] font-bold flex items-center gap-1 bg-[#FFFFFF] hover:bg-[#000080] hover:text-[#FFFFFF] whitespace-nowrap active:translate-y-[1px]"
+                title={`Confidence: ${Math.round(c.confidence * 100)}% - Tap to select / swap`}
+              >
+                <span>{c.label}</span>
+                <span className="text-[#008000] font-mono font-normal">
+                  {Math.round(c.confidence * 100)}%
+                </span>
+                <span className="text-[#000080] font-bold group-hover:text-[#FFFFFF]">+</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 2. Middle Row: Token Stream Box */}
       <div className="px-1.5 py-1 bg-[#C0C0C0] flex-1 min-h-0 flex flex-col justify-between gap-1 overflow-hidden">

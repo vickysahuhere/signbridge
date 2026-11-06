@@ -58,6 +58,13 @@ export function App() {
   const glossBufferRef = useRef(new GlossBufferManager());
   const [glosses, setGlosses] = useState([]);
   const [localCommittedSentences, setLocalCommittedSentences] = useState([]);
+
+  // Stabilized candidates with decay hold time so they don't disappear every second
+  const [persistedCandidates, setPersistedCandidates] = useState([]);
+  const [isCandidateLive, setIsCandidateLive] = useState(false);
+  const candidateTimeoutRef = useRef(null);
+  const liveTimeoutRef = useRef(null);
+  const isInteractingWithCandidatesRef = useRef(false);
   const [localStream, setLocalStream] = useState(null);
 
   // 1. Room Connection & Presence (NETW-01, NETW-03)
@@ -135,6 +142,83 @@ export function App() {
     }
   }, [recognitionMode, alphabetPredictions]);
 
+  // Stabilize candidate predictions (hold for 4.5s so words don't disappear every second)
+  useEffect(() => {
+    const rawList = recognitionMode === 'word'
+      ? (wordPredictions?.topCandidates || [])
+      : (alphabetPredictions || []);
+
+    if (rawList && rawList.length > 0) {
+      if (candidateTimeoutRef.current) clearTimeout(candidateTimeoutRef.current);
+      if (liveTimeoutRef.current) clearTimeout(liveTimeoutRef.current);
+
+      setPersistedCandidates(rawList);
+      setIsCandidateLive(true);
+
+      liveTimeoutRef.current = setTimeout(() => {
+        setIsCandidateLive(false);
+      }, 700);
+
+      candidateTimeoutRef.current = setTimeout(() => {
+        if (!isInteractingWithCandidatesRef.current) {
+          setPersistedCandidates([]);
+        }
+      }, 4500);
+    }
+  }, [wordPredictions, alphabetPredictions, recognitionMode]);
+
+  // Reset candidates if recognition mode changes
+  useEffect(() => {
+    if (candidateTimeoutRef.current) clearTimeout(candidateTimeoutRef.current);
+    if (liveTimeoutRef.current) clearTimeout(liveTimeoutRef.current);
+    setPersistedCandidates([]);
+    setIsCandidateLive(false);
+  }, [recognitionMode]);
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      if (candidateTimeoutRef.current) clearTimeout(candidateTimeoutRef.current);
+      if (liveTimeoutRef.current) clearTimeout(liveTimeoutRef.current);
+    };
+  }, []);
+
+  // Candidate selection / tap handler
+  const handleSelectCandidate = useCallback((candidateLabel, action = 'smart') => {
+    if (!candidateLabel) return;
+    const type = recognitionMode === 'alphabet' ? 'letter' : 'word';
+
+    if (action === 'replace') {
+      glossBufferRef.current.replaceLast(candidateLabel, type);
+    } else if (action === 'append') {
+      glossBufferRef.current.push(candidateLabel, type);
+    } else {
+      // Smart mode: If last token in buffer matches another candidate from current detection, swap it!
+      const currentGlosses = glossBufferRef.current.getGlosses();
+      if (currentGlosses.length > 0) {
+        const lastGloss = currentGlosses[currentGlosses.length - 1];
+        const isLastGlossInCandidates = persistedCandidates.some(c => c.label === lastGloss);
+
+        if (isLastGlossInCandidates && lastGloss !== candidateLabel) {
+          glossBufferRef.current.replaceLast(candidateLabel, type);
+        } else {
+          glossBufferRef.current.push(candidateLabel, type);
+        }
+      } else {
+        glossBufferRef.current.push(candidateLabel, type);
+      }
+    }
+
+    setGlosses([...glossBufferRef.current.getGlosses()]);
+  }, [recognitionMode, persistedCandidates]);
+
+  const handleDismissCandidates = useCallback(() => {
+    if (candidateTimeoutRef.current) clearTimeout(candidateTimeoutRef.current);
+    if (liveTimeoutRef.current) clearTimeout(liveTimeoutRef.current);
+    setPersistedCandidates([]);
+    setIsCandidateLive(false);
+  }, []);
+
   const previewText = formatIslSentence(glosses);
   const rawPreviewText = formatRawGlosses(glosses);
 
@@ -167,6 +251,7 @@ export function App() {
     sendCommittedSentence(newSentence);
     glossBufferRef.current.clear();
     setGlosses([]);
+    setPersistedCandidates([]);
   }, [userName, sendCommittedSentence]);
 
   // Automatic commit on 1.2s pause completion (IDLE_COMMIT)
@@ -185,6 +270,7 @@ export function App() {
   const handleClear = useCallback(() => {
     glossBufferRef.current.clear();
     setGlosses([]);
+    setPersistedCandidates([]);
   }, []);
 
   // Merge local committed sentences with remote messages
@@ -268,12 +354,30 @@ export function App() {
               remoteStream={remoteStream}
               peerPresence={peerPresence}
               onOpenGuide={() => setIsGuideOpen(true)}
+              candidates={persistedCandidates}
+              isCandidateLive={isCandidateLive}
+              onSelectCandidate={handleSelectCandidate}
+              onDismissCandidates={handleDismissCandidates}
+              onSetInteracting={(isInteracting) => {
+                isInteractingWithCandidatesRef.current = isInteracting;
+                if (!isInteracting && persistedCandidates.length > 0) {
+                  if (candidateTimeoutRef.current) clearTimeout(candidateTimeoutRef.current);
+                  candidateTimeoutRef.current = setTimeout(() => {
+                    if (!isInteractingWithCandidatesRef.current) {
+                      setPersistedCandidates([]);
+                    }
+                  }, 3500);
+                }
+              }}
+              currentGlosses={glosses}
             />
 
             <LiveGlossBar
               glosses={glosses}
               previewText={previewText}
               motionState={motionState}
+              candidates={persistedCandidates}
+              onSelectCandidate={handleSelectCandidate}
               onUndo={handleUndo}
               onClear={handleClear}
               onCommit={handleCommit}

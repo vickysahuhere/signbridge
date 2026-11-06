@@ -244,7 +244,7 @@ export function classifyIslAlphabet(leftHand, rightHand, pose) {
     }
   }
 
-  // Convert scores dictionary to ranked top-3 list
+  // Convert scores dictionary to ranked top-4 list
   const entries = Object.entries(scores)
     .map(([label, confidence]) => ({ label, confidence }))
     .sort((a, b) => b.confidence - a.confidence);
@@ -253,7 +253,7 @@ export function classifyIslAlphabet(leftHand, rightHand, pose) {
     return [];
   }
 
-  return entries.slice(0, 3).map((item, idx) => ({
+  return entries.slice(0, 4).map((item, idx) => ({
     rank: idx + 1,
     label: item.label,
     confidence: item.confidence,
@@ -436,7 +436,7 @@ export function classifyIslWord(leftHand, rightHand, pose, motion) {
     }
   }
 
-  // Convert scores dictionary to ranked top-3 list
+  // Convert scores dictionary to ranked top-4 list
   const entries = Object.entries(scores)
     .map(([label, confidence]) => ({ label, confidence }))
     .sort((a, b) => b.confidence - a.confidence);
@@ -445,7 +445,7 @@ export function classifyIslWord(leftHand, rightHand, pose, motion) {
     return [];
   }
 
-  return entries.slice(0, 3).map((item, idx) => ({
+  return entries.slice(0, 4).map((item, idx) => ({
     rank: idx + 1,
     label: item.label,
     confidence: item.confidence,

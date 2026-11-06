@@ -69,6 +69,22 @@ test('GlossBufferManager - undo() removes the most recent token (LING-02)', () =
   assert.equal(manager.undo(), null);
 });
 
+test('GlossBufferManager - replaceLast() replaces the most recent token with new choice', () => {
+  const manager = new GlossBufferManager();
+  manager.push('NAMASTE');
+  assert.deepEqual(manager.getGlosses(), ['NAMASTE']);
+
+  const replaced = manager.replaceLast('HELLO');
+  assert.equal(replaced, true);
+  assert.deepEqual(manager.getGlosses(), ['HELLO']);
+  assert.equal(manager.size(), 1);
+
+  // If buffer is empty, acts as push
+  manager.clear();
+  manager.replaceLast('WATER');
+  assert.deepEqual(manager.getGlosses(), ['WATER']);
+});
+
 test('GlossBufferManager - clear() empties the buffer completely (LING-02)', () => {
   const manager = new GlossBufferManager();
   manager.push('HELLO');
