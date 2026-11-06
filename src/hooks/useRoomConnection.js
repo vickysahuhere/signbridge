@@ -15,36 +15,43 @@ export function useRoomConnection() {
     return generateRoomId();
   });
 
-  const [role, setRole] = useState(() => {
+  const userIdRef = useRef(`user_${Math.random().toString(36).slice(2, 9)}`);
+
+  const [role, setRole] = useState('signer');
+
+  const [userName, setUserNameState] = useState(() => {
     if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const urlRole = params.get('role');
-      if (urlRole === 'text_partner' || urlRole === 'partner') {
-        return 'text_partner';
-      }
+      const saved = sessionStorage.getItem('sanket_user_name');
+      if (saved) return saved;
     }
-    return 'signer';
+    return `User-${userIdRef.current.slice(-4).toUpperCase()}`;
   });
 
-  const [userName, setUserName] = useState(() => (role === 'signer' ? 'Aarav (Signer)' : 'Priya (Text)'));
+  const setUserName = useCallback((name) => {
+    if (!name || !name.trim()) return;
+    const trimmed = name.trim();
+    setUserNameState(trimmed);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('sanket_user_name', trimmed);
+    }
+  }, []);
+
   const [connectionStatus, setConnectionStatus] = useState('connecting'); // 'connecting' | 'connected' | 'disconnected'
   const [transportType, setTransportType] = useState('p2p'); // 'p2p' | 'broadcast'
-  const [peerPresence, setPeerPresence] = useState({ isOnline: false, role: null, name: '' });
+  const [peerPresence, setPeerPresence] = useState({ isOnline: false, userId: null, role: null, name: '' });
   const [channelInstance, setChannelInstance] = useState(null);
-
-  const userIdRef = useRef(`user_${Math.random().toString(36).slice(2, 9)}`);
 
   // Synchronize URL query parameter without page reload
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href);
-      if (url.searchParams.get('room') !== roomId || url.searchParams.get('role') !== role) {
+      if (url.searchParams.get('room') !== roomId) {
         url.searchParams.set('room', roomId);
-        url.searchParams.set('role', role);
+        url.searchParams.delete('role');
         window.history.replaceState({}, '', url.toString());
       }
     }
-  }, [roomId, role]);
+  }, [roomId]);
 
   // Connect to room channel
   useEffect(() => {
@@ -72,7 +79,8 @@ export function useRoomConnection() {
                 peerFound = true;
                 setPeerPresence({
                   isOnline: true,
-                  role: p.role,
+                  userId: p.userId,
+                  role: p.role || 'peer',
                   name: p.name || 'Partner'
                 });
               }
@@ -82,7 +90,7 @@ export function useRoomConnection() {
       }
 
       if (!peerFound) {
-        setPeerPresence({ isOnline: false, role: null, name: '' });
+        setPeerPresence({ isOnline: false, userId: null, role: null, name: '' });
       }
     });
 
@@ -114,18 +122,19 @@ export function useRoomConnection() {
     }
   }, [channelInstance, role, userName]);
 
-  // Copy shareable invitation link
-  const getRoomShareUrl = useCallback((targetRole = 'text_partner') => {
+  // Copy shareable invitation link (both peers share the exact same room interface)
+  const getRoomShareUrl = useCallback(() => {
     if (typeof window === 'undefined') return '';
     const url = new URL(window.location.origin + window.location.pathname);
     url.searchParams.set('room', roomId);
-    url.searchParams.set('role', targetRole);
+    url.searchParams.delete('role');
     return url.toString();
   }, [roomId]);
 
   return {
     roomId,
     setRoomId,
+    userId: userIdRef.current,
     role,
     setRole,
     userName,

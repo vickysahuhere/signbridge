@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Zap, Wifi, Clock, MessageSquare, Terminal } from 'lucide-react';
+import { Send, Zap, Wifi, Clock, MessageSquare, Terminal, Sparkles } from 'lucide-react';
+import { formatIslSentence, formatRawGlosses } from '../nlp/islSentenceFormatter.js';
 
 const QUICK_REPLIES = [
   'Yes',
@@ -24,8 +25,8 @@ export function ChatPanel({
   messages = [],
   incomingPartialSigning = null,
   onSendMessage = () => {},
-  currentUserRole = 'text_partner',
-  currentUserName = 'Priya',
+  currentUserRole = 'peer',
+  currentUserName = 'User',
   peerPresence = { isOnline: false, role: null, name: '' },
   connectionMode = 'p2p',
   rttMs = 18
@@ -123,9 +124,13 @@ export function ChatPanel({
                       YOU
                     </span>
                   )}
-                  {isFromSigner && (
+                  {isFromSigner ? (
                     <span className="text-[9px] bg-[#00AA00] text-[#FFFFFF] px-1 font-bold">
-                      ISL SIGNER
+                      ISL SIGNED
+                    </span>
+                  ) : (
+                    <span className="text-[9px] bg-[#000080] text-[#FFFFFF] px-1 font-bold">
+                      TYPED
                     </span>
                   )}
                 </div>
@@ -149,23 +154,49 @@ export function ChatPanel({
                 </div>
               )}
 
-              {/* Message Content */}
-              <p className="text-xs font-bold text-[#000000] leading-tight">
-                "{msg.text}"
-              </p>
+              {/* Message Content: When glosses exist, display both Direct translation and Auto Grammar */}
+              {msg.glosses && msg.glosses.length > 0 ? (
+                <div className="space-y-1 mt-1">
+                  {/* Line 1: Direct Literal Gloss Transcript */}
+                  <div className="flex items-start gap-1.5 text-xs text-[#555555]">
+                    <span className="retro-inset px-1 py-0.2 bg-[#E0E0E0] text-[#333333] font-mono text-[9px] font-bold uppercase flex-shrink-0">
+                      DIRECT:
+                    </span>
+                    <p className="text-xs text-[#444444] font-mono leading-tight italic">
+                      "{msg.rawText || formatRawGlosses(msg.glosses)}"
+                    </p>
+                  </div>
+
+                  {/* Line 2: Auto Grammar English Translation */}
+                  <div className="flex items-start gap-1.5 text-xs bg-[#FFFFCC] p-1 border border-[#808080]">
+                    <span className="retro-outset px-1 py-0.2 bg-[#000080] text-[#FFFFFF] font-mono text-[9px] font-bold uppercase flex-shrink-0 flex items-center gap-0.5">
+                      <Sparkles className="w-2.5 h-2.5 stroke-[2px]" />
+                      AUTO GRAMMAR:
+                    </span>
+                    <p className="text-xs font-bold text-[#000000] leading-tight">
+                      "{msg.autoGrammar || msg.text || formatIslSentence(msg.glosses)}"
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                /* Regular Typed Message */
+                <p className="text-xs font-bold text-[#000000] leading-tight">
+                  "{msg.text}"
+                </p>
+              )}
             </div>
           );
         })}
 
         {/* Live Partial Signing Stream Notice */}
-        {incomingPartialSigning && incomingPartialSigning.previewText && (
+        {incomingPartialSigning && (incomingPartialSigning.previewText || (incomingPartialSigning.glosses && incomingPartialSigning.glosses.length > 0)) && (
           <div className="p-1.5 bg-[#FFFFCC] border-2 border-[#000080] text-xs font-mono animate-blink">
             <div className="flex items-center gap-1 font-bold text-[#000080] mb-0.5">
               <Zap className="w-3 h-3 stroke-[2px] text-[#CC0000]" />
               <span>&gt;&gt; {incomingPartialSigning.sender || 'Signer'} signing live:</span>
             </div>
             {incomingPartialSigning.glosses?.length > 0 && (
-              <div className="flex items-center gap-1 flex-wrap mb-0.5">
+              <div className="flex items-center gap-1 flex-wrap mb-1">
                 {incomingPartialSigning.glosses.map((g, i) => (
                   <span
                     key={i}
@@ -176,9 +207,19 @@ export function ChatPanel({
                 ))}
               </div>
             )}
-            <p className="text-xs font-bold text-[#000000]">
-              "{incomingPartialSigning.previewText}"
-            </p>
+            <div className="space-y-0.5 pt-0.5 border-t border-[#808080]">
+              <div className="flex items-center gap-1 text-[11px] text-[#555555]">
+                <span className="font-bold text-[9px] bg-[#E0E0E0] text-[#000000] px-1 retro-inset">DIRECT:</span>
+                <span className="italic">"{incomingPartialSigning.rawText || formatRawGlosses(incomingPartialSigning.glosses)}"</span>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-[#000000]">
+                <span className="font-bold text-[9px] bg-[#000080] text-[#FFFFFF] px-1 retro-outset flex items-center gap-0.5">
+                  <Sparkles className="w-2.5 h-2.5 stroke-[2px]" />
+                  AUTO GRAMMAR:
+                </span>
+                <span className="font-bold">"{incomingPartialSigning.previewText || formatIslSentence(incomingPartialSigning.glosses)}"</span>
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -205,11 +246,7 @@ export function ChatPanel({
           type="text"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-          placeholder={
-            currentUserRole === 'text_partner'
-              ? 'Type response to signer...'
-              : 'Type text in chat log...'
-          }
+          placeholder="Type message in cyber-chat log..."
           className="retro-input flex-1 text-xs py-1 px-2"
         />
         <button

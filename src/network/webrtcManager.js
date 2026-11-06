@@ -15,18 +15,25 @@ export const STUN_SERVERS = [
 
 export class WebRTCManager {
   constructor({
+    userId = null,
     onMessage = () => {},
     onStatusChange = () => {},
     onFallbackTrigger = () => {},
-    sendSignaling = () => {}
+    sendSignaling = () => {},
+    onRemoteStream = () => {}
   } = {}) {
+    this.userId = userId;
     this.onMessage = onMessage;
     this.onStatusChange = onStatusChange;
     this.onFallbackTrigger = onFallbackTrigger;
     this.sendSignaling = sendSignaling;
+    this.onRemoteStream = onRemoteStream;
 
     this.peerConnection = null;
     this.dataChannel = null;
+    this.localStream = null;
+    this.remoteStream = null;
+    this.candidateQueue = [];
     this.status = 'idle'; // 'idle' | 'connecting' | 'connected' | 'failed' | 'closed'
     this.isInitiator = false;
   }
@@ -48,11 +55,31 @@ export class WebRTCManager {
     const pc = new RTCPeerConnection({ iceServers: STUN_SERVERS });
     this.peerConnection = pc;
 
+    // Attach local stream tracks if already available
+    if (this.localStream) {
+      try {
+        this.localStream.getTracks().forEach((track) => {
+          pc.addTrack(track, this.localStream);
+        });
+      } catch (err) {
+        console.warn('[WebRTCManager] Error adding initial tracks:', err);
+      }
+    }
+
+    // Handle remote media tracks (P2P video streaming)
+    pc.ontrack = (event) => {
+      if (event.streams && event.streams[0]) {
+        this.remoteStream = event.streams[0];
+        this.onRemoteStream(event.streams[0]);
+      }
+    };
+
     pc.onicecandidate = (event) => {
       if (event.candidate) {
         this.sendSignaling({
           type: 'CANDIDATE',
-          candidate: event.candidate
+          candidate: event.candidate,
+          senderId: this.userId
         });
       }
     };
@@ -72,9 +99,51 @@ export class WebRTCManager {
   }
 
   /**
-   * Starts call as initiator (Signer), creates data channel and creates SDP offer.
+   * Attaches or updates local video/audio media stream tracks.
    */
-  async startCall() {
+  setLocalStream(stream) {
+    this.localStream = stream;
+    if (!this.peerConnection || this.peerConnection.signalingState === 'closed') return;
+
+    if (!stream) {
+      // Remove tracks if stream cleared
+      const senders = this.peerConnection.getSenders();
+      senders.forEach((sender) => {
+        if (sender.track) {
+          try {
+            this.peerConnection.removeTrack(sender);
+          } catch {}
+        }
+      });
+      return;
+    }
+
+    const senders = this.peerConnection.getSenders();
+    stream.getTracks().forEach((track) => {
+      const existingSender = senders.find((s) => s.track && s.track.kind === track.kind);
+      if (existingSender) {
+        try {
+          existingSender.replaceTrack(track);
+        } catch (err) {
+          console.warn('[WebRTCManager] replaceTrack error:', err);
+        }
+      } else {
+        try {
+          this.peerConnection.addTrack(track, stream);
+        } catch (err) {
+          console.warn('[WebRTCManager] addTrack error:', err);
+        }
+      }
+    });
+  }
+
+  /**
+   * Starts call as initiator, creates data channel and creates SDP offer.
+   */
+  async startCall(localStream = null) {
+    if (localStream) {
+      this.localStream = localStream;
+    }
     this.isInitiator = true;
     const pc = this.initPeerConnection();
     if (!pc) return;
@@ -91,7 +160,8 @@ export class WebRTCManager {
       await pc.setLocalDescription(offer);
       this.sendSignaling({
         type: 'OFFER',
-        sdp: offer
+        sdp: offer,
+        senderId: this.userId
       });
     } catch (err) {
       console.warn('[WebRTCManager] Offer generation failed, triggering fallback:', err);
@@ -101,11 +171,17 @@ export class WebRTCManager {
   }
 
   /**
-   * Listens as receiver (Text Partner) when remote offer arrives.
+   * Listens as receiver when remote offer arrives.
    */
-  async handleRemoteOffer(offerSdp) {
+  async handleRemoteOffer(offerSdp, localStream = null) {
+    if (localStream) {
+      this.localStream = localStream;
+    }
     this.isInitiator = false;
-    const pc = this.initPeerConnection();
+    let pc = this.peerConnection;
+    if (!pc || pc.signalingState === 'closed') {
+      pc = this.initPeerConnection();
+    }
     if (!pc) return;
 
     pc.ondatachannel = (event) => {
@@ -114,11 +190,14 @@ export class WebRTCManager {
 
     try {
       await pc.setRemoteDescription(new RTCSessionDescription(offerSdp));
+      await this.drainCandidateQueue();
+
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
       this.sendSignaling({
         type: 'ANSWER',
-        sdp: answer
+        sdp: answer,
+        senderId: this.userId
       });
     } catch (err) {
       console.warn('[WebRTCManager] Answer generation failed, triggering fallback:', err);
@@ -131,23 +210,46 @@ export class WebRTCManager {
    * Sets remote answer description when received by initiator.
    */
   async handleRemoteAnswer(answerSdp) {
-    if (!this.peerConnection) return;
+    if (!this.peerConnection || this.peerConnection.signalingState === 'closed') return;
     try {
-      await this.peerConnection.setRemoteDescription(new RTCSessionDescription(answerSdp));
+      if (this.peerConnection.signalingState === 'have-local-offer') {
+        await this.peerConnection.setRemoteDescription(new RTCSessionDescription(answerSdp));
+        await this.drainCandidateQueue();
+      }
     } catch (err) {
       console.warn('[WebRTCManager] Remote answer failed:', err);
     }
   }
 
   /**
-   * Adds remote ICE candidate.
+   * Adds remote ICE candidate or buffers it until remote description is set.
    */
   async handleRemoteCandidate(candidate) {
-    if (!this.peerConnection || !candidate) return;
+    if (!this.peerConnection || !candidate || this.peerConnection.signalingState === 'closed') return;
     try {
-      await this.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+      if (this.peerConnection.remoteDescription && this.peerConnection.remoteDescription.type) {
+        await this.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+      } else {
+        this.candidateQueue.push(candidate);
+      }
     } catch (err) {
       console.warn('[WebRTCManager] Error adding ICE candidate:', err);
+    }
+  }
+
+  /**
+   * Drains buffered ICE candidates after remote description is applied.
+   */
+  async drainCandidateQueue() {
+    if (!this.peerConnection || this.candidateQueue.length === 0) return;
+    const queued = [...this.candidateQueue];
+    this.candidateQueue = [];
+    for (const cand of queued) {
+      try {
+        await this.peerConnection.addIceCandidate(new RTCIceCandidate(cand));
+      } catch (err) {
+        console.warn('[WebRTCManager] Error draining ICE candidate:', err);
+      }
     }
   }
 

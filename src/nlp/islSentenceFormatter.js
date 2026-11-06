@@ -5,7 +5,8 @@
  * - Runs 100% client-side in <1ms with 0 external API dependencies (LING-03).
  * - Repositions trailing ISL WH-question markers to front with copulas and question marks (LING-04).
  * - Restructures SOV clauses: Subject + Object + Verb -> Subject + Verb + Object.
- * - Handles greetings, politeness prefixes, pronoun expansions, and punctuation.
+ * - Handles greetings, politeness prefixes, pronoun expansions, conversational particles,
+ *   implicit first-person subject inferences, compound multi-clause signing, and punctuation.
  */
 
 // Semantic Lexicon Categories for ISL Tokens
@@ -19,34 +20,34 @@ const PRONOUNS = {
 const WH_QUESTIONS = new Set(['WHAT', 'WHERE', 'WHO', 'WHY', 'WHEN', 'HOW']);
 
 const VERBS = {
-  GO: { base: 'go', continuous: 'going to', present: 'go' },
-  COME: { base: 'come', continuous: 'coming', present: 'come' },
-  EAT: { base: 'eat', continuous: 'eating', present: 'eat' },
-  DRINK: { base: 'drink', continuous: 'drinking', present: 'drink' },
-  HELP: { base: 'help', continuous: 'helping', present: 'help' },
-  WORK: { base: 'work', continuous: 'working', present: 'work' },
-  STUDY: { base: 'study', continuous: 'studying', present: 'study' },
-  SLEEP: { base: 'sleep', continuous: 'sleeping', present: 'sleep' },
-  WAIT: { base: 'wait', continuous: 'waiting', present: 'wait' },
-  SEE: { base: 'see', continuous: 'seeing', present: 'see' },
-  KNOW: { base: 'know', continuous: 'knowing', present: 'know' },
-  UNDERSTAND: { base: 'understand', continuous: 'understanding', present: 'understand' },
-  WANT: { base: 'want', continuous: 'wanting', present: 'want' }
+  GO: { base: 'go', continuous: 'going to', present: 'go', gerund: 'going' },
+  COME: { base: 'come', continuous: 'coming', present: 'come', gerund: 'coming' },
+  EAT: { base: 'eat', continuous: 'eating', present: 'eat', gerund: 'eating' },
+  DRINK: { base: 'drink', continuous: 'drinking', present: 'drink', gerund: 'drinking' },
+  HELP: { base: 'help', continuous: 'helping', present: 'help', gerund: 'helping' },
+  WORK: { base: 'work', continuous: 'working', present: 'work', gerund: 'working' },
+  STUDY: { base: 'study', continuous: 'studying', present: 'study', gerund: 'studying' },
+  SLEEP: { base: 'sleep', continuous: 'sleeping', present: 'sleep', gerund: 'sleeping' },
+  WAIT: { base: 'wait', continuous: 'waiting', present: 'wait', gerund: 'waiting' },
+  SEE: { base: 'see', continuous: 'seeing', present: 'see', gerund: 'seeing' },
+  KNOW: { base: 'know', continuous: 'knowing', present: 'know', gerund: 'knowing' },
+  UNDERSTAND: { base: 'understand', continuous: 'understanding', present: 'understand', gerund: 'understanding' },
+  WANT: { base: 'want', continuous: 'wanting', present: 'want', gerund: 'wanting' }
 };
 
 const NOUNS = {
-  HOSPITAL: { singular: 'the hospital', bare: 'hospital' },
-  DOCTOR: { singular: 'the doctor', bare: 'doctor' },
-  MEDICINE: { singular: 'medicine', bare: 'medicine' },
-  POLICE: { singular: 'the police', bare: 'police' },
-  WATER: { singular: 'water', bare: 'water' },
-  FOOD: { singular: 'food', bare: 'food' },
-  HOME: { singular: 'home', bare: 'home' },
-  SCHOOL: { singular: 'school', bare: 'school' },
-  NAME: { singular: 'name', bare: 'name' },
-  FRIEND: { singular: 'friend', bare: 'friend' },
-  FAMILY: { singular: 'family', bare: 'family' },
-  TIME: { singular: 'time', bare: 'time' }
+  HOSPITAL: { singular: 'the hospital', bare: 'hospital', definite: 'the hospital' },
+  DOCTOR: { singular: 'the doctor', bare: 'doctor', definite: 'the doctor' },
+  MEDICINE: { singular: 'medicine', bare: 'medicine', definite: 'medicine' },
+  POLICE: { singular: 'the police', bare: 'police', definite: 'the police' },
+  WATER: { singular: 'water', bare: 'water', definite: 'water' },
+  FOOD: { singular: 'food', bare: 'food', definite: 'food' },
+  HOME: { singular: 'home', bare: 'home', definite: 'home' },
+  SCHOOL: { singular: 'school', bare: 'school', definite: 'school' },
+  NAME: { singular: 'name', bare: 'name', definite: 'the name' },
+  FRIEND: { singular: 'friend', bare: 'friend', definite: 'my friend' },
+  FAMILY: { singular: 'family', bare: 'family', definite: 'my family' },
+  TIME: { singular: 'time', bare: 'time', definite: 'the time' }
 };
 
 const TEMPORALS = {
@@ -67,9 +68,17 @@ const GREETINGS = {
   GOOD_MORNING: 'Good morning!',
   WELCOME: 'Welcome!',
   THANK_YOU: 'Thank you!',
-  PLEASE: 'Please.',
-  SORRY: 'Sorry.'
+  PLEASE: 'Please',
+  SORRY: 'Sorry'
 };
+
+/**
+ * Normalizes a raw gloss token into an uppercase normalized string identifier.
+ */
+function normalizeGloss(token) {
+  if (!token) return '';
+  return String(token).trim().toUpperCase().replace(/[\s\/-]+/g, '_');
+}
 
 /**
  * Capitalizes the first character of a string.
@@ -77,6 +86,24 @@ const GREETINGS = {
 function capitalize(str) {
   if (!str) return '';
   return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+/**
+ * Formats an array of recognized ISL gloss tokens into a direct/literal transcription.
+ * e.g. ["HELLO", "THANK_YOU", "DRINK", "YES", "GOOD"] -> "Hello thank you drink yes good."
+ * @param {string[]} rawGlosses
+ * @returns {string}
+ */
+export function formatRawGlosses(rawGlosses) {
+  if (!rawGlosses || !Array.isArray(rawGlosses) || rawGlosses.length === 0) {
+    return '';
+  }
+  const words = rawGlosses
+    .map(g => String(g).trim().replace(/_/g, ' ').toLowerCase())
+    .filter(Boolean);
+  if (words.length === 0) return '';
+  const text = words.join(' ');
+  return capitalize(text) + '.';
 }
 
 /**
@@ -89,14 +116,19 @@ export function formatIslSentence(rawGlosses) {
     return '';
   }
 
-  // Filter out any empty items and uppercase tokens
-  const tokens = rawGlosses.map(g => String(g).trim().toUpperCase()).filter(Boolean);
+  // Filter out any empty items and normalize tokens
+  const tokens = rawGlosses.map(normalizeGloss).filter(Boolean);
   if (tokens.length === 0) return '';
 
   // 1. Single Token Handling
   if (tokens.length === 1) {
     const t = tokens[0];
-    if (GREETINGS[t]) return GREETINGS[t];
+    if (t === 'HELLO') return 'Hello!';
+    if (t === 'GOOD_MORNING') return 'Good morning!';
+    if (t === 'WELCOME') return 'Welcome!';
+    if (t === 'THANK_YOU') return 'Thank you!';
+    if (t === 'PLEASE') return 'Please.';
+    if (t === 'SORRY') return 'Sorry.';
     if (t === 'YES') return 'Yes.';
     if (t === 'NO') return 'No.';
     if (t === 'HELP') return 'Please help me!';
@@ -106,19 +138,41 @@ export function formatIslSentence(rawGlosses) {
     return `${capitalize(t.toLowerCase())}.`;
   }
 
-  // 2. Separate leading greeting if present (e.g. HELLO + rest of sentence)
-  let leadingGreeting = null;
+  // 2. Extract leading conversational greetings / politeness markers
+  const leadingPhrases = [];
   let workTokens = [...tokens];
 
-  if (GREETINGS[workTokens[0]]) {
-    leadingGreeting = GREETINGS[workTokens[0]];
-    workTokens = workTokens.slice(1);
-    if (workTokens.length === 0) {
-      return leadingGreeting;
+  while (workTokens.length > 0) {
+    const first = workTokens[0];
+    if (first === 'HELLO') {
+      leadingPhrases.push('Hello!');
+      workTokens = workTokens.slice(1);
+    } else if (first === 'GOOD_MORNING') {
+      leadingPhrases.push('Good morning!');
+      workTokens = workTokens.slice(1);
+    } else if (first === 'WELCOME') {
+      leadingPhrases.push('Welcome!');
+      workTokens = workTokens.slice(1);
+    } else if (first === 'THANK_YOU') {
+      leadingPhrases.push('Thank you!');
+      workTokens = workTokens.slice(1);
+    } else if (first === 'SORRY') {
+      leadingPhrases.push('Sorry,');
+      workTokens = workTokens.slice(1);
+    } else if (first === 'PLEASE' && workTokens.length > 1) {
+      leadingPhrases.push('Please,');
+      workTokens = workTokens.slice(1);
+    } else {
+      break;
     }
   }
 
-  // 3. Extract leading temporal modifier if present (e.g. TODAY + rest)
+  // If only greetings were signed:
+  if (workTokens.length === 0) {
+    return leadingPhrases.join(' ');
+  }
+
+  // 3. Extract temporal modifier (e.g. TODAY, TOMORROW, YESTERDAY)
   let trailingTemporal = null;
   if (TEMPORALS[workTokens[0]]) {
     trailingTemporal = TEMPORALS[workTokens[0]];
@@ -128,23 +182,35 @@ export function formatIslSentence(rawGlosses) {
     workTokens = workTokens.slice(0, -1);
   }
 
-  const sentenceCore = translateClause(workTokens);
-
-  // Reassemble greeting + clause + temporal
-  let fullSentence = sentenceCore;
-  if (trailingTemporal && fullSentence) {
-    // Insert temporal modifier before final punctuation
-    const punct = fullSentence.slice(-1);
-    const body = fullSentence.slice(0, -1);
-    fullSentence = `${body} ${trailingTemporal}${punct}`;
+  if (workTokens.length === 0 && trailingTemporal) {
+    const greetingStr = leadingPhrases.join(' ');
+    return greetingStr ? `${greetingStr} ${capitalize(trailingTemporal)}.` : `${capitalize(trailingTemporal)}.`;
   }
 
-  if (leadingGreeting) {
-    const cleanGreeting = leadingGreeting.replace(/[!.]/, '');
-    fullSentence = `${cleanGreeting}! ${fullSentence}`;
+  // 4. Translate core clause
+  let sentenceCore = translateClause(workTokens);
+
+  // 5. Append temporal modifier if present
+  if (trailingTemporal && sentenceCore) {
+    const punct = sentenceCore.slice(-1);
+    const hasPunct = /[.?!]/.test(punct);
+    const body = hasPunct ? sentenceCore.slice(0, -1) : sentenceCore;
+    const finalPunct = hasPunct ? punct : '.';
+    sentenceCore = `${body} ${trailingTemporal}${finalPunct}`;
   }
 
-  return fullSentence;
+  // 6. Prepend leading greetings
+  if (leadingPhrases.length > 0) {
+    const greetingsJoined = leadingPhrases.join(' ');
+    // If the greeting ends with comma, ensure clean joining
+    if (greetingsJoined.endsWith(',')) {
+      sentenceCore = `${greetingsJoined} ${sentenceCore.charAt(0).toLowerCase()}${sentenceCore.slice(1)}`;
+    } else {
+      sentenceCore = `${greetingsJoined} ${sentenceCore}`;
+    }
+  }
+
+  return sentenceCore;
 }
 
 /**
@@ -179,7 +245,7 @@ function translateClause(tokens) {
       return 'What time is it?';
     }
 
-    // Sub-pattern A3: ["HOSPITAL", "WHERE"] or ["DOCTOR", "WHERE"] -> "Where is the hospital?"
+    // Sub-pattern A3: ["HOSPITAL", "WHERE"] or ["DOCTOR", "WHERE"] or ["POLICE", "WHERE"]
     if (wh === 'WHERE' && nounToken) {
       return `Where is ${NOUNS[nounToken].singular}?`;
     }
@@ -236,7 +302,7 @@ function translateClause(tokens) {
 
   // ----------------------------------------------------
   // PATTERN B: Name Introductions with Fingerspelling
-  // e.g. ["NAME", "RAHUL"] or ["I_ME", "NAME", "RAHUL"]
+  // e.g. ["NAME", "RAHUL"] or ["I_ME", "NAME", "PRIYA"]
   // ----------------------------------------------------
   if (tokens.includes('NAME')) {
     const nameIndex = tokens.indexOf('NAME');
@@ -265,17 +331,92 @@ function translateClause(tokens) {
   }
 
   // ----------------------------------------------------
-  // PATTERN D: SOV to SVO Reordering (LING-03)
-  // e.g. ["I_ME", "WATER", "WANT"] -> "I want water."
-  // e.g. ["I_ME", "HOSPITAL", "GO"] -> "I am going to the hospital."
+  // PATTERN D: Politeness & Requests (e.g. ["PLEASE", "HELP"], ["HELP", "PLEASE"])
+  // ----------------------------------------------------
+  if (tokens.includes('HELP')) {
+    if (tokens.includes('PLEASE') || tokens.length === 1) {
+      return 'Please help me!';
+    }
+    if (tokens.includes('WANT')) {
+      const subjToken = tokens.find(t => PRONOUNS[t]);
+      const subj = subjToken ? PRONOUNS[subjToken].subject : 'I';
+      return `${capitalize(subj)} need help.`;
+    }
+  }
+  if (tokens.includes('PLEASE') && tokens.includes('WAIT')) {
+    return 'Please wait.';
+  }
+
+  // ----------------------------------------------------
+  // PATTERN E: Conversational Responses with YES / NO / GOOD
+  // e.g. ["DRINK", "YES", "GOOD"] -> "Yes, a drink is good."
+  // e.g. ["YES", "GOOD"] -> "Yes, that is good."
+  // e.g. ["NO", "BAD"] -> "No, that is bad."
+  // e.g. ["DRINK", "YES"] -> "Yes, I would like a drink."
+  // e.g. ["WATER", "YES"] -> "Yes, water, thank you."
+  // ----------------------------------------------------
+  if (tokens.includes('YES') || tokens.includes('GOOD')) {
+    const hasYes = tokens.includes('YES');
+    const hasGood = tokens.includes('GOOD');
+    const nonMarkerTokens = tokens.filter(t => t !== 'YES' && t !== 'GOOD');
+
+    if (hasYes && hasGood && nonMarkerTokens.length === 0) {
+      return 'Yes, that is good.';
+    }
+
+    if (hasYes && nonMarkerTokens.length > 0) {
+      const restClause = translateClause(nonMarkerTokens);
+      if (hasGood) {
+        // e.g. ["DRINK", "YES", "GOOD"]
+        const item = nonMarkerTokens[0];
+        if (item === 'DRINK') return 'Yes, a drink is good.';
+        if (item === 'FOOD') return 'Yes, food is good.';
+        if (item === 'WATER') return 'Yes, water is good.';
+        if (NOUNS[item]) return `Yes, ${NOUNS[item].bare} is good.`;
+        if (VERBS[item]) return `Yes, ${VERBS[item].gerund} is good.`;
+      }
+      // e.g. ["DRINK", "YES"]
+      const item = nonMarkerTokens[0];
+      if (item === 'DRINK') return 'Yes, I would like a drink.';
+      if (item === 'FOOD') return 'Yes, I would like food.';
+      if (item === 'WATER') return 'Yes, water, thank you.';
+      if (NOUNS[item]) return `Yes, ${NOUNS[item].bare}, please.`;
+
+      // Cleanly join
+      const cleanBody = restClause.replace(/[.]+$/, '');
+      return `Yes, ${cleanBody.charAt(0).toLowerCase()}${cleanBody.slice(1)}.`;
+    }
+
+    if (hasGood && nonMarkerTokens.length === 1) {
+      const item = nonMarkerTokens[0];
+      if (item === 'DRINK') return 'A drink is good.';
+      if (item === 'FOOD') return 'The food is good.';
+      if (item === 'WORK') return 'Work is good.';
+      if (item === 'STUDY') return 'Studying is good.';
+      if (NOUNS[item]) return `My ${NOUNS[item].bare} is good.`;
+    }
+  }
+
+  // ----------------------------------------------------
+  // PATTERN F: SOV to SVO Reordering (LING-03)
+  // Handles both explicit subjects ("I_ME WATER WANT")
+  // and implicit first-person subjects ("WATER WANT", "HOME GO")
   // ----------------------------------------------------
   const subjectToken = PRONOUNS[firstToken] ? firstToken : null;
   const verbToken = tokens.find(t => VERBS[t]);
   const nounToken = tokens.find(t => NOUNS[t]);
 
-  if (subjectToken && verbToken) {
-    const subj = PRONOUNS[subjectToken].subject;
-    const copula = PRONOUNS[subjectToken].copula;
+  if (verbToken) {
+    // If no explicit subject pronoun was signed, default to first person ('I')
+    const subj = subjectToken ? PRONOUNS[subjectToken].subject : 'I';
+    const copula = subjectToken ? PRONOUNS[subjectToken].copula : 'am';
+
+    // Compound desire verbs: ["WATER", "DRINK", "WANT"] -> "I want to drink water."
+    if (tokens.includes('WANT') && tokens.some(t => VERBS[t] && t !== 'WANT')) {
+      const actionVerb = tokens.find(t => VERBS[t] && t !== 'WANT');
+      const object = nounToken ? ` ${NOUNS[nounToken].bare}` : '';
+      return `${capitalize(subj)} want to ${VERBS[actionVerb].base}${object}.`;
+    }
 
     // Motion verbs: GO, COME
     if (verbToken === 'GO') {
@@ -313,13 +454,18 @@ function translateClause(tokens) {
       return `${capitalize(subj)} want to see ${target}.`;
     }
 
+    // SLEEP
+    if (verbToken === 'SLEEP') {
+      return `${capitalize(subj)} want to sleep.`;
+    }
+
     // General Subject + Verb + Noun
     const object = nounToken ? ` ${NOUNS[nounToken].singular}` : '';
     return `${capitalize(subj)} ${VERBS[verbToken].present}${object}.`;
   }
 
   // ----------------------------------------------------
-  // PATTERN E: Subject + Adjective (e.g. ["I_ME", "HAPPY"] -> "I am happy.")
+  // PATTERN G: Subject + Adjective (e.g. ["I_ME", "HAPPY"] -> "I am happy.")
   // ----------------------------------------------------
   if (subjectToken) {
     const adjToken = tokens.find(t => ADJECTIVES[t]);
@@ -331,13 +477,20 @@ function translateClause(tokens) {
   }
 
   // ----------------------------------------------------
-  // PATTERN F: Noun + Adjective (e.g. ["FAMILY", "GOOD"] -> "My family is good.")
+  // PATTERN H: Noun + Adjective (e.g. ["FAMILY", "GOOD"] -> "My family is good.")
   // ----------------------------------------------------
   if (nounToken) {
     const adjToken = tokens.find(t => ADJECTIVES[t]);
     if (adjToken) {
       return `My ${NOUNS[nounToken].bare} is ${ADJECTIVES[adjToken]}.`;
     }
+  }
+
+  // ----------------------------------------------------
+  // PATTERN I: Polite Thanks / Closing (e.g. ["THANK_YOU", "FRIEND"])
+  // ----------------------------------------------------
+  if (tokens.includes('THANK_YOU') && tokens.includes('FRIEND')) {
+    return 'Thank you, my friend!';
   }
 
   // ----------------------------------------------------
@@ -349,7 +502,7 @@ function translateClause(tokens) {
       if (NOUNS[t]) return NOUNS[t].bare;
       if (VERBS[t]) return VERBS[t].base;
       if (ADJECTIVES[t]) return ADJECTIVES[t];
-      return t.toLowerCase();
+      return t.toLowerCase().replace(/_/g, ' ');
     })
     .join(' ');
 

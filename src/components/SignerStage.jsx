@@ -16,15 +16,29 @@ export function SignerStage({
   latestConfirmedWord = null,
   latestReply = null,
   recognitionMode = 'word',
-  onToggleMode = null
+  onToggleMode = null,
+  onStreamChange = null,
+  remoteStream = null,
+  peerPresence = { isOnline: false, name: '' }
 }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+  const remoteVideoRef = useRef(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState(null);
   const [isLoadingCamera, setIsLoadingCamera] = useState(false);
   const [showSkeleton, setShowSkeleton] = useState(true);
   const [boundaryAlert, setBoundaryAlert] = useState({ isOutOfFrame: false, message: '' });
+
+  // Attach remote video stream when received
+  useEffect(() => {
+    if (remoteVideoRef.current && remoteStream) {
+      remoteVideoRef.current.srcObject = remoteStream;
+      remoteVideoRef.current.play().catch((err) => {
+        console.warn('[SignerStage] Remote video playback error:', err);
+      });
+    }
+  }, [remoteStream]);
 
   // FPS calculation refs
   const frameCountRef = useRef(0);
@@ -51,6 +65,9 @@ export function SignerStage({
         await videoRef.current.play();
         setIsCameraActive(true);
       }
+      if (onStreamChange) {
+        onStreamChange(stream);
+      }
     } catch (err) {
       console.error('[SignerStage] Camera access denied or failed:', err);
       setCameraError(
@@ -62,7 +79,7 @@ export function SignerStage({
     } finally {
       setIsLoadingCamera(false);
     }
-  }, []);
+  }, [onStreamChange]);
 
   // Stop camera media stream
   const stopCamera = useCallback(() => {
@@ -70,6 +87,9 @@ export function SignerStage({
       const tracks = videoRef.current.srcObject.getTracks();
       tracks.forEach(track => track.stop());
       videoRef.current.srcObject = null;
+    }
+    if (onStreamChange) {
+      onStreamChange(null);
     }
     setIsCameraActive(false);
     setBoundaryAlert({ isOutOfFrame: false, message: '' });
@@ -79,7 +99,7 @@ export function SignerStage({
       const ctx = canvasRef.current.getContext('2d');
       ctx.clearRect(0, 0, 640, 480);
     }
-  }, [onFpsUpdate]);
+  }, [onFpsUpdate, onStreamChange]);
 
   // Wire hardware-synchronized camera loop
   useEffect(() => {
@@ -265,6 +285,38 @@ export function SignerStage({
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Picture-in-Picture Remote Peer Video Feed */}
+          {remoteStream && (
+            <div className="absolute bottom-2 right-2 z-20 retro-window bg-[#C0C0C0] p-0.5 border border-[#000000] shadow-xl max-w-[210px] w-[38%] sm:w-[190px]">
+              <div className="retro-window-titlebar !py-0.2 !px-1 text-[9px] flex items-center justify-between">
+                <div className="flex items-center gap-1 font-mono font-bold truncate">
+                  <span className="w-1.5 h-1.5 bg-[#00AA00] flex-shrink-0 animate-pulse"></span>
+                  <span className="truncate">{peerPresence?.name || 'Remote Partner'}</span>
+                </div>
+                <span className="text-[8px] bg-[#FFFF00] text-[#000000] px-1 font-mono font-bold">
+                  P2P
+                </span>
+              </div>
+              <div className="retro-inset bg-[#000000] aspect-[4/3] overflow-hidden flex items-center justify-center">
+                <video
+                  ref={remoteVideoRef}
+                  playsInline
+                  autoPlay
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Connected Partner Camera Status Chip */}
+          {peerPresence?.isOnline && !remoteStream && (
+            <div className="absolute bottom-2 right-2 z-20 retro-outset bg-[#C0C0C0] px-2 py-0.5 text-[10px] font-mono border border-[#000000] shadow-md flex items-center gap-1.5">
+              <span className="w-2 h-2 bg-[#00AA00]"></span>
+              <span className="font-bold text-[#000000]">{peerPresence?.name || 'Partner'} online</span>
+              <span className="text-[#808080] hidden sm:inline">(Cam Off)</span>
             </div>
           )}
 

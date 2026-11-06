@@ -29,8 +29,7 @@ export function Navbar({
   roomId = '',
   connectionMode = 'p2p',
   rttMs = 18,
-  currentRole = 'signer',
-  onToggleRole,
+  userName = 'User',
   onCopyLink
 }) {
   const [copied, setCopied] = useState(false);
@@ -98,49 +97,31 @@ export function Navbar({
 
       {/* 2. Unified Toolbar & Menu Controls Row */}
       <div className="flex flex-wrap items-center justify-between gap-1 px-2 py-1 bg-[#C0C0C0] border-t border-[#FFFFFF]">
-        {/* Left: Role Switcher & Mode Buttons */}
+        {/* Left: Mode Buttons & Knowledge Tools (Unified Interface for Both Users) */}
         <div className="flex items-center gap-1 flex-wrap">
-          {/* Role Switcher */}
-          {onToggleRole && (
-            <div className="flex items-center retro-inset-gray p-0.5 gap-0.5">
-              <button
-                onClick={() => onToggleRole('signer')}
-                className={`retro-btn text-xs !py-0.5 !px-2 ${currentRole === 'signer' ? 'retro-btn-primary' : ''}`}
-                title="Switch to Camera Signer Mode"
-              >
-                <Video className="w-3 h-3 stroke-[2px]" />
-                <span>[ Signer ]</span>
-              </button>
-              <button
-                onClick={() => onToggleRole('text_partner')}
-                className={`retro-btn text-xs !py-0.5 !px-2 ${currentRole === 'text_partner' ? 'retro-btn-primary' : ''}`}
-                title="Switch to Hearing Partner Mode"
-              >
-                <MessageSquare className="w-3 h-3 stroke-[2px]" />
-                <span>[ Partner ]</span>
-              </button>
-            </div>
-          )}
+          {/* User Identity Chip */}
+          <div className="retro-inset px-2 py-0.5 bg-[#FFFFFF] text-[11px] font-mono font-bold text-[#000080] flex items-center gap-1">
+            <span className="text-[#808080]">ME:</span>
+            <span>{userName}</span>
+          </div>
 
           {/* Mode Selector (Words vs A-Z) */}
-          {currentRole === 'signer' && (
-            <div className="flex items-center retro-inset-gray p-0.5 gap-0.5">
-              <button
-                onClick={() => onToggleMode && onToggleMode('word')}
-                className={`retro-btn text-xs !py-0.5 !px-2 ${recognitionMode === 'word' ? 'retro-btn-success' : ''}`}
-                title="AI4Bharat 50 Words Neural Model"
-              >
-                <span>Words</span>
-              </button>
-              <button
-                onClick={() => onToggleMode && onToggleMode('alphabet')}
-                className={`retro-btn text-xs !py-0.5 !px-2 ${recognitionMode === 'alphabet' ? 'retro-btn-primary' : ''}`}
-                title="Two-Handed Fingerspelling A-Z"
-              >
-                <span>A–Z</span>
-              </button>
-            </div>
-          )}
+          <div className="flex items-center retro-inset-gray p-0.5 gap-0.5">
+            <button
+              onClick={() => onToggleMode && onToggleMode('word')}
+              className={`retro-btn text-xs !py-0.5 !px-2 ${recognitionMode === 'word' ? 'retro-btn-success' : ''}`}
+              title="AI4Bharat 50 Words Neural Model"
+            >
+              <span>Words</span>
+            </button>
+            <button
+              onClick={() => onToggleMode && onToggleMode('alphabet')}
+              className={`retro-btn text-xs !py-0.5 !px-2 ${recognitionMode === 'alphabet' ? 'retro-btn-primary' : ''}`}
+              title="Two-Handed Fingerspelling A-Z"
+            >
+              <span>A–Z</span>
+            </button>
+          </div>
 
           {/* 50 Words Dictionary Modal Trigger */}
           {onOpenDictionary && (
@@ -150,12 +131,12 @@ export function Navbar({
               title="Open 50 ISL Words Reference Table"
             >
               <BookOpen className="w-3 h-3 stroke-[2px] text-[#000080]" />
-              <span>ISL Dictionary (50)</span>
+              <span>Dictionary (50)</span>
             </button>
           )}
 
           {/* Keypoint Dataset Recorder Trigger */}
-          {onOpenRecorder && currentRole === 'signer' && (
+          {onOpenRecorder && (
             <button
               onClick={onOpenRecorder}
               className="retro-btn text-xs !py-0.5 !px-2"
@@ -177,7 +158,7 @@ export function Navbar({
               <button
                 onClick={handleCopy}
                 className="ml-1.5 retro-btn !px-1 !py-0 text-[9px]"
-                title="Copy Shareable Partner Link"
+                title="Copy Shareable Room Link"
               >
                 {copied ? <Check className="w-2.5 h-2.5 text-[#00AA00] stroke-[2px]" /> : <Copy className="w-2.5 h-2.5 stroke-[2px]" />}
                 <span>{copied ? 'COPIED' : 'COPY'}</span>
@@ -199,11 +180,9 @@ export function Navbar({
           </div>
 
           {/* FPS Counter */}
-          {currentRole === 'signer' && (
-            <div className="retro-inset px-1.5 py-0.2 bg-[#000000] text-[#00FF00] font-mono text-[11px] font-bold">
-              {fps} FPS
-            </div>
-          )}
+          <div className="retro-inset px-1.5 py-0.2 bg-[#000000] text-[#00FF00] font-mono text-[11px] font-bold">
+            {fps} FPS
+          </div>
         </div>
       </div>
     </header>

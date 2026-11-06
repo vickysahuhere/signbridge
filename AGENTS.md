@@ -25,6 +25,7 @@
    - [Playbook D: Modifying UI Components](#playbook-d-modifying-ui-components)
    - [Playbook E: Updating WebRTC or Realtime Signaling](#playbook-e-updating-webrtc-or-realtime-signaling)
 7. [Verification & Pre-Flight Quality Gates](#7-verification--pre-flight-quality-gates)
+8. [Git Identity & Pull Request Attribution Protocol ("This is Done by Me")](#8-git-identity--pull-request-attribution-protocol-this-is-done-by-me)
 
 ---
 
@@ -369,3 +370,82 @@ npm run build
 - [ ] Did I preserve the retro Windows 95 / GeoCities design tokens (0px border-radius, 3D bevels)?
 - [ ] Did `npm test` pass all tests?
 - [ ] Did `npm run build` succeed cleanly?
+
+---
+
+## 8. Git Identity & Pull Request Attribution Protocol ("This is Done by Me")
+
+Whenever a contributor or an AI agent submits code or opens a Pull Request, **clear attribution of work is mandatory**. Both human developers and automated agents must be transparent about who authored the code, which parts were assisted by AI, and how the changes were verified.
+
+### 8.1 Understanding and Respecting the Active Git User
+
+Before creating commits, check the active Git user configuration:
+
+```bash
+git config user.name
+git config user.email
+```
+
+#### Rules for Agents regarding Git User:
+1. **Never silently overwrite global git user configuration**: An agent must never execute `git config --global user.name` or `git config --global user.email` without explicit user permission.
+2. **Preserve repository committer identity**: If the user has a configured Git identity, commits made by the agent on their behalf should retain their committer identity, with an optional AI co-authorship trailer if requested:
+   ```text
+   feat(nlp): expand greeting vocabulary for South Indian ISL dialects
+
+   - Added VANAKKAM and NAMASKARA gloss tokens to PRONOUNS and GREETINGS
+   - Updated islSentenceFormatter.js and added 4 unit tests in test/islSentenceFormatter.test.js
+
+   Co-authored-by: Antigravity Agent <agent@antigravity.ai>
+   ```
+
+---
+
+### 8.2 The "This is Done by Me" Pull Request Attribution Standard
+
+When opening a Pull Request on GitHub, the contributor (or agent generating the PR description) **must fill out the mandatory Attribution Box** from `.github/pull_request_template.md`:
+
+```markdown
+## 👤 Contributor & Git User Attribution
+
+- **Git User Name**: Jane Doe
+- **GitHub Username / Handle**: @janedoe
+- **Contributor Type**: [x] Human Developer / [ ] AI Agent / [x] Human + AI Pair Programming
+- **Authorship Declaration**:
+  > **"This contribution was developed by me (@janedoe)."**
+
+## 📝 What Was Done ("This is done by me")
+
+### Summary of Changes:
+I designed and implemented the 3D joint geometric heuristics for the ISL sign 'FAMILY' and added automatic SOV-to-SVO grammar restructuring so that `['I_ME', 'FAMILY', 'LOVE']` formats to *"I love my family."*.
+
+### Detailed Breakdown:
+- [x] Added `FAMILY` entry to `src/ai/islWordLabels.js`
+- [x] Implemented two-hand interlocking circle kinematic check in `src/ai/islGestureEngine.js`
+- [x] Registered noun mapping in `src/nlp/islSentenceFormatter.js`
+- [x] Added 3 unit tests in `test/islGestureEngine.test.js` and `test/islSentenceFormatter.test.js`
+- [x] Ran `npm test` (52 passing tests) and `npm run build` (clean)
+```
+
+---
+
+### 8.3 Commit Message Convention
+
+Follow standard Conventional Commits with clear ownership:
+
+| Commit Prefix | Purpose | Example |
+| :--- | :--- | :--- |
+| `feat(...)` | A new sign, linguistic feature, or UI enhancement | `feat(ai): add authentic ISL letter 'K' index-middle cross heuristic` |
+| `fix(...)` | Bug fix in vision, math, or networking | `fix(worker): ensure ImageBitmap is closed on MediaPipe detection exception` |
+| `test(...)` | Adding or updating unit tests | `test(nlp): add test cases for multi-clause ISL SOV restructuring` |
+| `docs(...)` | Documentation, playbooks, or PR templates | `docs(agents): add git user attribution and PR authorship protocol` |
+| `refactor(...)`| Code restructuring without behavior changes | `refactor(vision): simplify Euclidean distance calculations in dist3D` |
+
+---
+
+### 8.4 Agent PR Checklist
+When preparing a PR description on behalf of a user:
+1. Identify the user's name/handle from `git config user.name` or conversation context.
+2. Clearly declare what was authored ("Work done by @handle with Antigravity pair programming").
+3. Include test proof: paste the exact output count from `npm test` and build time from `npm run build`.
+4. Check off the 8 Golden Invariants verification checklist.
+

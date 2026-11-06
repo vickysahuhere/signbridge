@@ -7,14 +7,16 @@ import { WebRTCManager } from '../network/webrtcManager.js';
  * React hook integrating WebRTC P2P DataChannel with Supabase fallback (NETW-02, NETW-03, NETW-04).
  */
 export function useWebRTC({
-  role = 'signer',
+  userId = null,
   userName = 'User',
   channelInstance,
   sendBroadcastMessage,
-  peerPresence
+  peerPresence,
+  localStream = null
 }) {
   const [connectionMode, setConnectionMode] = useState('connecting'); // 'p2p' | 'websocket' | 'connecting'
   const [rttMs, setRttMs] = useState(18);
+  const [remoteStream, setRemoteStream] = useState(null);
   const [incomingPartialSigning, setIncomingPartialSigning] = useState(null);
   const [incomingMessages, setIncomingMessages] = useState([]);
   const [latestIncomingReply, setLatestIncomingReply] = useState(null);
@@ -30,6 +32,7 @@ export function useWebRTC({
     } else if (packet.type === 'COMMITTED_MESSAGE') {
       setIncomingPartialSigning(null);
       setIncomingMessages((prev) => [packet, ...prev]);
+      setLatestIncomingReply(packet);
     } else if (packet.type === 'TEXT_REPLY') {
       setIncomingMessages((prev) => [packet, ...prev]);
       setLatestIncomingReply(packet);
@@ -39,6 +42,7 @@ export function useWebRTC({
   // Initialize WebRTCManager
   useEffect(() => {
     const manager = new WebRTCManager({
+      userId,
       onMessage: (packet) => {
         setConnectionMode('p2p');
         setRttMs(18);
@@ -52,6 +56,9 @@ export function useWebRTC({
           setConnectionMode('websocket');
           setRttMs(54);
         }
+      },
+      onRemoteStream: (stream) => {
+        setRemoteStream(stream);
       },
       onFallbackTrigger: (packet) => {
         // Fallback over Supabase broadcast WebSocket (NETW-03)
@@ -71,17 +78,27 @@ export function useWebRTC({
     return () => {
       manager.close();
     };
-  }, [sendBroadcastMessage, handleIncomingPacket]);
+  }, [userId, sendBroadcastMessage, handleIncomingPacket]);
 
-  // Handle incoming Supabase Realtime broadcast signals & fallback packets
+  // Synchronize local media stream with active peer connection
+  useEffect(() => {
+    if (rtcManagerRef.current) {
+      rtcManagerRef.current.setLocalStream(localStream);
+    }
+  }, [localStream]);
+
+  // Handle incoming Supabase Realtime broadcast signals & fallback packets (Symmetric negotiation)
   useEffect(() => {
     if (!channelInstance) return;
 
     channelInstance.onBroadcast('webrtc-signal', async (signal) => {
       if (!rtcManagerRef.current || !signal) return;
-      if (signal.type === 'OFFER' && role === 'text_partner') {
-        await rtcManagerRef.current.handleRemoteOffer(signal.sdp);
-      } else if (signal.type === 'ANSWER' && role === 'signer') {
+      // Drop self-originated broadcast echoes
+      if (signal.senderId && signal.senderId === userId) return;
+
+      if (signal.type === 'OFFER') {
+        await rtcManagerRef.current.handleRemoteOffer(signal.sdp, localStream);
+      } else if (signal.type === 'ANSWER') {
         await rtcManagerRef.current.handleRemoteAnswer(signal.sdp);
       } else if (signal.type === 'CANDIDATE') {
         await rtcManagerRef.current.handleRemoteCandidate(signal.candidate);
@@ -94,16 +111,23 @@ export function useWebRTC({
       setRttMs(54);
       handleIncomingPacket(packet);
     });
-  }, [channelInstance, role, handleIncomingPacket]);
+  }, [channelInstance, userId, localStream, handleIncomingPacket]);
 
-  // Initiate call if Signer and peer is online
+  // Deterministic call initiation: Peer with lexicographically higher userId initiates
+  // This guarantees zero glare/collision and symmetrical connection setup without roles
+  const isInitiator = Boolean(
+    userId &&
+    peerPresence?.userId &&
+    userId > peerPresence.userId
+  );
+
   useEffect(() => {
-    if (role === 'signer' && peerPresence?.isOnline && rtcManagerRef.current) {
+    if (isInitiator && peerPresence?.isOnline && rtcManagerRef.current) {
       if (rtcManagerRef.current.status === 'idle') {
-        rtcManagerRef.current.startCall();
+        rtcManagerRef.current.startCall(localStream);
       }
     }
-  }, [role, peerPresence?.isOnline]);
+  }, [isInitiator, peerPresence?.isOnline, localStream]);
 
   // Public send helpers
   const sendPartialSigning = useCallback(({ glosses, previewText }) => {
@@ -134,7 +158,7 @@ export function useWebRTC({
       id: Date.now(),
       text: text.trim(),
       sender: userName,
-      senderRole: role,
+      senderRole: 'peer',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
@@ -143,11 +167,12 @@ export function useWebRTC({
     }
     // Also add to local history
     setIncomingMessages((prev) => [packet, ...prev]);
-  }, [userName, role]);
+  }, [userName]);
 
   return {
     connectionMode,
     rttMs,
+    remoteStream,
     incomingPartialSigning,
     incomingMessages,
     latestIncomingReply,

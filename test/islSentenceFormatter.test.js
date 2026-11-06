@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { formatIslSentence } from '../src/nlp/islSentenceFormatter.js';
+import { formatIslSentence, formatRawGlosses } from '../src/nlp/islSentenceFormatter.js';
 
 test('formatIslSentence - returns empty string on null, undefined, or empty arrays', () => {
   assert.equal(formatIslSentence(null), '');
@@ -105,4 +105,52 @@ test('formatIslSentence - formats negation clauses', () => {
 
   // ["I_ME", "KNOW", "NO"] -> "I do not know."
   assert.equal(formatIslSentence(['I_ME', 'KNOW', 'NO']), 'I do not know.');
+});
+
+test('formatIslSentence - formats complex conversational compounds and politeness chaining', () => {
+  // Exact user case: ["HELLO", "THANK YOU", "DRINK", "YES", "GOOD"]
+  assert.equal(
+    formatIslSentence(['HELLO', 'THANK YOU', 'DRINK', 'YES', 'GOOD']),
+    'Hello! Thank you! Yes, a drink is good.'
+  );
+
+  assert.equal(
+    formatIslSentence(['HELLO', 'THANK_YOU', 'DRINK', 'YES', 'GOOD']),
+    'Hello! Thank you! Yes, a drink is good.'
+  );
+
+  assert.equal(
+    formatIslSentence(['HELLO', 'THANK_YOU']),
+    'Hello! Thank you!'
+  );
+
+  assert.equal(
+    formatIslSentence(['YES', 'GOOD']),
+    'Yes, that is good.'
+  );
+
+  assert.equal(
+    formatIslSentence(['DRINK', 'YES']),
+    'Yes, I would like a drink.'
+  );
+});
+
+test('formatIslSentence - formats implicit-subject verbs and desire clauses', () => {
+  assert.equal(formatIslSentence(['WATER', 'WANT']), 'I want water.');
+  assert.equal(formatIslSentence(['WATER', 'DRINK', 'WANT']), 'I want to drink water.');
+  assert.equal(formatIslSentence(['HOME', 'GO']), 'I am going home.');
+  assert.equal(formatIslSentence(['HOSPITAL', 'GO']), 'I am going to the hospital.');
+});
+
+test('formatRawGlosses - formats literal gloss transcripts cleanly', () => {
+  assert.equal(
+    formatRawGlosses(['HELLO', 'THANK_YOU', 'DRINK', 'YES', 'GOOD']),
+    'Hello thank you drink yes good.'
+  );
+  assert.equal(
+    formatRawGlosses(['HELLO', 'THANK YOU', 'DRINK', 'YES', 'GOOD']),
+    'Hello thank you drink yes good.'
+  );
+  assert.equal(formatRawGlosses([]), '');
+  assert.equal(formatRawGlosses(null), '');
 });

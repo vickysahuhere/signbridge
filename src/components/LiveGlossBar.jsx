@@ -101,7 +101,7 @@ export function LiveGlossBar({
         <div className="retro-inset bg-[#FFFFCC] px-2 py-0.5 h-6 flex items-center justify-between text-xs font-sans flex-shrink-0 border border-[#808080]">
           <div className="flex items-center gap-1.5 overflow-hidden flex-1 mr-2">
             <span className="text-[10px] font-mono font-bold uppercase text-[#000080] whitespace-nowrap">
-              ENGLISH:
+              AUTO GRAMMAR:
             </span>
             <span className="font-bold text-[#000000] truncate text-xs">
               {previewText ? `"${previewText}"` : <span className="text-[#808080] font-normal italic">[ Awaiting signs ]</span>}

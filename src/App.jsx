@@ -5,18 +5,20 @@ import { LiveGlossBar } from './components/LiveGlossBar.jsx';
 import { ChatPanel } from './components/ChatPanel.jsx';
 import { KeypointRecorderDrawer } from './components/KeypointRecorderDrawer.jsx';
 import { WordDictionaryModal } from './components/WordDictionaryModal.jsx';
+import { AboutModal } from './components/AboutModal.jsx';
 import { useVisionWorker } from './hooks/useVisionWorker.js';
 import { useRoomConnection } from './hooks/useRoomConnection.js';
 import { useWebRTC } from './hooks/useWebRTC.js';
 import { GlossBufferManager } from './nlp/glossBufferManager.js';
-import { formatIslSentence } from './nlp/islSentenceFormatter.js';
-import { Monitor, BookOpen, Database } from 'lucide-react';
+import { formatIslSentence, formatRawGlosses } from './nlp/islSentenceFormatter.js';
+import { Monitor, BookOpen, Database, ShieldCheck } from 'lucide-react';
 
 export function App() {
   const [fps, setFps] = useState(0);
   const [recognitionMode, setRecognitionMode] = useState('word'); // 'alphabet' | 'word'
   const [isRecorderOpen, setIsRecorderOpen] = useState(false);
   const [isDictionaryOpen, setIsDictionaryOpen] = useState(false);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState('');
 
   // Clock in bottom Windows 95 taskbar
@@ -34,23 +36,25 @@ export function App() {
   const glossBufferRef = useRef(new GlossBufferManager());
   const [glosses, setGlosses] = useState([]);
   const [localCommittedSentences, setLocalCommittedSentences] = useState([]);
+  const [localStream, setLocalStream] = useState(null);
 
   // 1. Room Connection & Presence (NETW-01, NETW-03)
   const {
     roomId,
-    role,
-    setRole,
+    userId,
     userName,
+    setUserName,
     peerPresence,
     channelInstance,
     sendBroadcastMessage,
     getRoomShareUrl
   } = useRoomConnection();
 
-  // 2. Peer-to-Peer WebRTC Data Channel (NETW-02, NETW-04)
+  // 2. Peer-to-Peer WebRTC Data Channel & Video Stream (NETW-02, NETW-04)
   const {
     connectionMode,
     rttMs,
+    remoteStream,
     incomingPartialSigning,
     incomingMessages,
     latestIncomingReply,
@@ -58,11 +62,12 @@ export function App() {
     sendCommittedSentence,
     sendTextReply
   } = useWebRTC({
-    role,
+    userId,
     userName,
     channelInstance,
     sendBroadcastMessage,
-    peerPresence
+    peerPresence,
+    localStream
   });
 
   // 3. Vision Worker AI Tracking
@@ -87,17 +92,17 @@ export function App() {
 
   // Append confirmed word to active gloss buffer (LING-01)
   useEffect(() => {
-    if (role === 'signer' && latestConfirmedWord) {
+    if (latestConfirmedWord) {
       const added = glossBufferRef.current.push(latestConfirmedWord, 'word');
       if (added) {
         setGlosses([...glossBufferRef.current.getGlosses()]);
       }
     }
-  }, [role, latestConfirmedWord]);
+  }, [latestConfirmedWord]);
 
   // In alphabet mode, append confirmed letter predictions
   useEffect(() => {
-    if (role === 'signer' && recognitionMode === 'alphabet' && alphabetPredictions && alphabetPredictions.length > 0) {
+    if (recognitionMode === 'alphabet' && alphabetPredictions && alphabetPredictions.length > 0) {
       const top1 = alphabetPredictions[0];
       if (top1 && top1.isConfident) {
         const added = glossBufferRef.current.push(top1.label, 'letter');
@@ -106,16 +111,17 @@ export function App() {
         }
       }
     }
-  }, [role, recognitionMode, alphabetPredictions]);
+  }, [recognitionMode, alphabetPredictions]);
 
   const previewText = formatIslSentence(glosses);
+  const rawPreviewText = formatRawGlosses(glosses);
 
   // Stream live partial signing tokens to remote partner in real time (NETW-04)
   useEffect(() => {
-    if (role === 'signer') {
-      sendPartialSigning({ glosses, previewText });
+    if (glosses.length > 0 || previewText) {
+      sendPartialSigning({ glosses, previewText, rawText: rawPreviewText });
     }
-  }, [role, glosses, previewText, sendPartialSigning]);
+  }, [glosses, previewText, rawPreviewText, sendPartialSigning]);
 
   // Commit sentence callback (LING-05)
   const handleCommit = useCallback(() => {
@@ -123,12 +129,15 @@ export function App() {
     if (currentGlosses.length === 0) return;
 
     const formattedText = formatIslSentence(currentGlosses);
+    const rawText = formatRawGlosses(currentGlosses);
     const newSentence = {
       id: Date.now(),
       glosses: [...currentGlosses],
       text: formattedText,
+      rawText: rawText,
+      autoGrammar: formattedText,
       sender: userName,
-      senderRole: 'signer',
+      senderRole: 'peer',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
@@ -140,10 +149,10 @@ export function App() {
 
   // Automatic commit on 1.2s pause completion (IDLE_COMMIT)
   useEffect(() => {
-    if (role === 'signer' && motionState.state === 'IDLE_COMMIT' && glossBufferRef.current.size() > 0) {
+    if (motionState.state === 'IDLE_COMMIT' && glossBufferRef.current.size() > 0) {
       handleCommit();
     }
-  }, [role, motionState.state, handleCommit]);
+  }, [motionState.state, handleCommit]);
 
   // Manual editing actions (LING-02)
   const handleUndo = useCallback(() => {
@@ -176,7 +185,7 @@ export function App() {
             <span className="text-[#FFFF00]">★ SIGNBRIDGE ISL '98 ★</span>{' '}
             <span className="text-[#FFFFFF]">100% PRIVATE CLIENT-SIDE NEURAL NETWORK</span> •{' '}
             <span className="text-[#00FF00]">50 CORE ISL WORDS + A-Z FINGER SPELLING</span> •{' '}
-            <span className="text-[#00FFFF]">BEST VIEWED AT 800x600 IN NETSCAPE 4.0 OR IE 4.0</span> •{' '}
+            <span className="text-[#00FFFF]">PEER-TO-PEER WEBRTC TWO-WAY VIDEO & SIGN BRIDGE</span> •{' '}
             <span className="text-[#FF5555]">Y2K COMPLIANT</span> •{' '}
             <span className="text-[#FFFFCC]">DIAL-UP OPTIMIZED 56.6 KBPS</span> •{' '}
             <span className="text-[#00FF00]">ZERO LATENCY EDGE AI ★</span>
@@ -197,95 +206,70 @@ export function App() {
         roomId={roomId}
         connectionMode={connectionMode}
         rttMs={rttMs}
-        currentRole={role}
-        onToggleRole={setRole}
+        userName={userName}
         onCopyLink={() => {
-          const shareUrl = getRoomShareUrl(role === 'signer' ? 'text_partner' : 'signer');
+          const shareUrl = getRoomShareUrl();
           if (navigator.clipboard) {
             navigator.clipboard.writeText(shareUrl);
           }
         }}
       />
 
-      {/* 3. Main Workspace Area: Rock-solid two-pane desktop communication layout */}
+      {/* 3. Main Workspace Area: Rock-solid two-pane desktop communication layout (Unified for both peers) */}
       <main className="flex-1 min-h-0 w-full p-2 flex flex-col justify-stretch overflow-hidden">
-        {workerError && role === 'signer' && (
+        {workerError && (
           <div className="mb-1 retro-outset bg-[#FFFFCC] border-2 border-[#CC0000] p-1 text-[11px] text-[#CC0000] font-mono font-bold flex items-center gap-1.5 flex-shrink-0">
             <span>[!] SYSTEM NOTICE:</span>
             <span>{workerError}</span>
           </div>
         )}
 
-        {role === 'signer' ? (
-          /* Side-by-side flex panes on all tablet & desktop screens (md:flex-row) */
-          <div className="flex flex-col md:flex-row gap-2 h-full min-h-0 overflow-hidden items-stretch">
-            {/* Left Pane (58% width): Generous Video Stage on top + Compact Sentence Composer below */}
-            <div className="w-full md:w-[58%] lg:w-[60%] flex flex-col gap-2 h-full min-h-0 overflow-hidden flex-shrink-0">
-              <SignerStage
-                onFrame={handleFrame}
-                onFpsUpdate={setFps}
-                latestLandmarks={latestLandmarks}
-                isWorkerReady={isWorkerReady}
-                motionState={motionState}
-                bufferSize={bufferSize}
-                alphabetPredictions={alphabetPredictions}
-                wordPredictions={wordPredictions}
-                latestConfirmedWord={latestConfirmedWord}
-                latestReply={latestIncomingReply}
-                recognitionMode={recognitionMode}
-                onToggleMode={setRecognitionMode}
-              />
+        {/* Side-by-side flex panes on tablet & desktop screens (md:flex-row) */}
+        <div className="flex flex-col md:flex-row gap-2 h-full min-h-0 overflow-hidden items-stretch">
+          {/* Left Pane (58% width): Generous Video Stage on top + Compact Sentence Composer below */}
+          <div className="w-full md:w-[58%] lg:w-[60%] flex flex-col gap-2 h-full min-h-0 overflow-hidden flex-shrink-0">
+            <SignerStage
+              onFrame={handleFrame}
+              onFpsUpdate={setFps}
+              latestLandmarks={latestLandmarks}
+              isWorkerReady={isWorkerReady}
+              motionState={motionState}
+              bufferSize={bufferSize}
+              alphabetPredictions={alphabetPredictions}
+              wordPredictions={wordPredictions}
+              latestConfirmedWord={latestConfirmedWord}
+              latestReply={latestIncomingReply}
+              recognitionMode={recognitionMode}
+              onToggleMode={setRecognitionMode}
+              onStreamChange={setLocalStream}
+              remoteStream={remoteStream}
+              peerPresence={peerPresence}
+            />
 
-              <LiveGlossBar
-                glosses={glosses}
-                previewText={previewText}
-                motionState={motionState}
-                onUndo={handleUndo}
-                onClear={handleClear}
-                onCommit={handleCommit}
-              />
-            </div>
-
-            {/* Right Pane (42% width): Instant Messenger matching full height */}
-            <div className="w-full md:w-[42%] lg:w-[40%] h-full min-h-0 overflow-hidden flex flex-col flex-1">
-              <ChatPanel
-                messages={allMessages}
-                incomingPartialSigning={null}
-                onSendMessage={sendTextReply}
-                currentUserRole={role}
-                currentUserName={userName}
-                peerPresence={peerPresence}
-                connectionMode={connectionMode}
-                rttMs={rttMs}
-              />
-            </div>
+            <LiveGlossBar
+              glosses={glosses}
+              previewText={previewText}
+              motionState={motionState}
+              onUndo={handleUndo}
+              onClear={handleClear}
+              onCommit={handleCommit}
+            />
           </div>
-        ) : (
-          /* Hearing Partner Focused View */
-          <div className="max-w-3xl mx-auto w-full h-full flex flex-col gap-2 min-h-0 overflow-hidden">
-            <div className="retro-window p-2 text-center bg-[#C0C0C0] flex-shrink-0">
-              <div className="bg-[#000080] text-[#FFFFFF] px-2 py-0.5 font-bold text-xs mb-1">
-                HEARING PARTNER TERMINAL - ROOM #{roomId}
-              </div>
-              <p className="text-[11px] font-sans text-[#000000]">
-                Connected to Deaf ISL Signer. Live sign translations appear in real time below.
-              </p>
-            </div>
 
-            <div className="flex-1 min-h-0 h-full overflow-hidden">
-              <ChatPanel
-                messages={allMessages}
-                incomingPartialSigning={incomingPartialSigning}
-                onSendMessage={sendTextReply}
-                currentUserRole={role}
-                currentUserName={userName}
-                peerPresence={peerPresence}
-                connectionMode={connectionMode}
-                rttMs={rttMs}
-              />
-            </div>
+          {/* Right Pane (42% width): Instant Messenger matching full height */}
+          <div className="w-full md:w-[42%] lg:w-[40%] h-full min-h-0 overflow-hidden flex flex-col flex-1">
+            <ChatPanel
+              messages={allMessages}
+              incomingPartialSigning={incomingPartialSigning}
+              onSendMessage={sendTextReply}
+              currentUserRole="peer"
+              currentUserName={userName}
+              peerPresence={peerPresence}
+              connectionMode={connectionMode}
+              rttMs={rttMs}
+            />
           </div>
-        )}
+        </div>
       </main>
 
       {/* 4. Docked Windows 95 Taskbar & Status Dock at Bottom */}
@@ -293,17 +277,22 @@ export function App() {
         {/* Left: Start Button & Active Tasks */}
         <div className="flex items-center gap-1">
           <button
-            onClick={() => alert("SignBridge ISL '98\\n\\nStart Menu:\\n• ISL Dictionary (50 Words)\\n• Keypoint Dataset Recorder\\n• 100% Client-Side Private AI\\n• Y2K Compliant")}
+            onClick={() => setIsAboutOpen(true)}
             className="retro-btn !px-2 !py-0.5 font-heading text-xs font-black flex items-center gap-1 active:translate-y-[1px]"
+            title="Start Menu - System & Agent Contributor Panel"
           >
             <span className="text-[#000080] font-bold">⊞</span>
             <span>Start</span>
           </button>
 
-          <div className="retro-inset px-2 py-0.5 bg-[#FFFFFF] text-[11px] font-bold text-[#000080] hidden sm:flex items-center gap-1">
-            <Monitor className="w-3 h-3 stroke-[2px]" />
-            <span>SignBridge '98</span>
-          </div>
+          <button
+            onClick={() => setIsAboutOpen(true)}
+            className="retro-btn !px-1.5 !py-0.5 text-[11px] hidden sm:flex items-center gap-1"
+            title="Open Agent Rules & Contributor Panel"
+          >
+            <ShieldCheck className="w-3 h-3 stroke-[2px] text-[#000080]" />
+            <span>Agent Panel</span>
+          </button>
 
           <button
             onClick={() => setIsDictionaryOpen(true)}
@@ -313,15 +302,13 @@ export function App() {
             <span>Dictionary</span>
           </button>
 
-          {role === 'signer' && (
-            <button
-              onClick={() => setIsRecorderOpen(true)}
-              className="retro-btn !px-1.5 !py-0.5 text-[11px] hidden md:flex items-center gap-1"
-            >
-              <Database className="w-3 h-3 stroke-[2px] text-[#800080]" />
-              <span>Recorder</span>
-            </button>
-          )}
+          <button
+            onClick={() => setIsRecorderOpen(true)}
+            className="retro-btn !px-1.5 !py-0.5 text-[11px] hidden md:flex items-center gap-1"
+          >
+            <Database className="w-3 h-3 stroke-[2px] text-[#800080]" />
+            <span>Recorder</span>
+          </button>
         </div>
 
         {/* Center: Hit Counter & WebRing Quick Links */}
@@ -378,6 +365,12 @@ export function App() {
       <WordDictionaryModal
         isOpen={isDictionaryOpen}
         onClose={() => setIsDictionaryOpen(false)}
+      />
+
+      {/* System Properties, Agent Rules & Contributor Modal */}
+      <AboutModal
+        isOpen={isAboutOpen}
+        onClose={() => setIsAboutOpen(false)}
       />
     </div>
   );
