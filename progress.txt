@@ -1,0 +1,20 @@
+# Ralph Loop Progress Log
+# Project: SignBridge ISL (Sanket)
+# Feature: Two-Way Video Call Layout & Local-Only Skeleton Overlay
+
+[2026-11-07 13:20] Initialized PRD.md and progress.txt for Video Call Layout feature.
+
+[2026-11-07 13:22] Started: Task 1 - Refactor SignerStage.jsx layout state to support dynamic Primary (Big) and Secondary (Small PiP) video streams with view swapping.
+
+[2026-11-07 13:26] Completed: Task 1 - Refactor SignerStage.jsx layout state to support dynamic Primary (Big) and Secondary (Small PiP) video streams with view swapping.
+[2026-11-07 13:26] Completed: Task 2 - Bind skeleton landmark canvas exclusively to the local video container so skeletons never appear on the remote partner's feed.
+[2026-11-07 13:26] Completed: Task 3 - Polish the Windows 95 retro styling for the PiP window, swap button, indicators, and HUD overlay positioning.
+[2026-11-07 13:26] Completed: Task 4 - Execute full verification suite (54/54 tests passing, clean Vite build, Playwright visual confirmation).
+- Touched files:
+  - src/components/SignerStage.jsx
+  - test/webrtcManager.test.js
+  - PRD.md
+  - progress.txt
+- Validation: All 54 tests passed; production build passed with 0 errors.
+
+RALPH_COMPLETE

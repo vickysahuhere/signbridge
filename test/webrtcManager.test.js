@@ -77,3 +77,34 @@ test('WebRTCManager - formats committed sentence and text reply packets correctl
   assert.equal(sentPackets[1].senderRole, 'text_partner');
   assert.equal(sentPackets[1].text, 'Hello Aarav, nice to meet you!');
 });
+
+test('WebRTCManager - sets and updates localStream and invokes onRemoteStream correctly', () => {
+  let remoteStreamReceived = null;
+
+  const manager = new WebRTCManager({
+    userId: 'user_123',
+    onRemoteStream: (stream) => {
+      remoteStreamReceived = stream;
+    }
+  });
+
+  assert.equal(manager.localStream, null);
+  assert.equal(manager.remoteStream, null);
+
+  const mockLocalStream = {
+    getTracks: () => [
+      { kind: 'video', stop: () => {} }
+    ]
+  };
+
+  manager.setLocalStream(mockLocalStream);
+  assert.equal(manager.localStream, mockLocalStream);
+
+  const mockRemoteStream = { id: 'remote_stream_1', active: true };
+  manager.onRemoteStream(mockRemoteStream);
+  assert.equal(remoteStreamReceived, mockRemoteStream);
+
+  manager.close();
+  assert.equal(manager.status, 'closed');
+});
+
