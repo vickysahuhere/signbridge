@@ -29,15 +29,15 @@ let frameCounter = 0;
 
 const wordConfirmationGate = new ConsecutiveConfirmationGate({
   confidenceThreshold: 0.80,
-  requiredConsecutive: 3,
+  requiredConsecutive: 5,
   cooldownFrames: 8,
   lockUntilRelease: true
 });
 
 const alphabetConfirmationGate = new ConsecutiveConfirmationGate({
-  confidenceThreshold: 0.78,
-  requiredConsecutive: 3,
-  cooldownFrames: 6,
+  confidenceThreshold: 0.80,
+  requiredConsecutive: 5,
+  cooldownFrames: 7,
   lockUntilRelease: true
 });
 const WORD_GLOSS_LABELS = ISL_WORD_LABELS.map(w => w.gloss);

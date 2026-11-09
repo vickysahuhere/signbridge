@@ -33,7 +33,7 @@ export const BASE_POSE_LANDMARKS = Object.freeze([
 /**
  * Creates 21-joint hand coordinates with specified wrist position and finger offsets.
  */
-function createHandSkeleton({ wristX, wristY, wristZ = 0, isRight = true, fingerPose = 'open', scale = 0.08 }) {
+export function createHandSkeleton({ wristX, wristY, wristZ = 0, isRight = true, fingerPose = 'open', scale = 0.08 }) {
   const dir = isRight ? 1 : -1;
   const pts = [];
 
@@ -1113,35 +1113,56 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
 
       const checklist = [];
       let score = 0;
-      if (!h) return { matchScore: 0, isMatched: false, checklist: [], primaryGuidance: 'Hold a fist in front of chest.' };
+      if (!h) return { matchScore: 0, isMatched: false, checklist: [], primaryGuidance: 'Hold a firm closed fist in front of chest.' };
 
       checklist.push({ id: 'hand', label: 'Hand in view', status: 'pass', current: 'Detected', target: '1 hand', hint: '' });
-      score += 20;
+      score += 15;
 
-      const isFist = h.isFist || h.curledCount >= 3;
+      // 1. Strict closed solid fist: all 4 fingers curled, thumb folded
+      const isSolidFist = (h.isFist && h.curledCount >= 4 && !h.thumb.isExtended) || (h.curledCount >= 4 && !h.isOpenPalm && !h.thumb.isExtended);
       checklist.push({
         id: 'fist',
-        label: 'Closed solid fist',
-        status: isFist ? 'pass' : 'fail',
-        current: isFist ? 'Fist formed (✔)' : 'Close your hand',
-        target: 'Fist',
-        hint: 'Close all fingers tightly into a fist.'
+        label: 'Tightly closed fist',
+        status: isSolidFist ? 'pass' : 'fail',
+        current: isSolidFist ? 'Solid fist (✔)' : (h.curledCount < 4 ? 'Curl all 4 fingers' : 'Fold thumb over fingers'),
+        target: 'Closed fist',
+        hint: 'Form a tight, firm fist with all fingers and thumb curled.'
       });
-      if (isFist) score += 45;
+      if (isSolidFist) score += 40;
 
-      const inChest = h.wrist.y > 0.40 && h.wrist.y < 0.75;
+      // 2. Fist held upright in front of chest
+      const inChest = h.wrist.y >= 0.44 && h.wrist.y <= 0.74 && Math.abs(h.wrist.x - 0.5) <= 0.24;
       checklist.push({
         id: 'chest',
         label: 'Held in front of chest',
         status: inChest ? 'pass' : 'fail',
-        current: inChest ? 'Chest level (✔)' : 'Adjust height',
+        current: inChest ? 'Chest level (✔)' : (h.wrist.y < 0.44 ? 'Lower hand to chest' : 'Raise hand to chest'),
         target: 'Chest height',
-        hint: 'Position your fist in front of your chest.'
+        hint: 'Center your fist directly in front of your chest.'
       });
-      if (inChest) score += 35;
+      if (inChest) score += 30;
 
-      const isMatched = score >= 75;
-      return { matchScore: score, isMatched, checklist, primaryGuidance: isMatched ? 'Yes sign recognized!' : 'Hold a closed fist in front of your chest.' };
+      // 3. Upright orientation: knuckles higher than wrist (not drooping down)
+      const isUpright = (h.points[9]?.y || 0) < h.wrist.y - 0.02;
+      checklist.push({
+        id: 'orientation',
+        label: 'Knuckles facing forward/up',
+        status: isUpright ? 'pass' : 'fail',
+        current: isUpright ? 'Upright (✔)' : 'Keep wrist straight',
+        target: 'Upright knuckles',
+        hint: 'Hold wrist straight with knuckles pointing forward/up.'
+      });
+      if (isUpright) score += 15;
+
+      const isMatched = isSolidFist && inChest && isUpright && score >= 85;
+      return {
+        matchScore: score,
+        isMatched,
+        checklist,
+        primaryGuidance: isMatched
+          ? 'Posture locked! Now nod fist up and down from the wrist.'
+          : (isSolidFist ? 'Position fist upright at mid-chest.' : 'Close your hand into a tight fist.')
+      };
     }
   },
 

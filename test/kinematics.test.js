@@ -147,4 +147,33 @@ test('islGestureEngine - dynamic YES vs stationary fist ("without it")', () => {
   const yesWithoutMotion = classifyIslWord(null, fistHand, pose, stationaryMotion);
   const foundYes = yesWithoutMotion.find(w => w.label === 'YES');
   assert.strictEqual(foundYes, undefined, 'Stationary fist without nodding motion MUST NOT trigger YES');
+
+  // 3. STRICTNESS: Hand moving up / minor jitter (1 oscillation but NOT nodding) must NOT trigger YES
+  const jitterMotion = {
+    state: 'SIGNING_ACTIVE',
+    rollingVelocity: 0.015,
+    isNodding: false,
+    verticalOscillations: 1,
+    isStationary: false
+  };
+
+  const yesWithJitter = classifyIslWord(null, fistHand, pose, jitterMotion);
+  const foundYesJitter = yesWithJitter.find(w => w.label === 'YES');
+  assert.strictEqual(foundYesJitter, undefined, 'Minor jitter / hand transition MUST NOT trigger YES prematurely');
+
+  // 4. STRICTNESS: Loose hand with thumb extended must NOT trigger YES
+  const looseHand = [
+    { x: 0.50, y: 0.45, z: 0 }, // wrist (0)
+    { x: 0.48, y: 0.43, z: 0 }, // thumb cmc (1)
+    { x: 0.46, y: 0.41, z: 0 }, // thumb mcp (2)
+    { x: 0.42, y: 0.38, z: 0 }, // thumb ip (3)
+    { x: 0.36, y: 0.32, z: 0 }, // thumb tip extended (4)
+    ...Array(4).fill({ x: 0.50, y: 0.42, z: 0 }), // index curled
+    ...Array(4).fill({ x: 0.51, y: 0.42, z: 0 }), // middle curled
+    ...Array(4).fill({ x: 0.52, y: 0.42, z: 0 }), // ring curled
+    ...Array(4).fill({ x: 0.53, y: 0.42, z: 0 })  // pinky curled
+  ];
+  const yesLooseHand = classifyIslWord(null, looseHand, pose, activeNodMotion);
+  const foundYesLoose = yesLooseHand.find(w => w.label === 'YES');
+  assert.strictEqual(foundYesLoose, undefined, 'Loose hand with extended thumb MUST NOT trigger YES');
 });

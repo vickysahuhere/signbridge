@@ -55,7 +55,7 @@ export function LearnGuessPanel({
   const guessMatchesTarget = topCandidate && (
     topCandidate.label?.toUpperCase() === targetLabel ||
     topCandidate.label?.toUpperCase() === activeStepTarget
-  ) && topCandidate.confidence >= 0.75;
+  ) && topCandidate.confidence >= 0.82;
 
   const activeGuess = topCandidate?.label || 'Ready / Watching';
   const activeConfidence = topCandidate ? Math.round(topCandidate.confidence * 100) : 0;

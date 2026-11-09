@@ -32,7 +32,7 @@
  */
 export function analyzeTrajectory(points = [], options = {}) {
   const noiseThreshold = options.noiseThreshold ?? 0.006;
-  const nodMinDisplacement = options.nodMinDisplacement ?? 0.035;
+  const nodMinDisplacement = options.nodMinDisplacement ?? 0.045;
   const waveMinDisplacement = options.waveMinDisplacement ?? 0.040;
 
   if (!points || points.length < 4) {
@@ -124,7 +124,7 @@ export function analyzeTrajectory(points = [], options = {}) {
 
   // Kinematic classifications
   // Vertical nod: Significant vertical displacement, at least 1 reversal, dy dominates dx
-  const isNodding = dy >= nodMinDisplacement && verticalOscillations >= 1 && (dy >= 1.15 * dx || dx < 0.03);
+  const isNodding = dy >= nodMinDisplacement && verticalOscillations >= 1 && (dy >= 1.25 * dx || dx < 0.025);
 
   // Horizontal wave: Significant horizontal displacement, at least 1 reversal, dx dominates dy
   const isWaving = dx >= waveMinDisplacement && horizontalOscillations >= 1 && (dx >= 1.15 * dy || dy < 0.03);

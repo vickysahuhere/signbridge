@@ -324,13 +324,14 @@ export function App() {
   // Step progression state for compound signs (e.g. Good Morning = Good -> Morning)
   const TARGET_REPETITIONS = 3;
   const [successfulReps, setSuccessfulReps] = useState(0);
-  const repHoldStartRef = useRef(null);
+  const repHoldTimerRef = useRef(null);
+  const stepHoldTimerRef = useRef(null);
+  const abortGraceTimerRef = useRef(null);
   const repAwaitingReleaseRef = useRef(false);
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [completedSteps, setCompletedSteps] = useState([]);
   const [stepSuccessFlash, setStepSuccessFlash] = useState(null);
   const [isSequenceMastered, setIsSequenceMastered] = useState(false);
-  const stepHoldStartRef = useRef(null);
   const stepTimeoutRef = useRef(null);
 
   // Reset practice repetitions, steps and mastery
@@ -343,9 +344,13 @@ export function App() {
       message: 'Practice reset! Sign 3 times to pass.'
     });
     setTimeout(() => setStepSuccessFlash(null), 2000);
-    repHoldStartRef.current = null;
+    if (repHoldTimerRef.current) clearTimeout(repHoldTimerRef.current);
+    if (stepHoldTimerRef.current) clearTimeout(stepHoldTimerRef.current);
+    if (abortGraceTimerRef.current) clearTimeout(abortGraceTimerRef.current);
+    repHoldTimerRef.current = null;
+    stepHoldTimerRef.current = null;
+    abortGraceTimerRef.current = null;
     repAwaitingReleaseRef.current = false;
-    stepHoldStartRef.current = null;
     if (stepTimeoutRef.current) clearTimeout(stepTimeoutRef.current);
   }, []);
 
@@ -356,9 +361,13 @@ export function App() {
     setCompletedSteps([]);
     setStepSuccessFlash(null);
     setIsSequenceMastered(false);
-    repHoldStartRef.current = null;
+    if (repHoldTimerRef.current) clearTimeout(repHoldTimerRef.current);
+    if (stepHoldTimerRef.current) clearTimeout(stepHoldTimerRef.current);
+    if (abortGraceTimerRef.current) clearTimeout(abortGraceTimerRef.current);
+    repHoldTimerRef.current = null;
+    stepHoldTimerRef.current = null;
+    abortGraceTimerRef.current = null;
     repAwaitingReleaseRef.current = false;
-    stepHoldStartRef.current = null;
     if (stepTimeoutRef.current) clearTimeout(stepTimeoutRef.current);
   }, [selectedLearnItem?.id]);
 
@@ -368,9 +377,12 @@ export function App() {
     return selectedLearnItem.evaluate(latestLandmarks, activeStepIndex);
   }, [selectedLearnItem, latestLandmarks, activeStepIndex]);
 
-  const isCurrentStepAligned = Boolean(postureEvaluation?.isPostureAligned || postureEvaluation?.isMatched);
+  const isCurrentStepAligned = Boolean(
+    postureEvaluation?.isPostureAligned ||
+    (postureEvaluation?.isMatched && (postureEvaluation?.matchScore ?? 100) >= 75)
+  );
 
-  // Check if live AI prediction matches active step or target
+  // Check if live AI prediction matches active step or target with robust confidence
   const topCandidate = (recognitionMode === 'word' ? wordPredictions?.topCandidates?.[0] : alphabetPredictions?.[0]);
   const activeStepTarget = useMemo(() => {
     if (selectedLearnItem?.isCompound && selectedLearnItem?.steps?.[activeStepIndex]) {
@@ -385,12 +397,12 @@ export function App() {
       topCandidate.label?.toUpperCase().replace(/_/g, ' ') === activeStepTarget ||
       (!selectedLearnItem?.isCompound && topCandidate.label?.toUpperCase().replace(/_/g, ' ') === selectedLearnItem?.label?.toUpperCase().replace(/_/g, ' '))
     ) &&
-    topCandidate.confidence >= 0.75
+    topCandidate.confidence >= 0.78
   );
 
   const isStepSatisfied = isCurrentStepAligned || isAiGuessMatch;
 
-  // Multi-step compound state machine & 3-repetition mastery loop
+  // Multi-step compound state machine & 3-repetition mastery loop with asynchronous hold timer
   useEffect(() => {
     if (!selectedLearnItem) return;
 
@@ -399,22 +411,43 @@ export function App() {
       return;
     }
 
-    // Non-compound signs: require 3 full repetitions with release hysteresis
-    if (!selectedLearnItem.isCompound || !selectedLearnItem.steps) {
-      if (repAwaitingReleaseRef.current) {
-        // User just registered a rep; require them to release/relax hands before next rep
-        if (!isStepSatisfied) {
-          repAwaitingReleaseRef.current = false;
-        }
-        return;
+    // Release hysteresis: If user just completed a rep, require relaxing/releasing posture before starting next rep
+    if (repAwaitingReleaseRef.current) {
+      if (!isStepSatisfied) {
+        repAwaitingReleaseRef.current = false;
       }
+      return;
+    }
 
-      if (isStepSatisfied) {
-        if (!repHoldStartRef.current) {
-          repHoldStartRef.current = Date.now();
-        } else if (Date.now() - repHoldStartRef.current >= 450) {
-          // Held steadily for 450ms -> Repetition registered!
-          repHoldStartRef.current = null;
+    // When posture drops: debounce cancellation by 120ms to absorb 1-frame camera noise
+    if (!isStepSatisfied) {
+      if (!abortGraceTimerRef.current && (repHoldTimerRef.current || stepHoldTimerRef.current)) {
+        abortGraceTimerRef.current = setTimeout(() => {
+          if (repHoldTimerRef.current) {
+            clearTimeout(repHoldTimerRef.current);
+            repHoldTimerRef.current = null;
+          }
+          if (stepHoldTimerRef.current) {
+            clearTimeout(stepHoldTimerRef.current);
+            stepHoldTimerRef.current = null;
+          }
+          abortGraceTimerRef.current = null;
+        }, 120);
+      }
+      return;
+    }
+
+    // Posture is satisfied! Cancel any pending abort grace
+    if (abortGraceTimerRef.current) {
+      clearTimeout(abortGraceTimerRef.current);
+      abortGraceTimerRef.current = null;
+    }
+
+    // 1. Non-compound signs: require steady hold of 500ms before registering repetition
+    if (!selectedLearnItem.isCompound || !selectedLearnItem.steps) {
+      if (!repHoldTimerRef.current) {
+        repHoldTimerRef.current = setTimeout(() => {
+          repHoldTimerRef.current = null;
           repAwaitingReleaseRef.current = true;
 
           setSuccessfulReps(prev => {
@@ -439,32 +472,21 @@ export function App() {
           setTimeout(() => {
             setStepSuccessFlash(null);
           }, 2400);
-        }
-      } else {
-        repHoldStartRef.current = null;
+        }, 500);
       }
       return;
     }
 
-    // Compound signs: sequential multi-step progression repeated 3 times
+    // 2. Compound signs (e.g. Good Morning = Good -> Morning)
     const totalSteps = selectedLearnItem.steps.length;
 
-    if (repAwaitingReleaseRef.current) {
-      if (!isStepSatisfied) {
-        repAwaitingReleaseRef.current = false;
-      }
-      return;
-    }
+    if (!stepHoldTimerRef.current) {
+      stepHoldTimerRef.current = setTimeout(() => {
+        stepHoldTimerRef.current = null;
 
-    if (isStepSatisfied) {
-      if (!stepHoldStartRef.current) {
-        stepHoldStartRef.current = Date.now();
-      } else if (Date.now() - stepHoldStartRef.current >= 450) {
-        // Step held long enough to lock in
         if (activeStepIndex < totalSteps - 1) {
           const finishedIdx = activeStepIndex;
           const nextIdx = activeStepIndex + 1;
-          stepHoldStartRef.current = null;
 
           setCompletedSteps(prev => (prev.includes(finishedIdx) ? prev : [...prev, finishedIdx]));
           setStepSuccessFlash({
@@ -490,9 +512,8 @@ export function App() {
             setTimeout(() => setStepSuccessFlash(null), 2200);
           }, 8000);
         } else {
-          // Final step of compound sign complete -> 1 full repetition done!
+          // Final step of compound sign complete -> 1 full repetition complete!
           if (stepTimeoutRef.current) clearTimeout(stepTimeoutRef.current);
-          stepHoldStartRef.current = null;
           repAwaitingReleaseRef.current = true;
 
           setSuccessfulReps(prev => {
@@ -506,7 +527,6 @@ export function App() {
                 message: `${selectedLearnItem.name.toUpperCase()} PASSED! 3 of 3 complete! 🌟`
               });
             } else {
-              // Reset sequence steps for the next repetition
               setActiveStepIndex(0);
               setCompletedSteps([]);
               setStepSuccessFlash({
@@ -522,11 +542,9 @@ export function App() {
             setStepSuccessFlash(null);
           }, 2400);
         }
-      }
-    } else {
-      stepHoldStartRef.current = null;
+      }, 500);
     }
-  }, [isStepSatisfied, activeStepIndex, selectedLearnItem, successfulReps]);
+  }, [isStepSatisfied, activeStepIndex, selectedLearnItem?.id, successfulReps]);
 
   const isSignMastered = isSequenceMastered && successfulReps >= TARGET_REPETITIONS;
 

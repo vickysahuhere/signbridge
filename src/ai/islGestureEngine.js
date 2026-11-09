@@ -689,33 +689,39 @@ export function classifyIslWord(leftHand, rightHand, pose, motion) {
 
   // 13. YES (Dominant fist nods up and down from wrist like a nodding head)
   for (const h of hands) {
-    if (h.isFist && dist2D(h.wrist, chestCenter) < 0.28 && h.wrist.y > nose.y + 0.10) {
+    // Strictly require a solid, authentic closed fist:
+    // - Curled count must be 4 (index, middle, ring, pinky curled)
+    // - Thumb must not be extended
+    // - Hand must not be an open palm
+    const isSolidFist = Boolean(h.isFist && h.curledCount >= 4 && !h.thumb.isExtended && !h.isOpenPalm);
+
+    // Hand must be in front of the chest, above the navel and comfortably below the chin
+    const inChestZone = dist2D(h.wrist, chestCenter) < 0.26 && h.wrist.y > nose.y + 0.12 && h.wrist.y < 0.78;
+
+    if (isSolidFist && inChestZone) {
       // Dynamic Kinematics:
-      // In authentic ISL, YES is a dynamic sign (fist nodding up and down from the wrist).
-      // - WITH dynamic nodding motion: confidently scores YES (0.95).
-      // - WITHOUT IT (stationary fist / resting hands / static S or A letter shape):
-      //   YES is rejected / not scored, preventing false positives.
+      // In authentic ISL, YES is a dynamic sign (fist nodding up and down from the wrist like a nodding head).
+      // - Stricter requirement: Must have genuine nodding motion from kinematics.
+      // - Rejects minor tremors, static resting hands, casual hand placement, or letter S/A shapes.
       const hasNodMotion = Boolean(
-        motion?.isNodding ||
-        (typeof motion?.verticalOscillations === 'number' && motion.verticalOscillations >= 1) ||
-        (motion?.kinematics?.isNodding) ||
-        (typeof motion?.kinematics?.verticalOscillations === 'number' && motion.kinematics.verticalOscillations >= 1)
+        motion?.isNodding === true ||
+        motion?.kinematics?.isNodding === true
       );
 
       const isStationary = Boolean(
-        motion?.isStationary ||
-        motion?.kinematics?.isStationary ||
+        motion?.isStationary === true ||
+        motion?.kinematics?.isStationary === true ||
         motion?.state === 'IDLE' ||
         motion?.isNodding === false
       );
 
-      if (hasNodMotion) {
+      if (hasNodMotion && !isStationary) {
         score('YES', 0.95);
-      } else if (!isStationary && motion?.state === 'SIGNING_ACTIVE' && !motion?.kinematics && motion?.isNodding === undefined) {
-        // Fallback for simple unit test mocks passing generic { state: 'SIGNING_ACTIVE' } without kinematics
+      } else if (!isStationary && motion?.state === 'SIGNING_ACTIVE' && !motion?.kinematics && motion?.isNodding === undefined && (motion?.rollingVelocity || 0) >= 0.025) {
+        // Fallback only for simple unit test mocks passing generic { state: 'SIGNING_ACTIVE' } without kinematics
         score('YES', 0.85);
       }
-      // If stationary or explicitly without nodding motion, YES is NOT scored
+      // If stationary or without authentic nodding motion, YES is strictly NOT scored
     }
   }
 

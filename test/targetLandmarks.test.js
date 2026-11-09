@@ -3,7 +3,8 @@ import assert from 'node:assert';
 import {
   ISL_LEARN_ITEMS,
   ISL_LEARN_MAP,
-  getLearnItemByLabel
+  getLearnItemByLabel,
+  createHandSkeleton
 } from '../src/ai/islTargetLandmarks.js';
 
 test('islTargetLandmarks - exports full collection of authentic learn items', () => {
@@ -219,5 +220,36 @@ test('islTargetLandmarks - dynamic signs in Level 1 use authentic animated GIFs'
     assert.ok(item.image, `Dynamic sign ${gloss} should have demonstration media`);
     assert.strictEqual(item.image.endsWith('.gif'), true, `Dynamic sign ${gloss} should use .gif`);
   }
+});
+
+test('islTargetLandmarks - YES posture evaluation enforces strict closed fist and posture alignment', () => {
+  const yesItem = getLearnItemByLabel('YES');
+  assert.ok(yesItem && typeof yesItem.evaluate === 'function', 'YES item must have evaluate function');
+
+  // 1. Loose / open hand at chest should NOT pass
+  const openHand = [
+    { x: 0.50, y: 0.56, z: 0 }, // wrist (0)
+    { x: 0.46, y: 0.50, z: 0 }, { x: 0.44, y: 0.46, z: 0 }, { x: 0.42, y: 0.42, z: 0 }, { x: 0.38, y: 0.38, z: 0 }, // thumb open
+    { x: 0.49, y: 0.48, z: 0 }, { x: 0.49, y: 0.42, z: 0 }, { x: 0.49, y: 0.36, z: 0 }, { x: 0.49, y: 0.30, z: 0 }, // index open
+    { x: 0.51, y: 0.47, z: 0 }, { x: 0.51, y: 0.41, z: 0 }, { x: 0.51, y: 0.35, z: 0 }, { x: 0.51, y: 0.28, z: 0 }, // middle open
+    { x: 0.53, y: 0.48, z: 0 }, { x: 0.53, y: 0.42, z: 0 }, { x: 0.53, y: 0.36, z: 0 }, { x: 0.53, y: 0.31, z: 0 }, // ring open
+    { x: 0.55, y: 0.49, z: 0 }, { x: 0.55, y: 0.44, z: 0 }, { x: 0.55, y: 0.39, z: 0 }, { x: 0.55, y: 0.34, z: 0 }  // pinky open
+  ];
+  const openResult = yesItem.evaluate({ rightHandLandmarks: openHand });
+  assert.strictEqual(openResult.isMatched, false, 'Open hand must NOT match YES');
+  assert.ok(openResult.matchScore < 85, 'Open hand score must be below 85');
+
+  // 2. Strict closed fist upright at chest should pass
+  const fistHand = [
+    { x: 0.50, y: 0.56, z: 0 }, // wrist (0)
+    { x: 0.48, y: 0.53, z: 0 }, { x: 0.47, y: 0.52, z: 0 }, { x: 0.48, y: 0.53, z: 0 }, { x: 0.49, y: 0.54, z: 0 }, // thumb curled
+    { x: 0.50, y: 0.48, z: 0 }, { x: 0.50, y: 0.50, z: 0 }, { x: 0.50, y: 0.52, z: 0 }, { x: 0.50, y: 0.53, z: 0 }, // index curled
+    { x: 0.51, y: 0.48, z: 0 }, { x: 0.51, y: 0.50, z: 0 }, { x: 0.51, y: 0.52, z: 0 }, { x: 0.51, y: 0.53, z: 0 }, // middle curled
+    { x: 0.52, y: 0.49, z: 0 }, { x: 0.52, y: 0.51, z: 0 }, { x: 0.52, y: 0.52, z: 0 }, { x: 0.52, y: 0.53, z: 0 }, // ring curled
+    { x: 0.53, y: 0.50, z: 0 }, { x: 0.53, y: 0.51, z: 0 }, { x: 0.53, y: 0.52, z: 0 }, { x: 0.53, y: 0.53, z: 0 }  // pinky curled
+  ];
+  const fistResult = yesItem.evaluate({ rightHandLandmarks: fistHand });
+  assert.strictEqual(fistResult.isMatched, true, 'Proper upright fist at chest must match YES');
+  assert.ok(fistResult.matchScore >= 85, 'Fist match score must be >= 85');
 });
 
