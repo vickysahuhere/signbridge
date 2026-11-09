@@ -18,7 +18,8 @@ import { useRoomConnection } from './hooks/useRoomConnection.js';
 import { useWebRTC } from './hooks/useWebRTC.js';
 import { GlossBufferManager } from './nlp/glossBufferManager.js';
 import { formatIslSentence, formatRawGlosses } from './nlp/islSentenceFormatter.js';
-import { ISL_LEARN_ITEMS } from './ai/islTargetLandmarks.js';
+import { ISL_LEARN_ITEMS, getLearnItemByLabel } from './ai/islTargetLandmarks.js';
+import { getNextRecommendedSign } from './ai/islCourseCurriculum.js';
 import { AlertCircle, ShieldCheck, Video, MessageSquare, BookOpen, Compass, Bug } from 'lucide-react';
 
 export function App() {
@@ -29,10 +30,8 @@ export function App() {
       const p = params.get('page') || params.get('mode');
       if (p === 'chat') return 'chat';
       if (p === 'learn') return 'learn';
-      // If invited via a shared room link, jump straight into call/chat
-      if (params.get('room')) return 'chat';
     }
-    return 'home'; // Default primary page is the minimal Home choice portal!
+    return 'home'; // Home page is always the default opening page across all links
   });
   const [recognitionMode, setRecognitionMode] = useState('word'); // 'alphabet' | 'word'
   const [isRecorderOpen, setIsRecorderOpen] = useState(false);
@@ -43,19 +42,38 @@ export function App() {
   const [isCapturingScreenshot, setIsCapturingScreenshot] = useState(false);
   const [mobileTab, setMobileTab] = useState('stage'); // 'stage' | 'chat'
   const [mobileLearnTab, setMobileLearnTab] = useState('stage'); // 'stage' | 'guide'
+  const [isAcademyOpen, setIsAcademyOpen] = useState(false);
 
-  // Learn Mode State: Selected Sign, Mastered Counter & Posture Evaluation
-  const [selectedLearnItem, setSelectedLearnItem] = useState(ISL_LEARN_ITEMS[0]);
-  const [masteredCount, setMasteredCount] = useState(0);
-  const masteredSetRef = useRef(new Set());
-  const [isGuideOpen, setIsGuideOpen] = useState(() => {
+  // Learn Mode State: Selected Sign, Mastered Counter & Posture Evaluation (Starts at Level 1: NAMASTE)
+  const [selectedLearnItem, setSelectedLearnItem] = useState(() => getLearnItemByLabel('NAMASTE') || ISL_LEARN_ITEMS[0]);
+  const [masteredCount, setMasteredCount] = useState(() => {
     if (typeof window !== 'undefined') {
-      const hasSeen = localStorage.getItem('sanket_has_seen_guide');
-      const skipAuto = localStorage.getItem('sanket_skip_guide_auto') === 'true';
-      return !hasSeen && !skipAuto;
+      try {
+        const saved = localStorage.getItem('sanket_mastered_signs');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          return Array.isArray(parsed) ? parsed.length : 0;
+        }
+      } catch (e) {}
     }
-    return false;
+    return 0;
   });
+  const masteredSetRef = useRef(new Set());
+
+  // Restore mastered signs on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('sanket_mastered_signs');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          masteredSetRef.current = new Set(parsed);
+          setMasteredCount(masteredSetRef.current.size);
+        }
+      }
+    } catch (e) {}
+  }, []);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
 
   // Linguistic Buffer State
   const glossBufferRef = useRef(new GlossBufferManager());
@@ -303,30 +321,130 @@ export function App() {
     setGlosses([...glossBufferRef.current.getGlosses()]);
   }, []);
 
-  // Real-time evaluation of posture against the target selected sign
+  // Step progression state for compound signs (e.g. Good Morning = Good -> Morning)
+  const [activeStepIndex, setActiveStepIndex] = useState(0);
+  const [completedSteps, setCompletedSteps] = useState([]);
+  const [stepSuccessFlash, setStepSuccessFlash] = useState(null);
+  const [isSequenceMastered, setIsSequenceMastered] = useState(false);
+  const stepHoldStartRef = useRef(null);
+  const stepTimeoutRef = useRef(null);
+
+  // Reset steps and sequence mastery when selected item changes
+  useEffect(() => {
+    setActiveStepIndex(0);
+    setCompletedSteps([]);
+    setStepSuccessFlash(null);
+    setIsSequenceMastered(false);
+    stepHoldStartRef.current = null;
+    if (stepTimeoutRef.current) clearTimeout(stepTimeoutRef.current);
+  }, [selectedLearnItem?.id]);
+
+  // Real-time evaluation of posture against the target selected sign (or active step of compound sign)
   const postureEvaluation = useMemo(() => {
     if (!selectedLearnItem || !selectedLearnItem.evaluate) return null;
-    return selectedLearnItem.evaluate(latestLandmarks);
-  }, [selectedLearnItem, latestLandmarks]);
+    return selectedLearnItem.evaluate(latestLandmarks, activeStepIndex);
+  }, [selectedLearnItem, latestLandmarks, activeStepIndex]);
 
-  const isPostureAligned = Boolean(postureEvaluation?.isPostureAligned);
+  const isCurrentStepAligned = Boolean(postureEvaluation?.isPostureAligned || postureEvaluation?.isMatched);
 
-  // Check if live AI prediction matches selected target
+  // Check if live AI prediction matches active step or target
   const topCandidate = (recognitionMode === 'word' ? wordPredictions?.topCandidates?.[0] : alphabetPredictions?.[0]);
+  const activeStepTarget = useMemo(() => {
+    if (selectedLearnItem?.isCompound && selectedLearnItem?.steps?.[activeStepIndex]) {
+      const step = selectedLearnItem.steps[activeStepIndex];
+      return step.targetGloss || step.title?.replace(/^Part \d+:\s*/i, '').toUpperCase() || 'GOOD';
+    }
+    return selectedLearnItem?.label?.toUpperCase().replace(/_/g, ' ');
+  }, [selectedLearnItem, activeStepIndex]);
+
   const isAiGuessMatch = Boolean(
-    topCandidate &&
-    topCandidate.label?.toUpperCase().replace(/_/g, ' ') === selectedLearnItem?.label?.toUpperCase().replace(/_/g, ' ') &&
+    topCandidate && (
+      topCandidate.label?.toUpperCase().replace(/_/g, ' ') === activeStepTarget ||
+      (!selectedLearnItem?.isCompound && topCandidate.label?.toUpperCase().replace(/_/g, ' ') === selectedLearnItem?.label?.toUpperCase().replace(/_/g, ' '))
+    ) &&
     topCandidate.confidence >= 0.75
   );
 
-  const isSignMastered = isPostureAligned || isAiGuessMatch;
+  const isStepSatisfied = isCurrentStepAligned || isAiGuessMatch;
 
-  // Track mastered signs streak
+  // Multi-step compound state machine & single-sign mastery
+  useEffect(() => {
+    if (!selectedLearnItem) return;
+
+    // Non-compound signs: single-step completion
+    if (!selectedLearnItem.isCompound || !selectedLearnItem.steps) {
+      if (isStepSatisfied) {
+        setIsSequenceMastered(true);
+      }
+      return;
+    }
+
+    // Compound signs: sequential multi-step progression
+    const totalSteps = selectedLearnItem.steps.length;
+
+    if (isStepSatisfied) {
+      if (!stepHoldStartRef.current) {
+        stepHoldStartRef.current = Date.now();
+      } else if (Date.now() - stepHoldStartRef.current >= 450) {
+        // Step held long enough to lock in
+        if (activeStepIndex < totalSteps - 1) {
+          const finishedIdx = activeStepIndex;
+          const nextIdx = activeStepIndex + 1;
+          stepHoldStartRef.current = null;
+
+          setCompletedSteps(prev => (prev.includes(finishedIdx) ? prev : [...prev, finishedIdx]));
+          setStepSuccessFlash({
+            stepNumber: finishedIdx + 1,
+            title: selectedLearnItem.steps[finishedIdx].title
+          });
+          setActiveStepIndex(nextIdx);
+
+          setTimeout(() => {
+            setStepSuccessFlash(null);
+          }, 1800);
+
+          // Grace period: User has 8 seconds to perform next step
+          if (stepTimeoutRef.current) clearTimeout(stepTimeoutRef.current);
+          stepTimeoutRef.current = setTimeout(() => {
+            setActiveStepIndex(0);
+            setCompletedSteps([]);
+            setStepSuccessFlash({
+              isTimeout: true,
+              message: 'Sequence reset: Start with Part 1 again.'
+            });
+            setTimeout(() => setStepSuccessFlash(null), 2200);
+          }, 8000);
+        } else {
+          // Final step complete!
+          if (stepTimeoutRef.current) clearTimeout(stepTimeoutRef.current);
+          setCompletedSteps(prev => (prev.includes(activeStepIndex) ? prev : [...prev, activeStepIndex]));
+          setIsSequenceMastered(true);
+        }
+      }
+    } else {
+      stepHoldStartRef.current = null;
+    }
+  }, [isStepSatisfied, activeStepIndex, selectedLearnItem]);
+
+  const isSignMastered = isSequenceMastered;
+
+  // Target skeleton for the active step (switches dynamically between steps in compound signs)
+  const activeTargetSkeleton = useMemo(() => {
+    if (selectedLearnItem?.isCompound && selectedLearnItem?.steps?.[activeStepIndex]) {
+      return selectedLearnItem.steps[activeStepIndex].targetSkeleton;
+    }
+    return selectedLearnItem?.targetSkeleton;
+  }, [selectedLearnItem, activeStepIndex]);
+
+  // Track mastered signs streak & persist to local storage
   useEffect(() => {
     if (isSignMastered && selectedLearnItem?.label) {
       if (!masteredSetRef.current.has(selectedLearnItem.label)) {
         masteredSetRef.current.add(selectedLearnItem.label);
         setMasteredCount(masteredSetRef.current.size);
+        try {
+          localStorage.setItem('sanket_mastered_signs', JSON.stringify([...masteredSetRef.current]));
+        } catch (e) {}
       }
     }
   }, [isSignMastered, selectedLearnItem]);
@@ -341,10 +459,16 @@ export function App() {
   }, [recognitionMode]);
 
   const handleNextSign = useCallback(() => {
-    const currentIndex = ISL_LEARN_ITEMS.findIndex(item => item.id === selectedLearnItem.id);
-    const nextIndex = (currentIndex + 1) % ISL_LEARN_ITEMS.length;
-    const nextItem = ISL_LEARN_ITEMS[nextIndex];
-    handleSelectLearnItem(nextItem);
+    // Advance along the tailored course path to the next recommended sign
+    const nextGloss = getNextRecommendedSign(selectedLearnItem?.label, masteredSetRef.current, ISL_LEARN_ITEMS);
+    const nextItem = getLearnItemByLabel(nextGloss);
+    if (nextItem) {
+      handleSelectLearnItem(nextItem);
+    } else {
+      const currentIndex = ISL_LEARN_ITEMS.findIndex(item => item.id === selectedLearnItem.id);
+      const nextIndex = (currentIndex + 1) % ISL_LEARN_ITEMS.length;
+      handleSelectLearnItem(ISL_LEARN_ITEMS[nextIndex]);
+    }
   }, [selectedLearnItem, handleSelectLearnItem]);
 
   // Merge local committed sentences with remote messages
@@ -490,9 +614,9 @@ export function App() {
 
             {/* Split Learning Studio Layout */}
             <div className="flex-1 min-h-0 w-full flex flex-col md:flex-row gap-3 sm:gap-4 overflow-hidden items-stretch">
-              {/* Left Side: Sign Selector, SVG Illustration & Landmark Target Blueprint */}
+              {/* Left Side: Dedicated Full Practice Blueprint & Real-Time Alignment Guide */}
               <div
-                className={`w-full md:w-[320px] lg:w-[360px] h-full min-h-0 overflow-hidden flex-shrink-0 ${
+                className={`w-full md:w-[350px] lg:w-[390px] xl:w-[430px] h-full min-h-0 overflow-hidden flex-shrink-0 ${
                   mobileLearnTab === 'guide' ? 'flex' : 'hidden md:flex'
                 }`}
               >
@@ -501,6 +625,12 @@ export function App() {
                   onSelectItem={handleSelectLearnItem}
                   latestLandmarks={latestLandmarks}
                   evaluationResult={postureEvaluation}
+                  masteredSet={masteredSetRef.current}
+                  isAcademyOpen={isAcademyOpen}
+                  onOpenAcademy={() => setIsAcademyOpen(true)}
+                  onCloseAcademy={() => setIsAcademyOpen(false)}
+                  activeStepIndex={activeStepIndex}
+                  completedSteps={completedSteps}
                 />
               </div>
 
@@ -517,9 +647,12 @@ export function App() {
                   isWorkerReady={isWorkerReady}
                   onFpsUpdate={setFps}
                   fps={fps}
-                  targetSkeleton={selectedLearnItem?.targetSkeleton}
+                  targetSkeleton={activeTargetSkeleton}
                   selectedItem={selectedLearnItem}
                   isMatched={isSignMastered}
+                  activeStepIndex={activeStepIndex}
+                  completedSteps={completedSteps}
+                  stepSuccessFlash={stepSuccessFlash}
                 />
 
                 {/* Lower Panel: Live AI Guessing Hub */}
@@ -531,8 +664,12 @@ export function App() {
                   onToggleMode={setRecognitionMode}
                   motionState={motionState}
                   onNextSign={handleNextSign}
+                  onOpenAcademy={() => setIsAcademyOpen(true)}
                   masteredCount={masteredCount}
                   isMatched={isSignMastered}
+                  activeStepIndex={activeStepIndex}
+                  completedSteps={completedSteps}
+                  stepSuccessFlash={stepSuccessFlash}
                 />
               </div>
             </div>
@@ -701,10 +838,18 @@ export function App() {
         motionState={motionState}
       />
 
-      {/* 260-Word ISL Vocabulary Reference Modal */}
+      {/* 1,000+ Word ISL Vocabulary Reference Modal */}
       <WordDictionaryModal
         isOpen={isDictionaryOpen}
         onClose={() => setIsDictionaryOpen(false)}
+        onSelectForPractice={(label) => {
+          const item = getLearnItemByLabel(label);
+          if (item) {
+            handleSelectLearnItem(item);
+            setCurrentPage('learn');
+            setIsDictionaryOpen(false);
+          }
+        }}
       />
 
       {/* System Properties, Agent Rules & Contributor Modal */}

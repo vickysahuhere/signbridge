@@ -26,136 +26,252 @@ function ArtisticLearnIllustration({ className = 'w-full h-auto' }) {
       className={className}
       aria-hidden="true"
     >
-      {/* Warm Ambient Aura */}
-      <circle cx="170" cy="90" r="75" fill="#FEF3C7" fillOpacity="0.6" />
-      <circle cx="170" cy="90" r="62" stroke="#FDE68A" strokeWidth="1.8" strokeDasharray="5 5" />
+      <defs>
+        {/* Soft Radial Ambient Glow */}
+        <radialGradient id="learnAura" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#FEF3C7" stopOpacity="0.9" />
+          <stop offset="100%" stopColor="#FEF3C7" stopOpacity="0" />
+        </radialGradient>
+      </defs>
 
-      {/* Trajectory / Motion Guide Arcs */}
+      {/* 1. Ambient Backdrop Glow & Orbital Guides */}
+      <circle cx="170" cy="95" r="78" fill="url(#learnAura)" />
+      <circle cx="170" cy="95" r="66" stroke="#FDE68A" strokeWidth="1.6" strokeDasharray="5 6" />
+
+      {/* Dynamic Trajectory / Motion Guides */}
       <path
-        d="M50 140 C85 60 215 50 280 110"
+        d="M 38 138 C 72 44, 238 38, 302 118"
         stroke="#F59E0B"
-        strokeWidth="2.5"
-        strokeDasharray="4 6"
+        strokeWidth="2.4"
+        strokeDasharray="5 6"
         strokeLinecap="round"
       />
       <path
-        d="M75 155 C115 100 200 90 255 145"
+        d="M 64 152 C 108 82, 208 76, 274 140"
         stroke="#10B981"
         strokeWidth="1.8"
         strokeDasharray="3 5"
         strokeLinecap="round"
-        opacity="0.8"
+        opacity="0.75"
       />
 
-      {/* Floating Alphabet Badge */}
-      <g transform="translate(38, 28) rotate(-8)">
-        <rect
-          x="0"
-          y="0"
-          width="42"
-          height="42"
-          rx="10"
-          fill="#FFFFFF"
-          stroke="#18181B"
-          strokeWidth="2.2"
-        />
-        <rect x="3.5" y="3.5" width="35" height="35" rx="7" fill="#FFD15C" />
+      {/* 2. Top-Left: Tactile 3D Floating Alphabet Tile "A" */}
+      <g transform="translate(24, 20) rotate(-7)">
+        {/* Drop Shadow */}
+        <rect x="4" y="4" width="48" height="48" rx="12" fill="#18181B" />
+        {/* White Border Frame */}
+        <rect x="0" y="0" width="48" height="48" rx="12" fill="#FFFFFF" stroke="#18181B" strokeWidth="2.4" />
+        {/* Sunny Yellow Face */}
+        <rect x="3.5" y="3.5" width="41" height="41" rx="9" fill="#FFD15C" />
+        {/* Beveled Top Highlight */}
+        <path d="M 5 13 C 5 8, 8 5, 14 5 L 39 5 C 34 5, 7 8, 5 19 Z" fill="#FFFFFF" fillOpacity="0.5" />
+        {/* Letter A */}
         <text
-          x="21"
-          y="26"
+          x="24"
+          y="31"
           textAnchor="middle"
-          fontSize="18"
+          fontSize="23"
           fontWeight="900"
           fontFamily="system-ui, sans-serif"
           fill="#18181B"
         >
           A
         </text>
-        <path d="M0 42 L3 45 L42 45 L42 42 Z" fill="#18181B" opacity="0.3" />
-      </g>
-
-      {/* Secondary Floating Practice Badge */}
-      <g transform="translate(255, 32) rotate(8)">
-        <rect
-          x="0"
-          y="0"
-          width="42"
-          height="28"
-          rx="7"
-          fill="#22C55E"
-          stroke="#18181B"
-          strokeWidth="2"
-        />
+        {/* Sub-label */}
         <text
-          x="21"
-          y="18"
+          x="24"
+          y="39"
           textAnchor="middle"
-          fontSize="11"
+          fontSize="6.5"
           fontWeight="800"
           fontFamily="system-ui, sans-serif"
-          fill="#FFFFFF"
+          fill="#78350F"
+          letterSpacing="0.08em"
         >
           ISL
         </text>
       </g>
 
-      {/* Main Stylized Hand (Artistic Biometric Signing Hand) */}
-      <g transform="translate(105, 30)">
-        {/* Palm & Wrist Contour */}
+      {/* 3. Top-Right: AI Verification Chip "AI • 99%" */}
+      <g transform="translate(242, 22) rotate(6)">
+        {/* Drop Shadow */}
+        <rect x="3" y="3" width="72" height="30" rx="9" fill="#18181B" />
+        {/* Chip Body */}
+        <rect x="0" y="0" width="72" height="30" rx="9" fill="#FFFFFF" stroke="#18181B" strokeWidth="2.2" />
+        <rect x="2.5" y="2.5" width="67" height="25" rx="7" fill="#F0FDF4" />
+        {/* Pulsing Active Radar Dot */}
+        <circle cx="13" cy="15" r="4.5" fill="#22C55E" />
+        <circle cx="13" cy="15" r="7" stroke="#22C55E" strokeWidth="1.2" strokeDasharray="2 2" opacity="0.6" />
+        {/* Chip Text */}
+        <text
+          x="23"
+          y="18.5"
+          fontSize="9.5"
+          fontWeight="900"
+          fontFamily="system-ui, sans-serif"
+          fill="#18181B"
+          letterSpacing="0.04em"
+        >
+          AI • 99%
+        </text>
+      </g>
+
+      {/* 4. Bottom-Right: Level 1 Milestone Tag */}
+      <g transform="translate(254, 122)">
+        <rect x="2.5" y="2.5" width="64" height="23" rx="7" fill="#18181B" />
+        <rect x="0" y="0" width="64" height="23" rx="7" fill="#FFFBEB" stroke="#18181B" strokeWidth="1.8" />
+        <circle cx="12" cy="11.5" r="4" fill="#F59E0B" />
+        <text
+          x="20"
+          y="15"
+          fontSize="8.5"
+          fontWeight="900"
+          fontFamily="system-ui, sans-serif"
+          fill="#78350F"
+          letterSpacing="0.04em"
+        >
+          LEVEL 1
+        </text>
+      </g>
+
+      {/* 5. Main Hand & 21-Node Biometric Constellation */}
+      <g id="hand-group">
+        {/* Hand Drop Shadow */}
         <path
-          d="M50 125 C38 110 35 90 37 72 C38 60 44 48 48 34 C49 29 55 29 57 34 C58 42 60 54 60 66 L60 72 
-             M60 66 C61 50 65 24 69 18 C71 14 77 14 78 19 C80 26 80 44 80 62 L80 68
-             M80 62 C82 50 86 28 90 22 C92 18 97 19 99 24 C100 32 99 50 98 65 L98 72
-             M98 70 C100 60 105 42 108 36 C110 32 115 34 116 39 C117 46 113 62 110 78 L106 100
-             C103 112 92 126 75 126 L50 125 Z"
+          d="M 148 168 C 146 153, 143 144, 139 136 C 132 126, 117 117, 109 107 C 103 99, 107 91, 115 91 C 123 91, 135 103, 143 99 C 143 90, 144 62, 146 52 C 147 44, 156 44, 157 52 C 158 63, 159 75, 160 80 C 161 63, 164 42, 167 34 C 169 26, 179 26, 181 34 C 183 43, 182 66, 183 81 C 184 66, 187 48, 189 40 C 191 32, 199 32, 201 40 C 202 49, 202 70, 203 88 C 204 76, 207 62, 209 55 C 211 49, 219 49, 220 56 C 221 66, 218 97, 215 119 C 212 139, 204 155, 197 168 Z"
+          fill="#18181B"
+        />
+
+        {/* Hand Base (Crisp White with Dark Ink Outline) */}
+        <path
+          d="M 144 165 C 142 150, 139 141, 135 133 C 128 123, 113 114, 105 104 C 99 96, 103 88, 111 88 C 119 88, 131 100, 139 96 C 139 87, 140 59, 142 49 C 143 41, 152 41, 153 49 C 154 60, 155 72, 156 77 C 157 60, 160 39, 163 31 C 165 23, 175 23, 177 31 C 179 40, 178 63, 179 78 C 180 63, 183 45, 185 37 C 187 29, 195 29, 197 37 C 198 46, 198 67, 199 85 C 200 73, 203 59, 205 52 C 207 46, 215 46, 216 53 C 217 63, 214 94, 211 116 C 208 136, 200 152, 193 165 Z"
           fill="#FFFFFF"
           stroke="#18181B"
-          strokeWidth="2.5"
-          strokeLinejoin="round"
+          strokeWidth="2.8"
           strokeLinecap="round"
+          strokeLinejoin="round"
         />
 
-        {/* Thumb */}
+        {/* Palm Creases for Anatomical Depth */}
         <path
-          d="M40 82 C30 82 18 90 20 102 C22 112 32 116 44 114"
-          fill="#FFD15C"
-          stroke="#18181B"
-          strokeWidth="2.5"
+          d="M 139 96 C 145 114, 153 130, 168 142"
+          stroke="#E4E4E7"
+          strokeWidth="2.2"
           strokeLinecap="round"
-          strokeLinejoin="round"
+        />
+        <path
+          d="M 154 86 C 170 90, 186 92, 202 93"
+          stroke="#E4E4E7"
+          strokeWidth="2.2"
+          strokeLinecap="round"
         />
 
-        {/* Biometric Landmark Constellation Overlay */}
-        <circle cx="65" cy="125" r="4" fill="#22C55E" stroke="#18181B" strokeWidth="1.8" />
+        {/* Tactile Wrist Cuff (Sunny Yellow) */}
+        <rect x="141" y="158" width="54" height="8" rx="3" fill="#FFD15C" stroke="#18181B" strokeWidth="2.4" />
 
-        {/* MCP Knuckles */}
-        <circle cx="50" cy="80" r="3" fill="#FFD15C" stroke="#18181B" strokeWidth="1.5" />
-        <circle cx="70" cy="74" r="3" fill="#FFD15C" stroke="#18181B" strokeWidth="1.5" />
-        <circle cx="89" cy="74" r="3" fill="#FFD15C" stroke="#18181B" strokeWidth="1.5" />
-        <circle cx="105" cy="80" r="3" fill="#FFD15C" stroke="#18181B" strokeWidth="1.5" />
+        {/* --- MediaPipe Skeletal Links (Bones) --- */}
+        {/* Palm Links (Wrist to MCP Knuckles) */}
+        <line x1="168" y1="152" x2="133" y2="124" stroke="#22C55E" strokeWidth="1.8" strokeDasharray="3 3" />
+        <line x1="168" y1="152" x2="147" y2="86" stroke="#22C55E" strokeWidth="1.8" strokeDasharray="3 3" />
+        <line x1="168" y1="152" x2="167" y2="82" stroke="#22C55E" strokeWidth="1.8" strokeDasharray="3 3" />
+        <line x1="168" y1="152" x2="186" y2="85" stroke="#22C55E" strokeWidth="1.8" strokeDasharray="3 3" />
+        <line x1="168" y1="152" x2="203" y2="92" stroke="#22C55E" strokeWidth="1.8" strokeDasharray="3 3" />
 
-        {/* Finger Tips (Tracked Points) */}
-        <circle cx="53" cy="32" r="3.8" fill="#38BDF8" stroke="#18181B" strokeWidth="1.8" />
-        <circle cx="74" cy="16" r="3.8" fill="#38BDF8" stroke="#18181B" strokeWidth="1.8" />
-        <circle cx="95" cy="21" r="3.8" fill="#38BDF8" stroke="#18181B" strokeWidth="1.8" />
-        <circle cx="112" cy="35" r="3.8" fill="#38BDF8" stroke="#18181B" strokeWidth="1.8" />
-        <circle cx="22" cy="98" r="3.8" fill="#38BDF8" stroke="#18181B" strokeWidth="1.8" />
+        {/* Finger Bones (MCP to Tips) */}
+        {/* Thumb */}
+        <line x1="133" y1="124" x2="120" y2="112" stroke="#0284C7" strokeWidth="2" strokeDasharray="3 3" />
+        <line x1="120" y1="112" x2="112" y2="100" stroke="#0284C7" strokeWidth="2" strokeDasharray="3 3" />
+        <line x1="112" y1="100" x2="108" y2="89" stroke="#0284C7" strokeWidth="2" strokeDasharray="3 3" />
 
-        {/* Constellation Link Arcs */}
-        <line x1="65" y1="125" x2="70" y2="74" stroke="#22C55E" strokeWidth="1.5" strokeDasharray="3 3" />
-        <line x1="70" y1="74" x2="74" y2="16" stroke="#38BDF8" strokeWidth="1.5" strokeDasharray="3 3" />
-        <line x1="50" y1="80" x2="53" y2="32" stroke="#38BDF8" strokeWidth="1.5" strokeDasharray="3 3" />
-        <line x1="89" y1="74" x2="95" y2="21" stroke="#38BDF8" strokeWidth="1.5" strokeDasharray="3 3" />
-        <line x1="105" y1="80" x2="112" y2="35" stroke="#38BDF8" strokeWidth="1.5" strokeDasharray="3 3" />
-        <line x1="65" y1="125" x2="22" y2="98" stroke="#F59E0B" strokeWidth="1.5" strokeDasharray="3 3" />
+        {/* Index */}
+        <line x1="147" y1="86" x2="147" y2="67" stroke="#0284C7" strokeWidth="2" strokeDasharray="3 3" />
+        <line x1="147" y1="67" x2="148" y2="52" stroke="#0284C7" strokeWidth="2" strokeDasharray="3 3" />
+        <line x1="148" y1="52" x2="148" y2="43" stroke="#0284C7" strokeWidth="2" strokeDasharray="3 3" />
+
+        {/* Middle */}
+        <line x1="167" y1="82" x2="168" y2="59" stroke="#0284C7" strokeWidth="2" strokeDasharray="3 3" />
+        <line x1="168" y1="59" x2="169" y2="44" stroke="#0284C7" strokeWidth="2" strokeDasharray="3 3" />
+        <line x1="169" y1="44" x2="170" y2="26" stroke="#0284C7" strokeWidth="2" strokeDasharray="3 3" />
+
+        {/* Ring */}
+        <line x1="186" y1="85" x2="188" y2="64" stroke="#0284C7" strokeWidth="2" strokeDasharray="3 3" />
+        <line x1="188" y1="64" x2="190" y2="48" stroke="#0284C7" strokeWidth="2" strokeDasharray="3 3" />
+        <line x1="190" y1="48" x2="191" y2="33" stroke="#0284C7" strokeWidth="2" strokeDasharray="3 3" />
+
+        {/* Pinky */}
+        <line x1="203" y1="92" x2="206" y2="76" stroke="#0284C7" strokeWidth="2" strokeDasharray="3 3" />
+        <line x1="206" y1="76" x2="209" y2="62" stroke="#0284C7" strokeWidth="2" strokeDasharray="3 3" />
+        <line x1="209" y1="62" x2="211" y2="50" stroke="#0284C7" strokeWidth="2" strokeDasharray="3 3" />
+
+        {/* --- MediaPipe Keypoint Nodes --- */}
+        {/* Wrist Root Node */}
+        <circle cx="168" cy="152" r="7.5" fill="none" stroke="#22C55E" strokeWidth="1.5" strokeDasharray="2 2" />
+        <circle cx="168" cy="152" r="4" fill="#22C55E" stroke="#18181B" strokeWidth="1.8" />
+
+        {/* MCP Knuckles (Yellow Anchors) */}
+        <circle cx="133" cy="124" r="3" fill="#FFD15C" stroke="#18181B" strokeWidth="1.6" />
+        <circle cx="147" cy="86" r="3" fill="#FFD15C" stroke="#18181B" strokeWidth="1.6" />
+        <circle cx="167" cy="82" r="3" fill="#FFD15C" stroke="#18181B" strokeWidth="1.6" />
+        <circle cx="186" cy="85" r="3" fill="#FFD15C" stroke="#18181B" strokeWidth="1.6" />
+        <circle cx="203" cy="92" r="3" fill="#FFD15C" stroke="#18181B" strokeWidth="1.6" />
+
+        {/* PIP / DIP Mid Joints */}
+        <circle cx="120" cy="112" r="2.5" fill="#38BDF8" stroke="#18181B" strokeWidth="1.4" />
+        <circle cx="112" cy="100" r="2.5" fill="#38BDF8" stroke="#18181B" strokeWidth="1.4" />
+
+        <circle cx="147" cy="67" r="2.5" fill="#38BDF8" stroke="#18181B" strokeWidth="1.4" />
+        <circle cx="148" cy="52" r="2.5" fill="#38BDF8" stroke="#18181B" strokeWidth="1.4" />
+
+        <circle cx="168" cy="59" r="2.5" fill="#38BDF8" stroke="#18181B" strokeWidth="1.4" />
+        <circle cx="169" cy="44" r="2.5" fill="#38BDF8" stroke="#18181B" strokeWidth="1.4" />
+
+        <circle cx="188" cy="64" r="2.5" fill="#38BDF8" stroke="#18181B" strokeWidth="1.4" />
+        <circle cx="190" cy="48" r="2.5" fill="#38BDF8" stroke="#18181B" strokeWidth="1.4" />
+
+        <circle cx="206" cy="76" r="2.5" fill="#38BDF8" stroke="#18181B" strokeWidth="1.4" />
+        <circle cx="209" cy="62" r="2.5" fill="#38BDF8" stroke="#18181B" strokeWidth="1.4" />
+
+        {/* Tracked Fingertip Targets (Glowing Cyan Reticles) */}
+        {/* Thumb Tip */}
+        <circle cx="108" cy="89" r="6" stroke="#38BDF8" strokeWidth="1.2" strokeDasharray="2 2" />
+        <circle cx="108" cy="89" r="3.8" fill="#38BDF8" stroke="#18181B" strokeWidth="1.8" />
+        <circle cx="108" cy="89" r="1.5" fill="#FFFFFF" />
+
+        {/* Index Tip */}
+        <circle cx="148" cy="43" r="6" stroke="#38BDF8" strokeWidth="1.2" strokeDasharray="2 2" />
+        <circle cx="148" cy="43" r="3.8" fill="#38BDF8" stroke="#18181B" strokeWidth="1.8" />
+        <circle cx="148" cy="43" r="1.5" fill="#FFFFFF" />
+
+        {/* Middle Tip (Primary Focus Reticle) */}
+        <circle cx="170" cy="26" r="7.5" stroke="#38BDF8" strokeWidth="1.5" strokeDasharray="2 2" />
+        <circle cx="170" cy="26" r="4.2" fill="#38BDF8" stroke="#18181B" strokeWidth="2" />
+        <circle cx="170" cy="26" r="1.8" fill="#FFFFFF" />
+        {/* Reticle Crosshairs */}
+        <line x1="160" y1="26" x2="164" y2="26" stroke="#0284C7" strokeWidth="1.5" />
+        <line x1="176" y1="26" x2="180" y2="26" stroke="#0284C7" strokeWidth="1.5" />
+        <line x1="170" y1="16" x2="170" y2="20" stroke="#0284C7" strokeWidth="1.5" />
+        <line x1="170" y1="32" x2="170" y2="36" stroke="#0284C7" strokeWidth="1.5" />
+
+        {/* Ring Tip */}
+        <circle cx="191" cy="33" r="6" stroke="#38BDF8" strokeWidth="1.2" strokeDasharray="2 2" />
+        <circle cx="191" cy="33" r="3.8" fill="#38BDF8" stroke="#18181B" strokeWidth="1.8" />
+        <circle cx="191" cy="33" r="1.5" fill="#FFFFFF" />
+
+        {/* Pinky Tip */}
+        <circle cx="211" cy="50" r="6" stroke="#38BDF8" strokeWidth="1.2" strokeDasharray="2 2" />
+        <circle cx="211" cy="50" r="3.8" fill="#38BDF8" stroke="#18181B" strokeWidth="1.8" />
+        <circle cx="211" cy="50" r="1.5" fill="#FFFFFF" />
       </g>
 
-      {/* Decorative Sparkles */}
-      <g transform="translate(190, 16)">
-        <path d="M7 0 L8.5 5 L14 7 L8.5 8.5 L7 14 L5.5 8.5 L0 7 L5.5 5 Z" fill="#F59E0B" />
+      {/* 6. Decorative Sparkles & Accents */}
+      <g transform="translate(195, 12)">
+        <path d="M7 0 L8.5 5.5 L14 7 L8.5 8.5 L7 14 L5.5 8.5 L0 7 L5.5 5.5 Z" fill="#F59E0B" />
       </g>
-      <g transform="translate(275, 95)">
-        <path d="M5 0 L6 4 L10 5 L6 6 L5 10 L4 6 L0 5 L4 4 Z" fill="#22C55E" />
+      <g transform="translate(68, 86)">
+        <path d="M5 0 L6 4 L10 5 L6 6 L5 10 L4 6 L0 5 L4 4 Z" fill="#38BDF8" />
+      </g>
+      <g transform="translate(286, 78)">
+        <path d="M6 0 L7.5 4.5 L12 6 L7.5 7.5 L6 12 L4.5 7.5 L0 6 L4.5 4.5 Z" fill="#22C55E" />
       </g>
     </svg>
   );
@@ -163,8 +279,9 @@ function ArtisticLearnIllustration({ className = 'w-full h-auto' }) {
 
 /**
  * Artistic Vector SVG for Video Call & Sign Translation
- * Two communicating hands reaching across an ethereal P2P bridge,
- * speech-to-sign captions, and real-time connection waves.
+ * High-concept vector artwork showing two communicating hands meeting across
+ * a high-speed P2P video camera bridge, with real-time translation speech bubble,
+ * biometric AI keypoints on the signing hand, and voice waveforms on the hearing partner.
  */
 function ArtisticCallIllustration({ className = 'w-full h-auto' }) {
   return (
@@ -175,121 +292,231 @@ function ArtisticCallIllustration({ className = 'w-full h-auto' }) {
       className={className}
       aria-hidden="true"
     >
-      {/* Soft Ambient Communication Aura */}
-      <circle cx="170" cy="90" r="75" fill="#E0F2FE" fillOpacity="0.6" />
-      <circle cx="170" cy="90" r="62" stroke="#BAE6FD" strokeWidth="1.8" strokeDasharray="5 5" />
+      <defs>
+        {/* Soft Radial Ambient Bridge Glow */}
+        <radialGradient id="callAura" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#E0F2FE" stopOpacity="0.85" />
+          <stop offset="100%" stopColor="#E0F2FE" stopOpacity="0" />
+        </radialGradient>
+      </defs>
 
-      {/* P2P Video Call Signal Waves */}
+      {/* 1. Ambient Communication Glow & Orbital Guides */}
+      <circle cx="170" cy="106" r="78" fill="url(#callAura)" />
+      <circle cx="170" cy="106" r="64" stroke="#BAE6FD" strokeWidth="1.6" strokeDasharray="5 5" />
+
+      {/* Real-Time P2P Waveform Stream */}
       <path
-        d="M125 90 C140 75 140 105 155 90 C170 75 170 105 185 90 C200 75 200 105 215 90"
+        d="M 80 110 C 108 84, 134 128, 170 108 C 206 88, 232 130, 260 108"
         stroke="#0284C7"
-        strokeWidth="2.5"
+        strokeWidth="3.2"
         strokeLinecap="round"
       />
-      <circle cx="170" cy="90" r="5" fill="#38BDF8" stroke="#18181B" strokeWidth="1.8" />
+      <path
+        d="M 85 116 C 112 92, 136 134, 170 114 C 204 94, 228 136, 255 114"
+        stroke="#38BDF8"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeDasharray="4 4"
+        opacity="0.8"
+      />
 
-      {/* Floating Translated Caption Ribbon */}
-      <g transform="translate(85, 20)">
-        <rect
-          x="0"
-          y="0"
-          width="170"
-          height="34"
-          rx="9"
-          fill="#FFFFFF"
-          stroke="#18181B"
-          strokeWidth="2.2"
-        />
-        <rect x="3.5" y="3.5" width="163" height="27" rx="6" fill="#F0FDF4" />
-        <circle cx="20" cy="17" r="4" fill="#22C55E" />
+      {/* Data Packet Nodes */}
+      <circle cx="120" cy="98" r="3.5" fill="#FFD15C" stroke="#18181B" strokeWidth="1.5" />
+      <circle cx="220" cy="122" r="3.5" fill="#22C55E" stroke="#18181B" strokeWidth="1.5" />
+
+      {/* 2. Top-Center: Live Translated Subtitle Speech Bubble Ribbon */}
+      <g transform="translate(50, 14)">
+        {/* Drop Shadow */}
+        <rect x="3.5" y="3.5" width="240" height="42" rx="12" fill="#18181B" />
+        {/* Speech Card Body */}
+        <rect x="0" y="0" width="240" height="42" rx="12" fill="#FFFFFF" stroke="#18181B" strokeWidth="2.4" />
+        {/* Soft Green Inset */}
+        <rect x="3" y="3" width="234" height="36" rx="9" fill="#F0FDF4" />
+
+        {/* Live Broadcast Indicator */}
+        <circle cx="18" cy="21" r="4.5" fill="#22C55E" />
+        <circle cx="18" cy="21" r="8" stroke="#22C55E" strokeWidth="1.2" strokeDasharray="2 2" opacity="0.6" />
+
+        {/* Subtitle Text */}
         <text
-          x="34"
-          y="21"
-          fontSize="11.5"
-          fontWeight="800"
+          x="32"
+          y="25.5"
+          fontSize="13"
+          fontWeight="900"
           fontFamily="system-ui, sans-serif"
           fill="#18181B"
+          letterSpacing="-0.01em"
         >
           "Namaste! How are you?"
         </text>
-        <polygon points="80,34 88,42 96,34" fill="#FFFFFF" stroke="#18181B" strokeWidth="1.8" />
-        <polygon points="82,33 88,39 94,33" fill="#F0FDF4" />
+
+        {/* ISL -> ENG Translation Badge */}
+        <rect x="188" y="11" width="44" height="20" rx="6" fill="#DCFCE7" stroke="#16A34A" strokeWidth="1.2" />
+        <text
+          x="210"
+          y="24.5"
+          textAnchor="middle"
+          fontSize="8.5"
+          fontWeight="900"
+          fontFamily="system-ui, sans-serif"
+          fill="#15803D"
+        >
+          ISL ⇄ EN
+        </text>
+
+        {/* Centered Speech Bubble Tail */}
+        <polygon points="112,42 120,51 128,42" fill="#FFFFFF" stroke="#18181B" strokeWidth="2" />
+        <polygon points="113,41 120,48 127,41" fill="#F0FDF4" />
       </g>
 
-      {/* Left Hand: Signer (Reaching Inward) */}
-      <g transform="translate(35, 70)">
+      {/* 3. Left Hand: ISL Signer (Expressive Gesture with AI Vision Landmark Tracking) */}
+      <g id="signer-hand" transform="translate(14, 62)">
+        {/* Drop Shadow */}
         <path
-          d="M10 80 C22 68 35 60 50 58 C62 56 72 46 78 35 C80 31 85 32 84 37 C83 45 78 58 72 68 
-             M72 68 C80 60 86 48 90 42 C92 38 96 39 95 44 C93 54 85 66 78 75
-             M78 75 C84 68 90 60 92 55 C94 51 98 52 97 56 C95 65 86 76 78 83
-             C68 93 55 98 38 95 L10 89 Z"
+          d="M 12 104 C 18 90, 26 80, 36 74 C 44 64, 52 46, 56 32 C 58 26, 64 26, 67 31 C 70 38, 71 52, 69 62 C 73 54, 78 40, 83 34 C 86 30, 92 30, 94 35 C 97 44, 95 60, 91 70 C 94 65, 99 55, 102 52 C 105 48, 110 50, 110 55 C 111 65, 104 80, 96 92 C 84 106, 68 114, 46 114 L 12 108 Z"
+          fill="#18181B"
+        />
+        {/* Main Hand Body */}
+        <path
+          d="M 9 101 C 15 87, 23 77, 33 71 C 41 61, 49 43, 53 29 C 55 23, 61 23, 64 28 C 67 35, 68 49, 66 59 C 70 51, 75 37, 80 31 C 83 27, 89 27, 91 32 C 94 41, 92 57, 88 67 C 91 62, 96 52, 99 49 C 102 45, 107 47, 107 52 C 108 62, 101 77, 93 89 C 81 103, 65 111, 43 111 L 9 105 Z"
           fill="#FFFFFF"
           stroke="#18181B"
           strokeWidth="2.5"
           strokeLinejoin="round"
           strokeLinecap="round"
         />
-        {/* Thumb */}
-        <path
-          d="M36 75 C43 65 52 58 59 63 C64 67 62 75 53 82"
-          fill="#38BDF8"
-          stroke="#18181B"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-        />
-      </g>
 
-      {/* Right Hand: Hearing / Video Partner (Receiving) */}
-      <g transform="translate(205, 70)">
+        {/* Thumb (Curved Outward) */}
         <path
-          d="M95 80 C83 68 70 60 55 58 C43 56 33 46 27 35 C25 31 20 32 21 37 C22 45 27 58 33 68 
-             M33 68 C25 60 19 48 15 42 C13 38 9 39 10 44 C12 54 20 66 27 75
-             M27 75 C21 68 15 60 13 55 C11 51 7 52 8 56 C10 65 19 76 27 83
-             C37 93 50 98 67 95 L95 89 Z"
-          fill="#FFFFFF"
-          stroke="#18181B"
-          strokeWidth="2.5"
-          strokeLinejoin="round"
-          strokeLinecap="round"
-        />
-        {/* Thumb */}
-        <path
-          d="M69 75 C62 65 53 58 46 63 C41 67 43 75 52 82"
+          d="M 28 80 C 20 78, 12 84, 13 92 C 14 98, 22 102, 34 99"
           fill="#FFD15C"
           stroke="#18181B"
           strokeWidth="2.2"
           strokeLinecap="round"
         />
+
+        {/* Wrist Cuff (Sunny Yellow) */}
+        <rect x="8" y="99" width="34" height="8" rx="3" fill="#FFD15C" stroke="#18181B" strokeWidth="2.2" />
+
+        {/* AI Landmark Points & Skeleton Overlay on Signer's Hand */}
+        {/* Fingertips (Cyan Target Nodes) */}
+        <circle cx="58" cy="27" r="3.8" fill="#38BDF8" stroke="#18181B" strokeWidth="1.6" />
+        <circle cx="58" cy="27" r="1.5" fill="#FFFFFF" />
+
+        <circle cx="85" cy="30" r="3.8" fill="#38BDF8" stroke="#18181B" strokeWidth="1.6" />
+        <circle cx="85" cy="30" r="1.5" fill="#FFFFFF" />
+
+        <circle cx="103" cy="51" r="3.8" fill="#38BDF8" stroke="#18181B" strokeWidth="1.6" />
+        <circle cx="103" cy="51" r="1.5" fill="#FFFFFF" />
+
+        <circle cx="13" cy="92" r="3.2" fill="#38BDF8" stroke="#18181B" strokeWidth="1.6" />
+
+        {/* Knuckles & Palm Hub (Mint Green) */}
+        <circle cx="64" cy="62" r="3.2" fill="#22C55E" stroke="#18181B" strokeWidth="1.5" />
+        <circle cx="82" cy="68" r="3.2" fill="#22C55E" stroke="#18181B" strokeWidth="1.5" />
+        <circle cx="44" cy="88" r="3.5" fill="#22C55E" stroke="#18181B" strokeWidth="1.5" />
+
+        {/* AI Skeleton Linkages */}
+        <line x1="44" y1="88" x2="64" y2="62" stroke="#22C55E" strokeWidth="1.6" strokeDasharray="2.5 2.5" />
+        <line x1="44" y1="88" x2="82" y2="68" stroke="#22C55E" strokeWidth="1.6" strokeDasharray="2.5 2.5" />
+        <line x1="64" y1="62" x2="58" y2="27" stroke="#0284C7" strokeWidth="1.6" strokeDasharray="2.5 2.5" />
+        <line x1="82" y1="68" x2="85" y2="30" stroke="#0284C7" strokeWidth="1.6" strokeDasharray="2.5 2.5" />
+        <line x1="82" y1="68" x2="103" y2="51" stroke="#0284C7" strokeWidth="1.6" strokeDasharray="2.5 2.5" />
       </g>
 
-      {/* Stylized Video Camera Aperture Lens */}
-      <g transform="translate(150, 130)">
-        <rect
-          x="0"
-          y="0"
-          width="40"
-          height="30"
-          rx="7"
+      {/* 4. Right Hand: Hearing / Video Partner (Receiving / Greeting with Voice Waveforms) */}
+      <g id="receiver-hand" transform="translate(204, 62)">
+        {/* Drop Shadow */}
+        <path
+          d="M 112 104 C 106 90, 98 80, 88 74 C 80 64, 72 46, 68 32 C 66 26, 60 26, 57 31 C 54 38, 53 52, 55 62 C 51 54, 46 40, 41 34 C 38 30, 32 30, 30 35 C 27 44, 29 60, 33 70 C 30 65, 25 55, 22 52 C 19 48, 14 50, 14 55 C 13 65, 20 80, 28 92 C 40 106, 56 114, 78 114 L 112 108 Z"
           fill="#18181B"
-          stroke="#18181B"
-          strokeWidth="1.8"
         />
-        <circle cx="16" cy="15" r="6.5" fill="#38BDF8" />
-        <circle cx="16" cy="15" r="2.8" fill="#FFFFFF" />
-        <polygon points="29,11 37,7 37,23 29,19" fill="#18181B" />
-        <circle cx="7" cy="7" r="2" fill="#EF4444" />
+        {/* Main Hand Body */}
+        <path
+          d="M 109 101 C 103 87, 95 77, 85 71 C 77 61, 69 43, 65 29 C 63 23, 57 23, 54 28 C 51 35, 50 49, 52 59 C 48 51, 43 37, 38 31 C 35 27, 29 27, 27 32 C 24 41, 26 57, 30 67 C 27 62, 22 52, 19 49 C 16 45, 11 47, 11 52 C 10 62, 17 77, 25 89 C 37 103, 53 111, 75 111 L 109 105 Z"
+          fill="#FFFFFF"
+          stroke="#18181B"
+          strokeWidth="2.5"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+        />
+
+        {/* Thumb (Curved Outward) */}
+        <path
+          d="M 90 80 C 98 78, 106 84, 105 92 C 104 98, 96 102, 84 99"
+          fill="#38BDF8"
+          stroke="#18181B"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+        />
+
+        {/* Wrist Cuff (Sky Blue) */}
+        <rect x="76" y="99" width="34" height="8" rx="3" fill="#38BDF8" stroke="#18181B" strokeWidth="2.2" />
+
+        {/* Active Equalizer Voice Soundwaves Blooming from Peer */}
+        <g transform="translate(10, 8)">
+          <rect x="0" y="16" width="3.5" height="18" rx="1.8" fill="#38BDF8" stroke="#18181B" strokeWidth="1.2" />
+          <rect x="6" y="8" width="3.5" height="34" rx="1.8" fill="#22C55E" stroke="#18181B" strokeWidth="1.2" />
+          <rect x="12" y="18" width="3.5" height="14" rx="1.8" fill="#FFD15C" stroke="#18181B" strokeWidth="1.2" />
+          <rect x="18" y="4" width="3.5" height="42" rx="1.8" fill="#38BDF8" stroke="#18181B" strokeWidth="1.2" />
+        </g>
       </g>
 
-      {/* Communication Rays */}
-      <g transform="translate(62, 42)">
+      {/* 5. Center Hub: Smart Video Camera & P2P Engine */}
+      <g transform="translate(148, 94)">
+        {/* Camera Drop Shadow */}
+        <rect x="3" y="3" width="44" height="32" rx="8" fill="#18181B" />
+        <polygon points="47,19 57,13 57,29 47,23" fill="#18181B" />
+
+        {/* Camera Body */}
+        <rect x="0" y="0" width="44" height="32" rx="8" fill="#18181B" stroke="#18181B" strokeWidth="2" />
+        <polygon points="44,16 54,10 54,26 44,20" fill="#18181B" stroke="#18181B" strokeWidth="1.5" />
+
+        {/* Lens Aperture Optics */}
+        <circle cx="18" cy="16" r="10" fill="#0F172A" stroke="#38BDF8" strokeWidth="2" />
+        <circle cx="16" cy="14" r="4" fill="#38BDF8" fillOpacity="0.8" />
+        <circle cx="15" cy="13" r="1.8" fill="#FFFFFF" />
+
+        {/* Live Red Recording LED */}
+        <circle cx="36" cy="8" r="2.5" fill="#EF4444" />
+      </g>
+
+      {/* 6. Latency Speed Tag below Camera */}
+      <g transform="translate(142, 142)">
+        <rect x="1.5" y="1.5" width="56" height="18" rx="5" fill="#18181B" />
+        <rect x="0" y="0" width="56" height="18" rx="5" fill="#FFFFFF" stroke="#18181B" strokeWidth="1.6" />
+        <circle cx="9" cy="9" r="2.8" fill="#22C55E" />
+        <text
+          x="16"
+          y="12.5"
+          fontSize="8"
+          fontWeight="900"
+          fontFamily="system-ui, sans-serif"
+          fill="#15803D"
+          letterSpacing="0.04em"
+        >
+          ⚡ &lt; 20ms
+        </text>
+      </g>
+
+      {/* 7. Decorative Sparkles & Rays */}
+      <g transform="translate(48, 36)">
         <path d="M5 0 L6 4 L10 5 L6 6 L5 10 L4 6 L0 5 L4 4 Z" fill="#38BDF8" />
       </g>
-      <g transform="translate(270, 50)">
-        <path d="M5 0 L6 4 L10 5 L6 6 L5 10 L4 6 L0 5 L4 4 Z" fill="#FF6B6B" />
+      <g transform="translate(290, 32)">
+        <path d="M5 0 L6 4 L10 5 L6 6 L5 10 L4 6 L0 5 L4 4 Z" fill="#FFD15C" />
+      </g>
+      <g transform="translate(136, 68)">
+        <path d="M4 0 L5 3 L8 4 L5 5 L4 8 L3 5 L0 4 L3 3 Z" fill="#22C55E" />
+      </g>
+      <g transform="translate(202, 68)">
+        <path d="M4 0 L5 3 L8 4 L5 5 L4 8 L3 5 L0 4 L3 3 Z" fill="#F59E0B" />
       </g>
     </svg>
   );
 }
+
+
 
 /**
  * HomePage Component
@@ -379,25 +606,25 @@ export function HomePage({
             {/* Text Content */}
             <div className="mt-1 text-left">
               <h2 className="text-base sm:text-lg font-black text-zinc-900 tracking-tight flex items-center justify-between">
-                <span>Learn ISL</span>
+                <span>Learn ISL Curriculum</span>
                 <span className="text-xs font-bold text-zinc-400 group-hover:text-zinc-900 transition-colors">
                   Studio →
                 </span>
               </h2>
               <p className="mt-0.5 text-xs text-zinc-600 font-medium leading-relaxed">
-                Master 2-handed ISL alphabets and common signs with live skeleton posture alignment and immediate visual feedback.
+                Tailored 7-level course: start with Namaste, master two-handed A–Z fingerspelling, health, transit, and 1,000+ signs with live AI skeleton guidance.
               </p>
 
               {/* Micro Feature List */}
               <div className="mt-2 pt-1.5 border-t border-zinc-100 flex flex-wrap gap-1.5">
                 <span className="inline-flex items-center gap-1 text-[10px] font-bold text-zinc-700 bg-[#F4EFEA] px-2 py-0.5 rounded-md">
-                  <CheckCircle2 className="w-2.5 h-2.5 text-[#22C55E]" /> 26 A–Z Letters
+                  <CheckCircle2 className="w-2.5 h-2.5 text-[#22C55E]" /> Start with Namaste
                 </span>
                 <span className="inline-flex items-center gap-1 text-[10px] font-bold text-zinc-700 bg-[#F4EFEA] px-2 py-0.5 rounded-md">
-                  <CheckCircle2 className="w-2.5 h-2.5 text-[#22C55E]" /> 50+ Core Signs
+                  <CheckCircle2 className="w-2.5 h-2.5 text-[#22C55E]" /> 7 Tailored Levels
                 </span>
                 <span className="inline-flex items-center gap-1 text-[10px] font-bold text-zinc-700 bg-[#F4EFEA] px-2 py-0.5 rounded-md">
-                  <CheckCircle2 className="w-2.5 h-2.5 text-[#22C55E]" /> AI Posture Guide
+                  <CheckCircle2 className="w-2.5 h-2.5 text-[#22C55E]" /> 1,000+ Lexicon Signs
                 </span>
               </div>
             </div>

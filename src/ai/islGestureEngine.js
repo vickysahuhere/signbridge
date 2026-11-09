@@ -833,6 +833,29 @@ export function classifyIslWord(leftHand, rightHand, pose, motion) {
     }
   }
 
+  // 24. MORNING (Dominant hand rising upward like sunrise in front of chest/chin)
+  for (const h of hands) {
+    if ((h.isOpenPalm || h.extendedCount >= 4) && h.wrist.y < 0.72) {
+      const inSunriseZone = h.wrist.y > nose.y + 0.02 && h.wrist.y < leftShoulder.y + 0.20;
+      const fingersPointingUp = h.points[12].y < h.wrist.y - 0.06;
+      const notTouchingLips = dist2D(h.points[12], { x: nose.x, y: nose.y + 0.08 }) > 0.12;
+      if (inSunriseZone && fingersPointingUp && notTouchingLips) {
+        // If non-dominant arm forms horizontal horizon
+        if (left && right) {
+          const nonDom = (h === right) ? left : right;
+          const isHorizon = Math.abs(nonDom.points[12].y - nonDom.wrist.y) < 0.12;
+          if (isHorizon && h.wrist.y <= nonDom.wrist.y + 0.08) {
+            score('MORNING', 0.95);
+          } else {
+            score('MORNING', 0.93);
+          }
+        } else {
+          score('MORNING', 0.93);
+        }
+      }
+    }
+  }
+
   // Convert scores dictionary to ranked top-4 list
   const entries = Object.entries(scores)
     .map(([label, confidence]) => ({ label, confidence }))

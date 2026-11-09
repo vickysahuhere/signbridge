@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Sparkles,
   CheckCircle2,
@@ -9,8 +9,10 @@ import {
   Award,
   Zap,
   Clock,
-  RotateCcw
+  RotateCcw,
+  Milestone
 } from 'lucide-react';
+import { getLevelForGloss } from '../ai/islCourseCurriculum.js';
 
 export function LearnGuessPanel({
   selectedItem,
@@ -20,9 +22,16 @@ export function LearnGuessPanel({
   onToggleMode,
   motionState = { state: 'IDLE', pauseProgress: 0, rollingVelocity: 0 },
   onNextSign,
+  onOpenAcademy,
   masteredCount = 0,
-  isMatched = false
+  isMatched = false,
+  activeStepIndex = 0,
+  completedSteps = [],
+  stepSuccessFlash = null
 }) {
+  const currentLevel = useMemo(() => {
+    return getLevelForGloss(selectedItem?.label);
+  }, [selectedItem]);
   // Determine top candidates based on mode
   const candidates = recognitionMode === 'word'
     ? (wordPredictions?.topCandidates || [])
@@ -31,10 +40,19 @@ export function LearnGuessPanel({
   const topCandidate = candidates[0] || null;
   const targetLabel = selectedItem?.label?.toUpperCase() || '';
 
-  // Does the current top guess match the target word?
-  const guessMatchesTarget = topCandidate &&
-    topCandidate.label?.toUpperCase() === targetLabel &&
-    topCandidate.confidence >= 0.75;
+  const activeStep = selectedItem?.isCompound && selectedItem?.steps
+    ? selectedItem.steps[activeStepIndex] || selectedItem.steps[0]
+    : null;
+
+  const activeStepTarget = activeStep
+    ? (activeStepIndex === 0 ? 'GOOD' : 'MORNING')
+    : targetLabel;
+
+  // Does the current top guess match the target word or active compound step?
+  const guessMatchesTarget = topCandidate && (
+    topCandidate.label?.toUpperCase() === targetLabel ||
+    topCandidate.label?.toUpperCase() === activeStepTarget
+  ) && topCandidate.confidence >= 0.75;
 
   const activeGuess = topCandidate?.label || 'Ready / Watching';
   const activeConfidence = topCandidate ? Math.round(topCandidate.confidence * 100) : 0;
@@ -93,7 +111,9 @@ export function LearnGuessPanel({
       <div className="w-full sm:w-64 lg:w-80 flex flex-col gap-1.5 bg-[#FAF8F5] p-2 rounded-xl border border-zinc-200">
         <div className="flex items-center justify-between text-[10px] font-bold text-zinc-500 font-mono">
           <span>Candidate Rankings</span>
-          <span>Target: {targetLabel}</span>
+          <span className="truncate max-w-[150px]">
+            L{currentLevel.levelNumber} Target: {activeStep ? activeStep.title : targetLabel}
+          </span>
         </div>
 
         <div className="space-y-1">
@@ -129,14 +149,19 @@ export function LearnGuessPanel({
 
       {/* 3. Right Section: Mastered Streak & Action Controls */}
       <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end flex-shrink-0">
-        {/* Streak Counter */}
-        <div className="cartoon-card-subtle px-3 py-1.5 bg-[#FEFCE8] border-zinc-900 flex items-center gap-1.5">
-          <Flame className="w-4 h-4 text-amber-500 fill-amber-500" />
-          <div className="text-left leading-none">
-            <span className="text-[9px] uppercase font-bold text-zinc-400 block font-mono">Mastered</span>
-            <span className="text-xs font-extrabold text-zinc-900">{masteredCount} Signs</span>
+        {/* Streak Counter / Sign Academy Shortcut */}
+        <button
+          type="button"
+          onClick={onOpenAcademy}
+          className="cartoon-card-subtle px-3 py-1.5 bg-[#FEFCE8] hover:bg-[#FEF08A] border-zinc-900 flex items-center gap-1.5 transition-colors cursor-pointer text-left shadow-cartoon-sm"
+          title="Click to open Sign Academy"
+        >
+          <Flame className="w-4 h-4 text-amber-500 fill-amber-500 flex-shrink-0" />
+          <div className="leading-none min-w-0">
+            <span className="text-[9px] uppercase font-bold text-zinc-500 block font-mono">Mastered</span>
+            <span className="text-xs font-extrabold text-zinc-900 truncate block">{masteredCount} / 1,000+</span>
           </div>
-        </div>
+        </button>
 
         {/* Next Sign Button */}
         <button
@@ -146,9 +171,9 @@ export function LearnGuessPanel({
               ? 'bg-[#22C55E] text-white hover:bg-[#16A34A] border-zinc-900 shadow-cartoon-sm animate-pulse'
               : 'bg-[#FFD15C] text-zinc-900 hover:bg-[#FBBF24] border-zinc-900 shadow-cartoon-sm'
           }`}
-          title="Practice next sign"
+          title="Advance to next sign on course path"
         >
-          <span>Next Sign</span>
+          <span>{guessMatchesTarget || isMatched ? 'Next in Course' : 'Next Sign'}</span>
           <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
         </button>
       </div>

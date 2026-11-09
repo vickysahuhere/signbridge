@@ -261,6 +261,48 @@ test('islGestureEngine - CALL gesture (phone hand near ear) recognized accuratel
   assert.ok(words[0].confidence >= 0.90);
 });
 
+test('islGestureEngine - MORNING (sunrise gesture) recognized accurately', () => {
+  // Dominant open hand rising upward in upper chest zone with fingers pointing up
+  const sunriseHand = [
+    { x: 0.65, y: 0.45, z: 0 }, // wrist (0)
+    // Thumb:
+    { x: 0.62, y: 0.43, z: 0 },
+    { x: 0.60, y: 0.40, z: 0 },
+    { x: 0.58, y: 0.38, z: 0 },
+    { x: 0.56, y: 0.35, z: 0 }, // thumb tip (4)
+    // Index:
+    { x: 0.63, y: 0.40, z: 0 },
+    { x: 0.63, y: 0.35, z: 0 },
+    { x: 0.63, y: 0.30, z: 0 },
+    { x: 0.63, y: 0.25, z: 0 }, // index tip (8)
+    // Middle:
+    { x: 0.65, y: 0.39, z: 0 },
+    { x: 0.65, y: 0.34, z: 0 },
+    { x: 0.65, y: 0.29, z: 0 },
+    { x: 0.65, y: 0.23, z: 0 }, // middle tip (12)
+    // Ring:
+    { x: 0.67, y: 0.40, z: 0 },
+    { x: 0.67, y: 0.35, z: 0 },
+    { x: 0.67, y: 0.30, z: 0 },
+    { x: 0.67, y: 0.25, z: 0 }, // ring tip (16)
+    // Pinky:
+    { x: 0.69, y: 0.41, z: 0 },
+    { x: 0.69, y: 0.37, z: 0 },
+    { x: 0.69, y: 0.33, z: 0 },
+    { x: 0.69, y: 0.28, z: 0 }  // pinky tip (20)
+  ];
+
+  const pose = Array.from({ length: 33 }, () => ({ x: 0.5, y: 0.3, z: 0 }));
+  pose[0] = { x: 0.5, y: 0.22, z: 0 }; // nose
+  pose[11] = { x: 0.4, y: 0.45, z: 0 }; // left shoulder
+  pose[12] = { x: 0.6, y: 0.45, z: 0 }; // right shoulder
+
+  const words = classifyIslWord(null, sunriseHand, pose, { state: 'SIGNING_ACTIVE' });
+  assert.ok(words.length > 0);
+  assert.strictEqual(words[0].label, 'MORNING');
+  assert.ok(words[0].confidence >= 0.90);
+});
+
 test('islGestureEngine - rejects resting hand at bottom of frame', () => {
   const restingHand = [
     { x: 0.5, y: 0.92, z: 0 }, // wrist below 0.85

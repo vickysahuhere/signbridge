@@ -101,18 +101,18 @@ test('wordClassifier - verifies no fake placeholder models and validates 260-cla
   assert.strictEqual(top4[0].isConfident, true);
 });
 
-test('wordClassifier - validates 1000-class Tier 3 sequence inference logic', async () => {
-  assert.strictEqual(WORD_COUNT, 1000);
-  const sampleLogits = new Float32Array(1000);
+test('wordClassifier - validates 1000+ class Tier 3 sequence inference logic', async () => {
+  assert.strictEqual(WORD_COUNT >= 1000, true);
+  const sampleLogits = new Float32Array(WORD_COUNT);
   sampleLogits.fill(-2.0);
   sampleLogits[42] = 8.0;  // YES
   sampleLogits[100] = 3.0; // CLEAN
 
   const probs = softmax(sampleLogits);
-  assert.strictEqual(probs.length, 1000);
+  assert.strictEqual(probs.length, WORD_COUNT);
 
   let sum = 0;
-  for (let i = 0; i < 1000; i++) {
+  for (let i = 0; i < WORD_COUNT; i++) {
     assert.strictEqual(probs[i] >= 0 && probs[i] <= 1, true);
     sum += probs[i];
   }

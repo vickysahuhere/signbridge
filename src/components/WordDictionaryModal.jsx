@@ -9,7 +9,7 @@ export const LIVE_VISION_GLOSSES = new Set([
   'STOP', 'TIME', 'WANT', 'WELCOME', 'YES', 'YOU'
 ]);
 
-export function WordDictionaryModal({ isOpen, onClose }) {
+export function WordDictionaryModal({ isOpen, onClose, onSelectForPractice }) {
   const [activeTab, setActiveTab] = useState('words'); // 'words' | 'alphabet'
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -71,7 +71,7 @@ export function WordDictionaryModal({ isOpen, onClose }) {
                 ISL Sign Dictionary
               </h2>
               <p className="text-xs text-zinc-500 font-medium">
-                {activeTab === 'words' ? '1,000-Word Lexicon (Tier 3 Daily English)' : '26 A–Z Two-Handed Letters'}
+                {activeTab === 'words' ? `${ISL_WORD_LABELS.length} Lexicon Words (Tier 3 Daily English)` : '26 A–Z Two-Handed Letters'}
               </p>
             </div>
           </div>
@@ -101,7 +101,7 @@ export function WordDictionaryModal({ isOpen, onClose }) {
                     : 'text-zinc-600 hover:text-zinc-900 border-2 border-transparent'
                 }`}
               >
-                1,000 Lexicon Words (Tier 3)
+                1,000+ Lexicon Words ({ISL_WORD_LABELS.length})
               </button>
               <button
                 onClick={() => {
@@ -215,8 +215,18 @@ export function WordDictionaryModal({ isOpen, onClose }) {
                           {word.description}
                         </p>
                       </div>
-                      <div className="text-[10px] font-mono text-zinc-400 pt-1 border-t border-zinc-100 flex justify-between">
+                      <div className="text-[10px] font-mono text-zinc-400 pt-1 border-t border-zinc-100 flex items-center justify-between">
                         <span>Sign ID #{word.id}</span>
+                        {onSelectForPractice && (
+                          <button
+                            onClick={() => onSelectForPractice(word.gloss)}
+                            className="cartoon-btn !py-0.5 !px-2 text-[10px] bg-[#FFD15C] hover:bg-[#FFE082] text-zinc-900 border border-zinc-900 flex items-center gap-1 font-bold shadow-none"
+                            title="Practice this sign in Sign Academy"
+                          >
+                            <Sparkles className="w-3 h-3 text-zinc-900" />
+                            Practice Sign
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -264,8 +274,20 @@ export function WordDictionaryModal({ isOpen, onClose }) {
                         {item.description}
                       </p>
                     </div>
-                    <div className="text-[11px] font-semibold text-[#16A34A] bg-[#EDFDF2] p-1.5 rounded-lg border border-green-200">
-                      💡 {item.tip}
+                    <div className="flex items-center justify-between gap-1 pt-1 border-t border-zinc-100">
+                      <div className="text-[11px] font-semibold text-[#16A34A] bg-[#EDFDF2] p-1.5 rounded-lg border border-green-200 flex-1">
+                        💡 {item.tip}
+                      </div>
+                      {onSelectForPractice && (
+                        <button
+                          onClick={() => onSelectForPractice(item.letter)}
+                          className="cartoon-btn !py-1 !px-2 text-[10px] bg-[#38BDF8] hover:bg-[#7dd3fc] text-zinc-900 border border-zinc-900 flex items-center gap-1 font-bold shadow-none flex-shrink-0"
+                          title="Practice this letter in Sign Academy"
+                        >
+                          <Sparkles className="w-3 h-3 text-zinc-900" />
+                          Practice
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))

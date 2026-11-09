@@ -15,7 +15,8 @@ import {
   Moon,
   Sun,
   Activity,
-  Crosshair
+  Crosshair,
+  Layers
 } from 'lucide-react';
 import { startCameraLoop } from '../vision/cameraLoop.js';
 import { drawSkeleton, checkBoundaryAlert, HAND_CONNECTIONS } from '../vision/drawSkeleton.js';
@@ -28,7 +29,10 @@ export function LearnStage({
   fps = 0,
   targetSkeleton = null,
   selectedItem = null,
-  isMatched = false
+  isMatched = false,
+  activeStepIndex = 0,
+  completedSteps = [],
+  stepSuccessFlash = null
 }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -285,12 +289,69 @@ export function LearnStage({
           className="absolute inset-0 w-full h-full object-cover transform -scale-x-100 pointer-events-none z-10"
         />
 
+        {/* Compound Sign Multi-Step Progression HUD */}
+        {selectedItem?.isCompound && selectedItem?.steps && (
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1.5 max-w-[92%] sm:max-w-none">
+            <div className="cartoon-card bg-white/95 backdrop-blur-sm px-3 py-1.5 border-2 border-zinc-900 shadow-cartoon-sm flex items-center gap-2">
+              <span className="text-[10px] font-black uppercase text-amber-900 flex items-center gap-1">
+                <Layers className="w-3.5 h-3.5 text-amber-600 stroke-[2.5]" />
+                Compound Sequence:
+              </span>
+              <div className="flex items-center gap-1.5">
+                {selectedItem.steps.map((st, idx) => {
+                  const isDone = completedSteps.includes(idx);
+                  const isCurrent = idx === activeStepIndex;
+                  return (
+                    <div
+                      key={st.id}
+                      className={`cartoon-badge !py-0.5 !px-2 text-[10px] font-bold flex items-center gap-1 transition-all ${
+                        isDone
+                          ? 'bg-[#22C55E] text-white border-2 border-zinc-900'
+                          : isCurrent
+                          ? 'bg-[#FFD15C] text-zinc-900 border-2 border-zinc-900 shadow-cartoon-sm animate-pulse'
+                          : 'bg-zinc-100 text-zinc-400 border border-zinc-300'
+                      }`}
+                    >
+                      {isDone ? (
+                        <CheckCircle2 className="w-3 h-3 stroke-[2.5]" />
+                      ) : (
+                        <span className="w-3 h-3 rounded-full bg-zinc-900/10 flex items-center justify-center text-[8px] font-black">
+                          {idx + 1}
+                        </span>
+                      )}
+                      <span>{st.title.split(':')[1]?.trim() || st.title}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Step Transition Flash Overlay */}
+        {stepSuccessFlash && (
+          <div className="absolute top-14 left-1/2 -translate-x-1/2 z-25 pointer-events-none animate-bounce">
+            <div className={`cartoon-card px-4 py-2 border-2 border-zinc-900 shadow-cartoon-lg flex items-center gap-2 text-xs font-black ${
+              stepSuccessFlash.isTimeout
+                ? 'bg-amber-100 text-amber-900 border-amber-800'
+                : 'bg-[#22C55E] text-white'
+            }`}>
+              <Sparkles className="w-4 h-4 fill-current stroke-[2.5]" />
+              <span>
+                {stepSuccessFlash.isTimeout
+                  ? stepSuccessFlash.message
+                  : `PART ${stepSuccessFlash.stepNumber} LOCKED! Now perform the next step! 🌟`}
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Target Matched Flash Overlay */}
         {isMatched && (
           <div className="absolute inset-0 pointer-events-none z-20 border-4 border-[#22C55E] animate-pulse bg-[#22C55E]/10 flex items-center justify-center">
             <div className="cartoon-card bg-[#22C55E] text-white px-4 py-2 text-sm sm:text-base font-extrabold shadow-cartoon-lg flex items-center gap-2">
               <CheckCircle2 className="w-6 h-6 stroke-[3]" />
-              <span>POSTURE MATCHED! 🌟</span>
+              <span>{selectedItem?.isCompound ? `${selectedItem.name.toUpperCase()} MASTERED! 🌟` : 'POSTURE MATCHED! 🌟'}</span>
             </div>
           </div>
         )}

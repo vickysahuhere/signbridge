@@ -6,6 +6,24 @@
  * - Concatenates contiguous fingerspelled alphabet characters into a single spelled word entity.
  * - Provides manual editing methods: undo last sign and clear all (LING-02).
  */
+/**
+ * Authentic Indian Sign Language (ISLRTC) Compound Sign Rules.
+ * When root signs are produced in sequence within a temporal window,
+ * they automatically fuse into their compound sign representation.
+ */
+export const ISL_COMPOUND_RULES = Object.freeze([
+  { parts: ['GOOD', 'MORNING'], compound: 'GOOD_MORNING' },
+  { parts: ['GOOD', 'AFTERNOON'], compound: 'GOOD_AFTERNOON' },
+  { parts: ['GOOD', 'EVENING'], compound: 'GOOD_EVENING' },
+  { parts: ['GOOD', 'NIGHT'], compound: 'GOOD_NIGHT' },
+  { parts: ['MORNING', 'EAT'], compound: 'BREAKFAST' },
+  { parts: ['AFTERNOON', 'EAT'], compound: 'LUNCH' },
+  { parts: ['NIGHT', 'EAT'], compound: 'DINNER' },
+  { parts: ['DOCTOR', 'HOUSE'], compound: 'HOSPITAL' },
+  { parts: ['DOCTOR', 'HOME'], compound: 'HOSPITAL' },
+  { parts: ['MEDICINE', 'SHOP'], compound: 'PHARMACY' }
+]);
+
 export class GlossBufferManager {
   constructor() {
     this.buffer = [];
@@ -45,6 +63,21 @@ export class GlossBufferManager {
       const last = this.buffer[this.buffer.length - 1];
       if (last.gloss === cleanToken) {
         return false; // Deduplicated
+      }
+
+      // Compound Sign Fusion:
+      // If preceding token and incoming token form an authentic ISL compound within 4 seconds,
+      // fuse them into the unified compound sign entity.
+      if (type === 'word' && (now - last.timestamp) < 4000) {
+        const matchRule = ISL_COMPOUND_RULES.find(rule =>
+          rule.parts[0] === last.gloss && rule.parts[1] === cleanToken
+        );
+        if (matchRule) {
+          last.gloss = matchRule.compound;
+          last.isCompound = true;
+          last.timestamp = now;
+          return true;
+        }
       }
     }
 

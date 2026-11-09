@@ -8,7 +8,7 @@ import {
 
 test('islTargetLandmarks - exports full collection of authentic learn items', () => {
   assert.strictEqual(Array.isArray(ISL_LEARN_ITEMS), true);
-  assert.strictEqual(ISL_LEARN_ITEMS.length >= 10, true);
+  assert.strictEqual(ISL_LEARN_ITEMS.length >= 1000, true);
 
   for (const item of ISL_LEARN_ITEMS) {
     assert.strictEqual(typeof item.id, 'string');
@@ -22,6 +22,38 @@ test('islTargetLandmarks - exports full collection of authentic learn items', ()
     assert.strictEqual(typeof item.targetSkeleton, 'object');
     assert.strictEqual(typeof item.blueprint, 'object');
   }
+});
+
+test('islTargetLandmarks - 1000+ words learning curriculum coverage across all categories', () => {
+  const categories = new Set(ISL_LEARN_ITEMS.map(i => i.category));
+  assert.strictEqual(categories.has('greetings'), true);
+  assert.strictEqual(categories.has('pronouns'), true);
+  assert.strictEqual(categories.has('questions'), true);
+  assert.strictEqual(categories.has('actions'), true);
+  assert.strictEqual(categories.has('transit'), true);
+  assert.strictEqual(categories.has('healthcare'), true);
+  assert.strictEqual(categories.has('shopping_food'), true);
+  assert.strictEqual(categories.has('education_work'), true);
+  assert.strictEqual(categories.has('time_calendar'), true);
+  assert.strictEqual(categories.has('feelings_states'), true);
+  assert.strictEqual(categories.has('essentials'), true);
+  assert.strictEqual(categories.has('alphabet'), true);
+
+  const metro = getLearnItemByLabel('METRO_TRAIN');
+  assert.strictEqual(metro != null, true);
+  assert.strictEqual(metro.label, 'METRO_TRAIN');
+  assert.strictEqual(metro.category, 'transit');
+
+  const signLang = getLearnItemByLabel('SIGN_LANGUAGE');
+  assert.strictEqual(signLang != null, true);
+  assert.strictEqual(signLang.label, 'SIGN_LANGUAGE');
+
+  // Verify synthesized evaluation returns valid match results
+  const res = metro.evaluate(null);
+  assert.strictEqual(res.isMatched, false);
+  assert.strictEqual(typeof res.matchScore, 'number');
+  assert.strictEqual(Array.isArray(res.checklist), true);
+  assert.strictEqual(typeof res.primaryGuidance, 'string');
 });
 
 test('islTargetLandmarks - dictionary lookup works accurately', () => {
@@ -137,11 +169,55 @@ test('islTargetLandmarks - time sign uses authentic human gesture image instead 
   assert.strictEqual(time.image, '/signs/time.jpg');
 });
 
-test('islTargetLandmarks - strictly no gif images, all items use static demonstration images', () => {
+test('islTargetLandmarks - compound signs support multi-step sequence evaluation (GOOD_MORNING)', () => {
+  const goodMorning = getLearnItemByLabel('GOOD_MORNING');
+  assert.strictEqual(goodMorning != null, true);
+  assert.strictEqual(goodMorning.isCompound, true);
+  assert.strictEqual(Array.isArray(goodMorning.steps), true);
+  assert.strictEqual(goodMorning.steps.length, 2);
+
+  // Step 1: Good (Thumbs-Up)
+  assert.strictEqual(goodMorning.steps[0].id, 'step_good');
+  assert.strictEqual(goodMorning.steps[0].stepNumber, 1);
+  assert.strictEqual(goodMorning.steps[0].targetGloss, 'GOOD');
+
+  // Step 2: Morning (Sunrise)
+  assert.strictEqual(goodMorning.steps[1].id, 'step_morning');
+  assert.strictEqual(goodMorning.steps[1].stepNumber, 2);
+  assert.strictEqual(goodMorning.steps[1].targetGloss, 'MORNING');
+
+  // Delegated evaluate call for step 0
+  const step0Res = goodMorning.evaluate(null, 0);
+  assert.strictEqual(step0Res.isCompound, true);
+  assert.strictEqual(step0Res.stepIndex, 0);
+  assert.strictEqual(step0Res.totalSteps, 2);
+
+  // Delegated evaluate call for step 1
+  const step1Res = goodMorning.evaluate(null, 1);
+  assert.strictEqual(step1Res.isCompound, true);
+  assert.strictEqual(step1Res.stepIndex, 1);
+  assert.strictEqual(step1Res.totalSteps, 2);
+});
+
+test('islTargetLandmarks - signs use valid demonstration images', () => {
   for (const item of ISL_LEARN_ITEMS) {
     if (item.image) {
-      assert.strictEqual(item.image.endsWith('.gif'), false, `Item ${item.id} should NOT use .gif`);
-      assert.strictEqual(item.image.endsWith('.jpg') || item.image.endsWith('.png') || item.image.endsWith('.webp'), true);
+      assert.strictEqual(
+        item.image.endsWith('.jpg') || item.image.endsWith('.png') || item.image.endsWith('.webp') || item.image.endsWith('.gif'),
+        true,
+        `Item ${item.id} should use valid image asset`
+      );
     }
   }
 });
+
+test('islTargetLandmarks - dynamic signs in Level 1 use authentic animated GIFs', () => {
+  const dynamicGlosses = ['GOOD_MORNING', 'HELLO', 'THANK_YOU', 'WELCOME', 'PLEASE', 'SORRY', 'YES', 'NO'];
+  for (const gloss of dynamicGlosses) {
+    const item = getLearnItemByLabel(gloss);
+    assert.ok(item, `Dynamic sign ${gloss} should exist in curriculum`);
+    assert.ok(item.image, `Dynamic sign ${gloss} should have demonstration media`);
+    assert.strictEqual(item.image.endsWith('.gif'), true, `Dynamic sign ${gloss} should use .gif`);
+  }
+});
+

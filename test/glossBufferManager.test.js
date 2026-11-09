@@ -122,3 +122,20 @@ test('GlossBufferManager - removeAt() removes a specific token at index (1-click
   assert.equal(manager.removeAt('0'), null);
   assert.equal(manager.size(), 2);
 });
+
+test('GlossBufferManager - fuses compound signs (GOOD + MORNING -> GOOD_MORNING)', () => {
+  const manager = new GlossBufferManager();
+  assert.equal(manager.push('GOOD', 'word'), true);
+  assert.deepEqual(manager.getGlosses(), ['GOOD']);
+
+  // Pushing MORNING immediately after GOOD fuses into GOOD_MORNING
+  assert.equal(manager.push('MORNING', 'word'), true);
+  assert.equal(manager.size(), 1);
+  assert.deepEqual(manager.getGlosses(), ['GOOD_MORNING']);
+
+  // MORNING + EAT fuses into BREAKFAST
+  const breakfastManager = new GlossBufferManager();
+  breakfastManager.push('MORNING', 'word');
+  breakfastManager.push('EAT', 'word');
+  assert.deepEqual(breakfastManager.getGlosses(), ['BREAKFAST']);
+});
