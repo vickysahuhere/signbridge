@@ -9,7 +9,8 @@ import {
   Globe,
   Compass,
   CheckCircle2,
-  Hash
+  Hash,
+  HelpCircle
 } from 'lucide-react';
 
 /**
@@ -572,6 +573,22 @@ export function HomePage({
         <p className="mt-1 text-xs sm:text-[13px] text-zinc-600 font-medium max-w-lg mx-auto leading-normal">
           Choose where you want to start: practice signs with real-time skeleton AI guidance, or start an instant translated video call.
         </p>
+
+        {/* Quick App Guide & Walkthrough Launcher */}
+        {onOpenGuide && (
+          <div className="mt-2.5 flex justify-center">
+            <button
+              type="button"
+              onClick={onOpenGuide}
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#FFF9E5] hover:bg-[#FFD15C] border-2 border-zinc-900 shadow-cartoon-sm text-xs font-black text-zinc-900 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              title="Open interactive application guide and walkthrough"
+            >
+              <HelpCircle className="w-4 h-4 stroke-[2.5] text-zinc-900" />
+              <span>New to Sanket? Open App Guide &amp; Walkthrough</span>
+              <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 2. Primary Choice Arena: Dual Minimal Portals */}

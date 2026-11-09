@@ -993,6 +993,15 @@ export function App() {
         isOpen={isGuideOpen}
         onClose={() => setIsGuideOpen(false)}
         onOpenDictionary={() => setIsDictionaryOpen(true)}
+        onNavigateToMode={(mode) => setCurrentPage(mode)}
+        onSelectForPractice={(label) => {
+          const item = getLearnItemByLabel(label);
+          if (item) {
+            handleSelectLearnItem(item);
+            setCurrentPage('learn');
+            setIsGuideOpen(false);
+          }
+        }}
       />
 
       {/* In-Browser Issue Reporter & Feedback Modal */}
