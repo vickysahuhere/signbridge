@@ -24,6 +24,7 @@ import {
   Laptop,
   Globe,
   Play,
+  RotateCcw,
   X
 } from 'lucide-react';
 import { ISL_LEARN_ITEMS, getLearnItemByLabel } from '../ai/islTargetLandmarks.js';
@@ -45,7 +46,10 @@ export function LearnSidebar({
   onOpenAcademy,
   onCloseAcademy,
   activeStepIndex = 0,
-  completedSteps = []
+  completedSteps = [],
+  successfulReps = 0,
+  targetReps = 3,
+  onResetPractice
 }) {
   // Navigation Mode: 'course' (guided level path) | 'lexicon' (search all 1,051 signs)
   const [viewMode, setViewMode] = useState('course');
@@ -296,6 +300,40 @@ export function LearnSidebar({
                 {score}%
               </span>
             </div>
+          </div>
+
+          {/* Repetition Goal: Complete 3 Times to Pass */}
+          <div className="bg-[#FAF8F5] p-2 rounded-xl border border-zinc-200 flex items-center justify-between gap-2 flex-shrink-0">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="text-[9px] font-black uppercase text-zinc-600 font-mono">
+                Pass Goal:
+              </span>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: targetReps }).map((_, i) => (
+                  <span
+                    key={i}
+                    className={`px-1.5 py-0.5 rounded text-[10px] font-black border transition-all ${
+                      successfulReps > i
+                        ? 'bg-[#22C55E] text-white border-zinc-900'
+                        : 'bg-white text-zinc-400 border-zinc-300'
+                    }`}
+                  >
+                    {successfulReps > i ? `✓ ${i + 1}` : `${i + 1}/${targetReps}`}
+                  </span>
+                ))}
+              </div>
+            </div>
+            {onResetPractice && (
+              <button
+                type="button"
+                onClick={onResetPractice}
+                className="cartoon-btn !py-0.5 !px-2 text-[10px] font-bold bg-white text-zinc-700 hover:bg-zinc-100 border border-zinc-900 shadow-sm flex items-center gap-1 cursor-pointer flex-shrink-0"
+                title="Reset repetitions and try again"
+              >
+                <RotateCcw className="w-3 h-3 stroke-[2.2]" />
+                <span>Try Again</span>
+              </button>
+            )}
           </div>
 
           {/* Compound Sign Multi-Step Mini Progress Indicator */}
