@@ -27,7 +27,10 @@ export function LearnGuessPanel({
   isMatched = false,
   activeStepIndex = 0,
   completedSteps = [],
-  stepSuccessFlash = null
+  stepSuccessFlash = null,
+  successfulReps = 0,
+  targetReps = 3,
+  onResetPractice
 }) {
   const currentLevel = useMemo(() => {
     return getLevelForGloss(selectedItem?.label);
@@ -148,7 +151,34 @@ export function LearnGuessPanel({
       </div>
 
       {/* 3. Right Section: Mastered Streak & Action Controls */}
-      <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end flex-shrink-0">
+      <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-shrink-0 flex-wrap">
+        {/* Repetition Progress Pill */}
+        <div
+          className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#FAF8F5] border-2 border-zinc-900 rounded-xl shadow-cartoon-sm"
+          title={`${successfulReps} of ${targetReps} reps completed. Sign 3 times to pass.`}
+        >
+          <div className="leading-none text-left">
+            <span className="text-[8px] uppercase font-bold text-zinc-500 block font-mono">Pass Goal</span>
+            <span className={`text-xs font-black ${isMatched ? 'text-[#16A34A]' : 'text-zinc-900'}`}>
+              {successfulReps}/{targetReps} Reps
+            </span>
+          </div>
+          <div className="flex items-center gap-0.5 ml-1">
+            {Array.from({ length: targetReps }).map((_, i) => (
+              <span
+                key={i}
+                className={`w-4 h-4 rounded text-[9px] font-black flex items-center justify-center border transition-all ${
+                  successfulReps > i
+                    ? 'bg-[#22C55E] text-white border-zinc-900'
+                    : 'bg-zinc-200 text-zinc-400 border-zinc-300'
+                }`}
+              >
+                {successfulReps > i ? '✓' : i + 1}
+              </span>
+            ))}
+          </div>
+        </div>
+
         {/* Streak Counter / Sign Academy Shortcut */}
         <button
           type="button"
@@ -163,17 +193,28 @@ export function LearnGuessPanel({
           </div>
         </button>
 
+        {/* Try Again Button (Allows user to reset and practice again anytime) */}
+        <button
+          type="button"
+          onClick={onResetPractice}
+          className="cartoon-btn !py-1.5 !px-2.5 text-xs font-extrabold bg-white hover:bg-zinc-100 text-zinc-800 border-2 border-zinc-900 shadow-cartoon-sm flex items-center gap-1.5 transition-all cursor-pointer"
+          title="Reset practice and try this sign again"
+        >
+          <RotateCcw className="w-3.5 h-3.5 stroke-[2.2]" />
+          <span>Try Again</span>
+        </button>
+
         {/* Next Sign Button */}
         <button
           onClick={onNextSign}
-          className={`cartoon-btn !py-1.5 !px-3 text-xs font-extrabold flex items-center gap-1.5 ${
-            guessMatchesTarget || isMatched
+          className={`cartoon-btn !py-1.5 !px-3 text-xs font-extrabold flex items-center gap-1.5 cursor-pointer ${
+            isMatched
               ? 'bg-[#22C55E] text-white hover:bg-[#16A34A] border-zinc-900 shadow-cartoon-sm animate-pulse'
               : 'bg-[#FFD15C] text-zinc-900 hover:bg-[#FBBF24] border-zinc-900 shadow-cartoon-sm'
           }`}
           title="Advance to next sign on course path"
         >
-          <span>{guessMatchesTarget || isMatched ? 'Next in Course' : 'Next Sign'}</span>
+          <span>{isMatched ? 'Next in Course' : 'Next Sign'}</span>
           <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
         </button>
       </div>
