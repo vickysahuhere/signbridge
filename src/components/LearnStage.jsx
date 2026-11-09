@@ -5,6 +5,8 @@ import {
   Video,
   Sparkles,
   RefreshCw,
+  RotateCcw,
+  ArrowRight,
   Eye,
   EyeOff,
   Sliders,
@@ -32,7 +34,11 @@ export function LearnStage({
   isMatched = false,
   activeStepIndex = 0,
   completedSteps = [],
-  stepSuccessFlash = null
+  stepSuccessFlash = null,
+  successfulReps = 0,
+  targetReps = 3,
+  onResetPractice,
+  onNextSign
 }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -289,13 +295,49 @@ export function LearnStage({
           className="absolute inset-0 w-full h-full object-cover transform -scale-x-100 pointer-events-none z-10"
         />
 
+        {/* 3-Repetition Pass Goal HUD */}
+        <div className="absolute top-3 right-3 z-20 flex items-center gap-1.5 bg-white/95 backdrop-blur-sm px-2.5 py-1.5 rounded-xl border-2 border-zinc-900 shadow-cartoon-sm">
+          <div className="flex flex-col text-left leading-none">
+            <span className="text-[8px] font-mono font-bold uppercase text-zinc-500">
+              Pass Goal
+            </span>
+            <span className={`text-xs font-black ${isMatched ? 'text-[#16A34A]' : 'text-zinc-900'}`}>
+              {successfulReps}/{targetReps} Reps
+            </span>
+          </div>
+          <div className="flex items-center gap-1 ml-1">
+            {Array.from({ length: targetReps }).map((_, i) => (
+              <div
+                key={i}
+                className={`w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-black border transition-all ${
+                  successfulReps > i
+                    ? 'bg-[#22C55E] text-white border-zinc-900 scale-105'
+                    : 'bg-zinc-100 text-zinc-400 border-zinc-300'
+                }`}
+              >
+                {successfulReps > i ? '✓' : i + 1}
+              </div>
+            ))}
+          </div>
+          {successfulReps > 0 && onResetPractice && (
+            <button
+              onClick={onResetPractice}
+              type="button"
+              className="cartoon-btn !p-1 bg-white hover:bg-zinc-100 text-zinc-700 border border-zinc-900 rounded-md ml-0.5 cursor-pointer"
+              title="Try again from 0 reps"
+            >
+              <RotateCcw className="w-3 h-3 stroke-[2.2]" />
+            </button>
+          )}
+        </div>
+
         {/* Compound Sign Multi-Step Progression HUD */}
         {selectedItem?.isCompound && selectedItem?.steps && (
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1.5 max-w-[92%] sm:max-w-none">
+          <div className="absolute top-3 left-3 sm:left-1/2 sm:-translate-x-1/2 z-20 flex flex-col items-center gap-1.5 max-w-[92%] sm:max-w-none">
             <div className="cartoon-card bg-white/95 backdrop-blur-sm px-3 py-1.5 border-2 border-zinc-900 shadow-cartoon-sm flex items-center gap-2">
               <span className="text-[10px] font-black uppercase text-amber-900 flex items-center gap-1">
                 <Layers className="w-3.5 h-3.5 text-amber-600 stroke-[2.5]" />
-                Compound Sequence:
+                Compound:
               </span>
               <div className="flex items-center gap-1.5">
                 {selectedItem.steps.map((st, idx) => {
@@ -328,30 +370,71 @@ export function LearnStage({
           </div>
         )}
 
-        {/* Step Transition Flash Overlay */}
+        {/* Step / Repetition Transition Flash Overlay */}
         {stepSuccessFlash && (
-          <div className="absolute top-14 left-1/2 -translate-x-1/2 z-25 pointer-events-none animate-bounce">
+          <div className="absolute top-16 left-1/2 -translate-x-1/2 z-25 pointer-events-none animate-bounce">
             <div className={`cartoon-card px-4 py-2 border-2 border-zinc-900 shadow-cartoon-lg flex items-center gap-2 text-xs font-black ${
               stepSuccessFlash.isTimeout
                 ? 'bg-amber-100 text-amber-900 border-amber-800'
-                : 'bg-[#22C55E] text-white'
+                : stepSuccessFlash.isPass
+                ? 'bg-[#22C55E] text-white'
+                : 'bg-[#FFD15C] text-zinc-900'
             }`}>
               <Sparkles className="w-4 h-4 fill-current stroke-[2.5]" />
               <span>
-                {stepSuccessFlash.isTimeout
-                  ? stepSuccessFlash.message
-                  : `PART ${stepSuccessFlash.stepNumber} LOCKED! Now perform the next step! 🌟`}
+                {stepSuccessFlash.message || (
+                  stepSuccessFlash.isTimeout
+                    ? stepSuccessFlash.message
+                    : `PART ${stepSuccessFlash.stepNumber} LOCKED! Now perform the next step! 🌟`
+                )}
               </span>
             </div>
           </div>
         )}
 
-        {/* Target Matched Flash Overlay */}
+        {/* Target Matched & Passed Overlay (Unlocked only when 3 reps completed!) */}
         {isMatched && (
-          <div className="absolute inset-0 pointer-events-none z-20 border-4 border-[#22C55E] animate-pulse bg-[#22C55E]/10 flex items-center justify-center">
-            <div className="cartoon-card bg-[#22C55E] text-white px-4 py-2 text-sm sm:text-base font-extrabold shadow-cartoon-lg flex items-center gap-2">
-              <CheckCircle2 className="w-6 h-6 stroke-[3]" />
-              <span>{selectedItem?.isCompound ? `${selectedItem.name.toUpperCase()} MASTERED! 🌟` : 'POSTURE MATCHED! 🌟'}</span>
+          <div className="absolute inset-0 z-30 bg-zinc-950/40 backdrop-blur-[2px] flex items-center justify-center p-4">
+            <div className="cartoon-card bg-white border-3 border-zinc-900 p-5 shadow-cartoon-lg flex flex-col items-center gap-3 text-center max-w-sm w-full animate-in fade-in zoom-in-95 duration-200">
+              <div className="w-14 h-14 rounded-2xl bg-[#22C55E] border-2 border-zinc-900 text-white flex items-center justify-center shadow-cartoon-sm">
+                <CheckCircle2 className="w-8 h-8 stroke-[3]" />
+              </div>
+              <div>
+                <span className="text-[10px] uppercase font-mono font-bold text-zinc-400 block">
+                  Sign Mastery Complete
+                </span>
+                <h3 className="font-black text-lg text-zinc-900 mt-0.5">
+                  {selectedItem?.name} Passed! (3/3)
+                </h3>
+                <p className="text-xs text-zinc-600 font-medium mt-1 leading-relaxed">
+                  You successfully performed the sign 3 times! Great muscle memory.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2.5 w-full mt-2">
+                {onResetPractice && (
+                  <button
+                    type="button"
+                    onClick={onResetPractice}
+                    className="cartoon-btn flex-1 !py-2 bg-white hover:bg-zinc-100 text-zinc-900 border-2 border-zinc-900 text-xs font-extrabold flex items-center justify-center gap-1.5 cursor-pointer shadow-cartoon-sm transition-all"
+                    title="Practice this sign again from 0 reps"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span>Try Again</span>
+                  </button>
+                )}
+                {onNextSign && (
+                  <button
+                    type="button"
+                    onClick={onNextSign}
+                    className="cartoon-btn flex-1 !py-2 bg-[#22C55E] hover:bg-[#16A34A] text-white border-2 border-zinc-900 text-xs font-extrabold flex items-center justify-center gap-1.5 cursor-pointer shadow-cartoon-sm transition-all animate-pulse"
+                    title="Advance to the next sign on course path"
+                  >
+                    <span>Next Sign</span>
+                    <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         )}
