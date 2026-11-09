@@ -243,10 +243,22 @@ ${report.description || '*(No description provided)*'}
 ${report.screenshot ? '\n*(Screenshot attached with report bundle)*\n' : ''}`;
 }
 
+export const DEVELOPER_FEEDBACK_EMAIL = 'vickyasadharan@gmail.com';
+
+/**
+ * Generates a pre-filled mailto URL addressed to the developer with the complete markdown report.
+ */
+export function generateEmailFeedbackUrl(report, email = DEVELOPER_FEEDBACK_EMAIL) {
+  const subject = encodeURIComponent(`[Sanket Feedback] ${report.title || 'Issue Report'} (#${report.id})`);
+  const bodyText = generateMarkdownReport(report);
+  const body = encodeURIComponent(bodyText);
+  return `mailto:${email}?subject=${subject}&body=${body}`;
+}
+
 /**
  * Generates a pre-filled GitHub new issue URL.
  */
-export function generateGitHubIssueUrl(report, repoUrl = 'https://github.com/vicky-10/sanket') {
+export function generateGitHubIssueUrl(report, repoUrl = 'https://github.com/vickysahuhere/signbridge') {
   const base = repoUrl.replace(/\/$/, '');
   const title = encodeURIComponent(`[Feedback] ${report.title}`);
   const bodyText = generateMarkdownReport(report);

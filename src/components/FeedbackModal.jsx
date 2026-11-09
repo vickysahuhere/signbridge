@@ -20,16 +20,19 @@ import {
   FileText,
   Send,
   CheckCircle2,
-  Inbox
+  Inbox,
+  Mail
 } from 'lucide-react';
 import {
   FEEDBACK_CATEGORIES,
+  DEVELOPER_FEEDBACK_EMAIL,
   collectDiagnostics,
   saveFeedbackReport,
   getFeedbackReports,
   deleteFeedbackReport,
   clearAllFeedbackReports,
   generateMarkdownReport,
+  generateEmailFeedbackUrl,
   generateGitHubIssueUrl,
   downloadReportAsJSON,
   downloadScreenshotImage
@@ -358,49 +361,63 @@ export function FeedbackModal({
                   </div>
 
                   {/* Actions for User */}
-                  <div className="pt-2 grid grid-cols-1 sm:grid-cols-3 gap-2 text-left">
-                    {/* 1. Download File */}
-                    <button
-                      onClick={() => downloadReportAsJSON(submittedReport)}
-                      className="cartoon-btn !py-2 !px-3 text-xs bg-white hover:bg-zinc-50 flex items-center justify-center gap-1.5"
-                      title="Download JSON file with screenshot and diagnostics"
-                    >
-                      <Download className="w-3.5 h-3.5 text-zinc-800 stroke-[2.2]" />
-                      <span>Download JSON</span>
-                    </button>
-
-                    {/* 2. Copy Markdown */}
-                    <button
-                      onClick={() => handleCopyMarkdown(submittedReport)}
-                      className={`cartoon-btn !py-2 !px-3 text-xs flex items-center justify-center gap-1.5 ${
-                        copied ? 'cartoon-btn-mint' : 'bg-white hover:bg-zinc-50'
-                      }`}
-                      title="Copy issue summary to clipboard"
-                    >
-                      {copied ? (
-                        <>
-                          <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-                          <span>Copied!</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3.5 h-3.5 stroke-[2.2]" />
-                          <span>Copy Summary</span>
-                        </>
-                      )}
-                    </button>
-
-                    {/* 3. GitHub Issue */}
+                  <div className="pt-2 flex flex-col gap-2">
+                    {/* Primary Action: Direct Email to Developer */}
                     <a
-                      href={generateGitHubIssueUrl(submittedReport)}
+                      href={generateEmailFeedbackUrl(submittedReport)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="cartoon-btn !py-2 !px-3 text-xs bg-[#FFD15C] hover:bg-[#FFE082] flex items-center justify-center gap-1.5 text-zinc-900"
-                      title="Open pre-filled GitHub issue"
+                      className="cartoon-btn !py-2.5 !px-3 text-xs bg-[#22C55E] hover:bg-[#16A34A] text-white flex items-center justify-center gap-2 shadow-cartoon-sm font-black"
+                      title={`Open pre-filled email addressed to ${DEVELOPER_FEEDBACK_EMAIL}`}
                     >
-                      <ExternalLink className="w-3.5 h-3.5 stroke-[2.2]" />
-                      <span>Open on GitHub</span>
+                      <Mail className="w-4 h-4 stroke-[2.5]" />
+                      <span>Email to {DEVELOPER_FEEDBACK_EMAIL}</span>
                     </a>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-left">
+                      {/* 1. Download File */}
+                      <button
+                        onClick={() => downloadReportAsJSON(submittedReport)}
+                        className="cartoon-btn !py-2 !px-3 text-xs bg-white hover:bg-zinc-50 flex items-center justify-center gap-1.5"
+                        title="Download JSON file with screenshot and diagnostics"
+                      >
+                        <Download className="w-3.5 h-3.5 text-zinc-800 stroke-[2.2]" />
+                        <span>Download JSON</span>
+                      </button>
+
+                      {/* 2. Copy Markdown */}
+                      <button
+                        onClick={() => handleCopyMarkdown(submittedReport)}
+                        className={`cartoon-btn !py-2 !px-3 text-xs flex items-center justify-center gap-1.5 ${
+                          copied ? 'cartoon-btn-mint' : 'bg-white hover:bg-zinc-50'
+                        }`}
+                        title="Copy issue summary to clipboard"
+                      >
+                        {copied ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                            <span>Copied!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5 stroke-[2.2]" />
+                            <span>Copy Summary</span>
+                          </>
+                        )}
+                      </button>
+
+                      {/* 3. GitHub Issue */}
+                      <a
+                        href={generateGitHubIssueUrl(submittedReport)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="cartoon-btn !py-2 !px-3 text-xs bg-[#FFD15C] hover:bg-[#FFE082] flex items-center justify-center gap-1.5 text-zinc-900"
+                        title="Open pre-filled GitHub issue"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5 stroke-[2.2]" />
+                        <span>Open on GitHub</span>
+                      </a>
+                    </div>
                   </div>
 
                   <div className="pt-3 border-t border-zinc-200 flex items-center justify-between">
@@ -702,14 +719,20 @@ export function FeedbackModal({
                   </div>
 
                   {/* Footer Actions */}
-                  <div className="pt-2 flex items-center justify-between gap-2 border-t border-zinc-200">
-                    <button
-                      type="button"
-                      onClick={onClose}
-                      className="cartoon-btn !py-1.5 !px-3 text-xs bg-white hover:bg-zinc-100"
-                    >
-                      Cancel
-                    </button>
+                  <div className="pt-2 flex items-center justify-between gap-2 border-t border-zinc-200 flex-wrap">
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={onClose}
+                        className="cartoon-btn !py-1.5 !px-3 text-xs bg-white hover:bg-zinc-100"
+                      >
+                        Cancel
+                      </button>
+                      <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono font-bold text-zinc-500 bg-zinc-100 px-2 py-1 rounded border border-zinc-200">
+                        <Mail className="w-3 h-3 text-zinc-500" />
+                        <span>Routes to: {DEVELOPER_FEEDBACK_EMAIL}</span>
+                      </span>
+                    </div>
 
                     <button
                       type="submit"
@@ -766,6 +789,15 @@ export function FeedbackModal({
                         </div>
 
                         <div className="flex items-center gap-1 flex-shrink-0">
+                          <a
+                            href={generateEmailFeedbackUrl(report)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-1 rounded hover:bg-emerald-50 text-[#16A34A]"
+                            title={`Send to ${DEVELOPER_FEEDBACK_EMAIL}`}
+                          >
+                            <Mail className="w-3.5 h-3.5" />
+                          </a>
                           <button
                             onClick={() => downloadReportAsJSON(report)}
                             className="p-1 rounded hover:bg-zinc-100 text-zinc-700"

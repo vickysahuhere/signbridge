@@ -8,7 +8,9 @@ import {
   deleteFeedbackReport,
   clearAllFeedbackReports,
   generateMarkdownReport,
+  generateEmailFeedbackUrl,
   generateGitHubIssueUrl,
+  DEVELOPER_FEEDBACK_EMAIL,
   FEEDBACK_CATEGORIES
 } from '../src/utils/feedbackManager.js';
 
@@ -115,6 +117,24 @@ test('generateGitHubIssueUrl - encodes title and body into GitHub new issue link
   assert.ok(url.includes('title='));
   assert.ok(url.includes('body='));
   assert.ok(url.includes('Broken%20modal%20border') || url.includes('Broken+modal+border'));
+});
+
+test('generateEmailFeedbackUrl - produces pre-filled mailto URL addressed to developer email', () => {
+  const mockReport = {
+    id: 'FB-EM-12',
+    timestamp: '2026-11-09T15:00:00.000Z',
+    category: 'recognition',
+    title: 'Gesture not registering',
+    description: 'Handshape fails on low light',
+    diagnostics: { page: 'learn' }
+  };
+
+  assert.equal(DEVELOPER_FEEDBACK_EMAIL, 'vickyasadharan@gmail.com');
+  const mailUrl = generateEmailFeedbackUrl(mockReport);
+  assert.ok(mailUrl.startsWith('mailto:vickyasadharan@gmail.com?'));
+  assert.ok(mailUrl.includes('subject='));
+  assert.ok(mailUrl.includes('body='));
+  assert.ok(mailUrl.includes('Gesture%20not%20registering') || mailUrl.includes('Gesture+not+registering'));
 });
 
 test('saveFeedbackReport & storage operations - handles in-memory mock storage', async () => {
