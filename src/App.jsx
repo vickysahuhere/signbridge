@@ -322,6 +322,10 @@ export function App() {
   }, []);
 
   // Step progression state for compound signs (e.g. Good Morning = Good -> Morning)
+  const TARGET_REPETITIONS = 3;
+  const [successfulReps, setSuccessfulReps] = useState(0);
+  const repHoldStartRef = useRef(null);
+  const repAwaitingReleaseRef = useRef(false);
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [completedSteps, setCompletedSteps] = useState([]);
   const [stepSuccessFlash, setStepSuccessFlash] = useState(null);
@@ -329,12 +333,31 @@ export function App() {
   const stepHoldStartRef = useRef(null);
   const stepTimeoutRef = useRef(null);
 
-  // Reset steps and sequence mastery when selected item changes
+  // Reset practice repetitions, steps and mastery
+  const handleResetPractice = useCallback(() => {
+    setSuccessfulReps(0);
+    setIsSequenceMastered(false);
+    setActiveStepIndex(0);
+    setCompletedSteps([]);
+    setStepSuccessFlash({
+      message: 'Practice reset! Sign 3 times to pass.'
+    });
+    setTimeout(() => setStepSuccessFlash(null), 2000);
+    repHoldStartRef.current = null;
+    repAwaitingReleaseRef.current = false;
+    stepHoldStartRef.current = null;
+    if (stepTimeoutRef.current) clearTimeout(stepTimeoutRef.current);
+  }, []);
+
+  // Reset steps, reps and sequence mastery when selected item changes
   useEffect(() => {
+    setSuccessfulReps(0);
     setActiveStepIndex(0);
     setCompletedSteps([]);
     setStepSuccessFlash(null);
     setIsSequenceMastered(false);
+    repHoldStartRef.current = null;
+    repAwaitingReleaseRef.current = false;
     stepHoldStartRef.current = null;
     if (stepTimeoutRef.current) clearTimeout(stepTimeoutRef.current);
   }, [selectedLearnItem?.id]);
@@ -367,20 +390,71 @@ export function App() {
 
   const isStepSatisfied = isCurrentStepAligned || isAiGuessMatch;
 
-  // Multi-step compound state machine & single-sign mastery
+  // Multi-step compound state machine & 3-repetition mastery loop
   useEffect(() => {
     if (!selectedLearnItem) return;
 
-    // Non-compound signs: single-step completion
+    // If target repetitions already achieved, sign is mastered
+    if (successfulReps >= TARGET_REPETITIONS) {
+      return;
+    }
+
+    // Non-compound signs: require 3 full repetitions with release hysteresis
     if (!selectedLearnItem.isCompound || !selectedLearnItem.steps) {
+      if (repAwaitingReleaseRef.current) {
+        // User just registered a rep; require them to release/relax hands before next rep
+        if (!isStepSatisfied) {
+          repAwaitingReleaseRef.current = false;
+        }
+        return;
+      }
+
       if (isStepSatisfied) {
-        setIsSequenceMastered(true);
+        if (!repHoldStartRef.current) {
+          repHoldStartRef.current = Date.now();
+        } else if (Date.now() - repHoldStartRef.current >= 450) {
+          // Held steadily for 450ms -> Repetition registered!
+          repHoldStartRef.current = null;
+          repAwaitingReleaseRef.current = true;
+
+          setSuccessfulReps(prev => {
+            const next = prev + 1;
+            if (next >= TARGET_REPETITIONS) {
+              setIsSequenceMastered(true);
+              setStepSuccessFlash({
+                isPass: true,
+                repNumber: 3,
+                message: `${selectedLearnItem.name.toUpperCase()} PASSED! 3 of 3 complete! Outstanding! 🌟`
+              });
+            } else {
+              setStepSuccessFlash({
+                isRep: true,
+                repNumber: next,
+                message: `Repetition ${next} of 3 complete! Relax hands and sign again! 👍`
+              });
+            }
+            return next;
+          });
+
+          setTimeout(() => {
+            setStepSuccessFlash(null);
+          }, 2400);
+        }
+      } else {
+        repHoldStartRef.current = null;
       }
       return;
     }
 
-    // Compound signs: sequential multi-step progression
+    // Compound signs: sequential multi-step progression repeated 3 times
     const totalSteps = selectedLearnItem.steps.length;
+
+    if (repAwaitingReleaseRef.current) {
+      if (!isStepSatisfied) {
+        repAwaitingReleaseRef.current = false;
+      }
+      return;
+    }
 
     if (isStepSatisfied) {
       if (!stepHoldStartRef.current) {
@@ -395,7 +469,8 @@ export function App() {
           setCompletedSteps(prev => (prev.includes(finishedIdx) ? prev : [...prev, finishedIdx]));
           setStepSuccessFlash({
             stepNumber: finishedIdx + 1,
-            title: selectedLearnItem.steps[finishedIdx].title
+            title: selectedLearnItem.steps[finishedIdx].title,
+            message: `PART ${finishedIdx + 1} LOCKED! Now perform Part ${nextIdx + 1}!`
           });
           setActiveStepIndex(nextIdx);
 
@@ -415,18 +490,45 @@ export function App() {
             setTimeout(() => setStepSuccessFlash(null), 2200);
           }, 8000);
         } else {
-          // Final step complete!
+          // Final step of compound sign complete -> 1 full repetition done!
           if (stepTimeoutRef.current) clearTimeout(stepTimeoutRef.current);
-          setCompletedSteps(prev => (prev.includes(activeStepIndex) ? prev : [...prev, activeStepIndex]));
-          setIsSequenceMastered(true);
+          stepHoldStartRef.current = null;
+          repAwaitingReleaseRef.current = true;
+
+          setSuccessfulReps(prev => {
+            const next = prev + 1;
+            if (next >= TARGET_REPETITIONS) {
+              setCompletedSteps(prevSteps => (prevSteps.includes(activeStepIndex) ? prevSteps : [...prevSteps, activeStepIndex]));
+              setIsSequenceMastered(true);
+              setStepSuccessFlash({
+                isPass: true,
+                repNumber: 3,
+                message: `${selectedLearnItem.name.toUpperCase()} PASSED! 3 of 3 complete! 🌟`
+              });
+            } else {
+              // Reset sequence steps for the next repetition
+              setActiveStepIndex(0);
+              setCompletedSteps([]);
+              setStepSuccessFlash({
+                isRep: true,
+                repNumber: next,
+                message: `Repetition ${next} of 3 complete! Now perform the full sequence again! 👍`
+              });
+            }
+            return next;
+          });
+
+          setTimeout(() => {
+            setStepSuccessFlash(null);
+          }, 2400);
         }
       }
     } else {
       stepHoldStartRef.current = null;
     }
-  }, [isStepSatisfied, activeStepIndex, selectedLearnItem]);
+  }, [isStepSatisfied, activeStepIndex, selectedLearnItem, successfulReps]);
 
-  const isSignMastered = isSequenceMastered;
+  const isSignMastered = isSequenceMastered && successfulReps >= TARGET_REPETITIONS;
 
   // Target skeleton for the active step (switches dynamically between steps in compound signs)
   const activeTargetSkeleton = useMemo(() => {
@@ -631,6 +733,9 @@ export function App() {
                   onCloseAcademy={() => setIsAcademyOpen(false)}
                   activeStepIndex={activeStepIndex}
                   completedSteps={completedSteps}
+                  successfulReps={successfulReps}
+                  targetReps={TARGET_REPETITIONS}
+                  onResetPractice={handleResetPractice}
                 />
               </div>
 
@@ -653,6 +758,10 @@ export function App() {
                   activeStepIndex={activeStepIndex}
                   completedSteps={completedSteps}
                   stepSuccessFlash={stepSuccessFlash}
+                  successfulReps={successfulReps}
+                  targetReps={TARGET_REPETITIONS}
+                  onResetPractice={handleResetPractice}
+                  onNextSign={handleNextSign}
                 />
 
                 {/* Lower Panel: Live AI Guessing Hub */}
@@ -670,6 +779,9 @@ export function App() {
                   activeStepIndex={activeStepIndex}
                   completedSteps={completedSteps}
                   stepSuccessFlash={stepSuccessFlash}
+                  successfulReps={successfulReps}
+                  targetReps={TARGET_REPETITIONS}
+                  onResetPractice={handleResetPractice}
                 />
               </div>
             </div>
