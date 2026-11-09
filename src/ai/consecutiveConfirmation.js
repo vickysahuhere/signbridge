@@ -29,6 +29,7 @@ export class ConsecutiveConfirmationGate {
     this.cooldownRemaining = 0;
     this.lastConfirmedWord = null;
     this.isLocked = false;
+    this.candidateStartTime = 0;
   }
 
   /**
@@ -50,6 +51,7 @@ export class ConsecutiveConfirmationGate {
       this.isLocked = false;
       this.lastConfirmedWord = null;
       this.cooldownRemaining = 0;
+      this.candidateStartTime = 0;
       return { confirmed: false, pending: false, count: 0 };
     }
 
@@ -85,6 +87,8 @@ export class ConsecutiveConfirmationGate {
         }
 
         // Consecutive confirmation fulfilled!
+        const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+        const gateDelayMs = this.candidateStartTime ? Math.round(now - this.candidateStartTime) : 0;
         this.lastConfirmedWord = top1.label;
         this.cooldownRemaining = this.cooldownFrames;
         this.isLocked = true;
@@ -94,7 +98,8 @@ export class ConsecutiveConfirmationGate {
           word: top1.label,
           confidence: top1.confidence,
           pending: false,
-          count: this.consecutiveCount
+          count: this.consecutiveCount,
+          gateDelayMs
         };
       }
 
@@ -107,6 +112,7 @@ export class ConsecutiveConfirmationGate {
       // First high-confidence observation of this label
       this.previousCandidate = { label: top1.label, confidence: top1.confidence };
       this.consecutiveCount = 1;
+      this.candidateStartTime = typeof performance !== 'undefined' ? performance.now() : Date.now();
 
       return {
         confirmed: false,
@@ -125,5 +131,6 @@ export class ConsecutiveConfirmationGate {
     this.cooldownRemaining = 0;
     this.lastConfirmedWord = null;
     this.isLocked = false;
+    this.candidateStartTime = 0;
   }
 }

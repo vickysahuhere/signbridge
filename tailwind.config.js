@@ -7,31 +7,52 @@ export default {
   theme: {
     extend: {
       colors: {
-        retro: {
-          bg: '#C0C0C0',
-          fg: '#000000',
-          muted: '#808080',
-          accent: '#0000FF',
-          secondary: '#FF0000',
-          tertiary: '#FFFF00',
-          success: '#00FF00',
-          successDark: '#00AA00',
-          borderLight: '#FFFFFF',
-          borderDark: '#808080',
-          titleBar: '#000080',
-          titleBarEnd: '#1084D0',
-          panelYellow: '#FFFFCC',
-          visited: '#800080',
-          hover: '#FF0000',
-          lightRow: '#FFFFFF',
-          darkRow: '#E8E8E8',
+        cream: {
+          DEFAULT: '#FAF8F5',
+          card: '#FFFFFF',
+          subtle: '#F4EFEA',
+          border: '#E8E2D8'
+        },
+        ink: {
+          DEFAULT: '#18181B',
+          muted: '#71717A',
+          subtle: '#A1A1AA'
+        },
+        sunny: {
+          DEFAULT: '#FFD15C',
+          hover: '#F5C240',
+          light: '#FFF9E5'
+        },
+        mint: {
+          DEFAULT: '#22C55E',
+          hover: '#16A34A',
+          light: '#EDFDF2'
+        },
+        coral: {
+          DEFAULT: '#FF6B6B',
+          hover: '#EF4444',
+          light: '#FEECEC'
+        },
+        sky: {
+          DEFAULT: '#38BDF8',
+          hover: '#0EA5E9',
+          light: '#F0F9FF'
+        },
+        lavender: {
+          DEFAULT: '#A78BFA',
+          light: '#F5F3FF'
         }
       },
       fontFamily: {
-        sans: ['"MS Sans Serif"', '"Segoe UI"', 'Tahoma', 'Geneva', 'Verdana', 'sans-serif'],
-        heading: ['"Arial Black"', 'Impact', 'Haettenschweiler', 'sans-serif'],
-        mono: ['"Courier New"', 'Courier', 'monospace'],
-        comic: ['"Comic Sans MS"', 'cursive']
+        sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+      },
+      boxShadow: {
+        'cartoon-sm': '2px 2px 0px #18181B',
+        'cartoon': '3px 3px 0px #18181B',
+        'cartoon-md': '4px 4px 0px #18181B',
+        'cartoon-lg': '6px 6px 0px #18181B',
+        'cartoon-active': '1px 1px 0px #18181B'
       }
     },
   },

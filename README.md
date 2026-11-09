@@ -6,8 +6,9 @@
 > [!IMPORTANT]
 > ### 📍 Current Project Status: TRANSLATOR PHASE
 > We are currently in the **Translator Phase**! Our core focus right now is perfecting the **on-device real-time sign language recognition, 3D hand/body tracking, and ISL-to-English grammar translation engine**. 
-> - ✅ **Active & Working**: Real-time webcam sign detection, A–Z alphabet fingerspelling, 50+ ISL words, wrist velocity motion gating, and automated grammar restructuring (`YOU NAME WHAT` $\rightarrow$ *"What is your name?"*).
-> - 🔄 **Next Up**: Polishing multi-peer WebRTC video room calls, audio speech synthesis (TTS), and expanded vocabulary.
+> - ✅ **Active & Working**: Real-time webcam sign detection (22 core conversational signs + 26 A–Z two-handed fingerspelling letters), configurable wrist velocity motion gating (default 700ms), and automated 260-word grammar restructuring (`YOU NAME WHAT` $\rightarrow$ *"What is your name?"*).
+> - 📊 **Empirically Measured**: All latency, throughput, and accuracy metrics are measured and documented in [`docs/MEASUREMENTS.md`](./docs/MEASUREMENTS.md).
+> - 🔄 **Next Up**: Fine-tuning neural sequence models with custom recordings, multi-peer WebRTC video room calls, and audio speech synthesis (TTS).
 
 ---
 
@@ -66,13 +67,13 @@ In simple words: **We are perfecting the signer's experience first.**
 
 | Feature / Milestone | Status | Details |
 | :--- | :---: | :--- |
-| **In-Browser Skeleton Tracking** | 🟢 **Complete** | 543 points (hands, pose, face) at 30–60 FPS using MediaPipe Holistic. |
-| **Two-Handed ISL Alphabet (A–Z)** | 🟢 **Complete** | Neural network + geometric heuristics for spelling names and rare words. |
-| **Dynamic Word Recognition** | 🟢 **Complete** | 50 core ISL signs via onnxruntime-web with sliding 30-frame window. |
-| **Wrist Velocity Motion Gating** | 🟢 **Complete** | Distinguishes active signing from idle pauses; triggers auto-commit after 1.2s. |
-| **ISL-to-English Grammar Engine** | 🟢 **Active / Polishing** | Reorders Subject-Object-Verb (SOV) to SVO and places question words correctly. |
-| **Signer Stage & Visual Composition Bar** | 🟢 **Active / Polishing** | Live visual badges (`[YOU] [NAME]`), backspace/undo, and webcam feedback. |
-| **Keypoint Recorder & Gesture Studio** | 🟢 **Active** | Built-in developer drawer to record and benchmark new signs in real-time. |
+| **In-Browser Skeleton Tracking** | 🟢 **Complete** | 543 points (hands, pose, face) via MediaPipe Holistic WebGL (~190ms/frame on laptop CPU/GPU). |
+| **Two-Handed ISL Alphabet (A–Z)** | 🟢 **Complete** | 26 authentic two-handed fingerspelling letters via 3D biometric kinematics + digit support. |
+| **Conversational Word Recognition** | 🟢 **Complete** | 22 core conversational signs via 3D kinematics heuristics; training pipeline ready for AI4Bharat INCLUDE or custom recordings. |
+| **Wrist Velocity Motion Gating** | 🟢 **Complete** | Distinguishes active signing from idle pauses; triggers auto-commit after configurable pause (default 700ms). |
+| **ISL-to-English Grammar Engine** | 🟢 **Active / Polishing** | Reorders Subject-Object-Verb (SOV) to SVO across 260 lexicon terms with WH-fronting and negation handling. |
+| **Signer Stage & Visual Composition Bar** | 🟢 **Active / Polishing** | Live visual badges (`[YOU] [NAME]`), backspace/undo, pause countdown bar, and webcam feedback. |
+| **Keypoint Recorder & Training Studio** | 🟢 **Active** | Built-in drawer exporting `signbridge-training-v1` format compatible with `scripts/extract_keypoints.py`. |
 | **P2P Calling & Remote Room Bridge** | 🟡 **Next Milestone** | WebRTC signaling is operational in unit tests; full UI room pairing being refined. |
 
 ---
@@ -102,8 +103,9 @@ When a person signs in front of their webcam, SignBridge:
 ### The SignBridge Solution: 100% Edge AI (In-Browser)
 * **Zero Video Uploads**: Video never leaves the user's laptop or phone. All computer vision and AI calculations happen locally inside the web browser.
 * **Zero Cloud GPU Costs**: Uses the client's own GPU/CPU via WebGL and WebAssembly (WASM).
-* **Instant Speed**: Signs are translated in under **10 milliseconds** per frame!
+* **Instant Classification**: Normalization, kinematics classification, and grammar formatting execute in under **0.1 milliseconds** per frame! Holistic tracking runs locally via WebGL.
 * **Natural Grammar**: Unlike simple word-by-word recognizers, SignBridge restructures Indian Sign Language grammar into proper English sentences.
+* **Documented Benchmarks**: See [`docs/MEASUREMENTS.md`](./docs/MEASUREMENTS.md) for full empirical profiling numbers.
 
 ---
 
@@ -134,8 +136,8 @@ flowchart TD
         Worker --> MP["MediaPipe Holistic\n(543 3D Keypoints)"]
         MP --> Norm["Normalize Coordinates\n(240-feature vector)"]
         Norm --> Vel["Velocity Gate\n(Active vs Resting Hands)"]
-        Vel --> AI["ONNX Runtime Web\n(ISL Word & Alphabet AI)"]
-        AI --> Conf["Confidence & Confirmation Gate\n(>=75% across 2 frames)"]
+        Vel --> AI["3D Kinematics Classifier\n(22 Words + 26 A–Z Letters)"]
+        AI --> Conf["Confidence & Confirmation Gate\n(3 matching frames + cooldown)"]
         Conf --> Buf["Live Gloss Buffer\n(e.g., [YOU] [NAME] [WHAT])"]
         Buf --> NLP["ISL Sentence Formatter\n(Converts to: 'What is your name?')"]
         NLP --> HUD["Webcam Glass HUD Subtitles"]
@@ -178,17 +180,16 @@ flowchart TD
     N --> V{"Wrist Speed Check\n(Velocity Gate)"}
     
     V -- "Hands Moving (Signing)" --> M{"Mode Check"}
-    M -- "Word Mode" --> Ring["Push to 30-Frame Ring Buffer"]
-    Ring --> ONNX1["Run ISL Word Classifier (ONNX)"]
-    M -- "Alphabet Mode" --> ONNX2["Run ISL Alphabet Classifier (ONNX)"]
+    M -- "Word Mode" --> Ring["Push to 30-Frame Ring Buffer\n+ Classify 3D Kinematics"]
+    M -- "Alphabet Mode" --> Alpha["Classify Two-Handed ISL Alphabet"]
     
-    ONNX1 --> Gate{"Confidence >= 0.75\n& 2 Matches in a Row?"}
-    ONNX2 --> Gate
+    Ring --> Gate{"Confidence >= 0.80\n& 3 Matches in a Row?"}
+    Alpha --> Gate
     
     Gate -- Yes --> Add["Append to Active Sentence Buffer"]
     Gate -- No --> Ignore["Ignore Noise / Transitory Movements"]
     
-    V -- "Hands Resting (> 1.2s)" --> AutoCommit["✨ Trigger Auto-Commit Sentence"]
+    V -- "Hands Resting (Pause >= 700ms)" --> AutoCommit["✨ Trigger Auto-Commit Sentence"]
     AutoCommit --> Gram["Pass to Grammar Engine & Send"]
 ```
 
@@ -283,7 +284,7 @@ If a web page tries to run heavy artificial intelligence on the main screen, the
 To prevent this, SignBridge places the entire AI engine inside a **Browser Web Worker** (`vision.worker.js`):
 * The main screen stays super smooth at 60 FPS.
 * The background worker runs the AI calculations in parallel on another CPU/GPU core.
-* Pretrained models (`.onnx` and `.task`) are stored directly in the browser's **IndexedDB cache** after the first visit, so opening the app a second time takes less than **300ms** with zero re-downloading!
+* The vision model (`holistic_landmarker.task`) is stored directly in the browser's **Cache Storage** after the first visit, so future loads initialize instantly with zero re-downloading!
 
 ---
 
@@ -292,7 +293,7 @@ When people sign, their hands move briskly. When they finish an idea, their hand
 
 SignBridge tracks the **speed (velocity) of the signer's wrists**:
 * **Moving fast?** The AI enters `SIGNING_ACTIVE` mode and begins recording gestures into a 30-frame memory window.
-* **Hands paused for 1.2 seconds?** The app automatically knows you finished your thought! It triggers an `IDLE_COMMIT`, formats the sentence, and sends it without you having to touch your mouse or keyboard.
+* **Hands paused (default 700ms, configurable)?** The app automatically knows you finished your thought! It triggers an `IDLE_COMMIT`, formats the sentence, and sends it without you having to touch your mouse or keyboard.
 
 ---
 
@@ -329,8 +330,8 @@ Here is a 10-second conversation between **Aarav (signing in ISL)** and **Priya 
 3. **Aarav shakes his hand with raised eyebrows (`WHAT`)**:
    * The sign `WHAT` is captured.
    * Aarav's screen shows the tags: `[ YOU ] [ NAME ] [ WHAT ]`
-4. **Aarav lowers his hands for 1.2 seconds**:
-   * The velocity gate detects the pause.
+4. **Aarav pauses his hands for 700ms**:
+   * The velocity gate detects the natural pause.
    * The grammar engine flips the words into: **"What is your name?"**
    * The message is delivered to Priya over WebRTC in **12 milliseconds**.
 5. **Priya types a reply**:
@@ -344,9 +345,9 @@ Here is a 10-second conversation between **Aarav (signing in ISL)** and **Priya 
 - [x] **Zero Installation**: Runs entirely inside modern desktop or mobile web browsers (Chrome, Edge, Firefox, Brave, Safari).
 - [x] **Privacy Guaranteed**: Camera footage stays strictly on the user's computer.
 - [x] **Word & Alphabet Dual Mode**:
-  - **Dynamic Word Mode**: 50+ core ISL signs (Greetings, Family, Needs, Questions, Emotions).
-  - **Two-Handed ISL Alphabet Mode**: Spells names, cities, and technical terms using both hands.
-- [x] **Hands-Free Auto-Commit**: Automatically converts and sends sentences when you rest your hands for 1.2s.
+  - **Conversational Word Mode**: 22 core conversational ISL signs (Greetings, Family, Needs, Questions, Emotions, Courtesies).
+  - **Two-Handed ISL Alphabet Mode**: Spells names, cities, and technical terms using authentic two-handed fingerspelling.
+- [x] **Hands-Free Auto-Commit**: Automatically converts and sends sentences when you rest your hands for 700ms (configurable).
 - [x] **Instant Undo / Backspace**: Made a mistake while signing? Click `[⌫ Undo]` or tap Backspace.
 - [x] **Interactive Word Dictionary**: Built-in visual catalog showing all supported ISL words with descriptions and hand poses.
 - [x] **Built-in Keypoint Recorder Drawer**: For developers and researchers to record, inspect, and benchmark new ISL gestures.
@@ -360,10 +361,9 @@ Here is a 10-second conversation between **Aarav (signing in ISL)** and **Priya 
 sanket/
 ├── public/
 │   ├── mediapipe/wasm/         # MediaPipe WebAssembly binaries for CPU/GPU vision
-│   ├── models/                 # Pretrained ONNX neural nets (.onnx) & task files
-│   │   ├── holistic_landmarker.task   # 543-point holistic tracker
-│   │   ├── isl_include_50.onnx        # 50-word temporal dynamic sign model
-│   │   └── isl_alphabet_mlp.onnx      # 2-hand ISL alphabet classifier
+│   ├── models/                 # MediaPipe task models
+│   │   ├── holistic_landmarker.task   # 543-point holistic tracker bundle
+│   │   └── gesture_recognizer.task    # Hand gesture task bundle
 │   └── onnx/                   # ONNX Runtime Web WASM runtimes
 ├── src/
 │   ├── ai/                     # AI classification & confidence gating
@@ -400,7 +400,7 @@ sanket/
 │   │   └── vision.worker.js           # Web Worker running MediaPipe + ONNX
 │   ├── App.jsx                 # Main application controller
 │   └── main.jsx                # Application root
-├── test/                       # Comprehensive automated test suite (49 unit tests)
+├── test/                       # Comprehensive automated test suite (66 unit tests)
 ├── package.json
 └── vite.config.js
 ```
@@ -440,10 +440,13 @@ npm run dev
 Open your browser and navigate to `http://localhost:5173`. Allow camera permissions when prompted!
 
 ### 4. Run Automated Tests
-SignBridge includes a 49-test suite validating the math, grammar engine, ring buffer, and WebRTC logic:
+SignBridge includes a 66-test suite validating the math, grammar engine, ring buffer, Python/JS normalization parity, and WebRTC logic:
 ```bash
 npm test
 ```
+
+### 5. Empirical Performance & Accuracy Report
+SignBridge strictly adheres to verified, reproducible measurements. See [`docs/MEASUREMENTS.md`](./docs/MEASUREMENTS.md) for complete before/after latency breakdowns, hardware profiling, vocabulary classification coverage, and AI4Bharat INCLUDE dataset audit details.
 
 ---
 

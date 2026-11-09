@@ -96,3 +96,29 @@ test('GlossBufferManager - clear() empties the buffer completely (LING-02)', () 
   assert.equal(manager.isEmpty(), true);
   assert.deepEqual(manager.getGlosses(), []);
 });
+
+test('GlossBufferManager - removeAt() removes a specific token at index (1-click remove)', () => {
+  const manager = new GlossBufferManager();
+  manager.push('NAMASTE');
+  manager.push('E');
+  manager.push('NO');
+  manager.push('MONEY');
+  assert.deepEqual(manager.getGlosses(), ['NAMASTE', 'E', 'NO', 'MONEY']);
+
+  // Remove 'E' at index 1
+  const removed = manager.removeAt(1);
+  assert.equal(removed, 'E');
+  assert.deepEqual(manager.getGlosses(), ['NAMASTE', 'NO', 'MONEY']);
+  assert.equal(manager.size(), 3);
+
+  // Remove first item
+  const removedFirst = manager.removeAt(0);
+  assert.equal(removedFirst, 'NAMASTE');
+  assert.deepEqual(manager.getGlosses(), ['NO', 'MONEY']);
+
+  // Invalid indices
+  assert.equal(manager.removeAt(-1), null);
+  assert.equal(manager.removeAt(99), null);
+  assert.equal(manager.removeAt('0'), null);
+  assert.equal(manager.size(), 2);
+});

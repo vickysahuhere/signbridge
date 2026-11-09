@@ -142,6 +142,35 @@ test('formatIslSentence - formats implicit-subject verbs and desire clauses', ()
   assert.equal(formatIslSentence(['HOSPITAL', 'GO']), 'I am going to the hospital.');
 });
 
+test('formatIslSentence - Tier 2 transit, commute, and railway questions', () => {
+  assert.equal(formatIslSentence(['TICKET', 'PRICE_COST', 'HOW_MUCH']), 'How much is the ticket price?');
+  assert.equal(formatIslSentence(['WATER', 'HOW_MUCH']), 'How much is water?');
+  assert.equal(formatIslSentence(['PLATFORM', 'WHICH']), 'Which platform is it?');
+  assert.equal(formatIslSentence(['TRAIN', 'WHERE']), 'Where is the train?');
+  assert.equal(formatIslSentence(['TRAIN', 'ARRIVE', 'WHEN']), 'When will the train arrive?');
+  assert.equal(formatIslSentence(['I_ME', 'TRAIN', 'TICKET', 'BUY', 'WANT']), 'I want to buy a train ticket.');
+});
+
+test('formatIslSentence - Tier 2 healthcare, medical, and emergency sentences', () => {
+  assert.equal(formatIslSentence(['EMERGENCY', 'HELP', 'PLEASE']), 'Please help, it is an emergency!');
+  assert.equal(formatIslSentence(['AMBULANCE', 'CALL', 'PLEASE']), 'Please call the ambulance.');
+  assert.equal(formatIslSentence(['POLICE', 'CALL', 'PLEASE']), 'Please call the police.');
+  assert.equal(formatIslSentence(['I_ME', 'FEVER']), 'I have a fever.');
+  assert.equal(formatIslSentence(['I_ME', 'HEADACHE']), 'I have a headache.');
+  assert.equal(formatIslSentence(['I_ME', 'MEDICINE', 'NEED']), 'I need medicine.');
+  assert.equal(formatIslSentence(['I_ME', 'HUNGRY']), 'I am hungry.');
+  assert.equal(formatIslSentence(['I_ME', 'THIRSTY']), 'I am thirsty.');
+});
+
+test('formatIslSentence - Tier 2 extended courtesies and daily greetings', () => {
+  assert.equal(formatIslSentence(['EXCUSE_ME']), 'Excuse me.');
+  assert.equal(formatIslSentence(['GOOD_AFTERNOON']), 'Good afternoon!');
+  assert.equal(formatIslSentence(['GOOD_EVENING']), 'Good evening!');
+  assert.equal(formatIslSentence(['GOOD_NIGHT']), 'Good night!');
+  assert.equal(formatIslSentence(['CONGRATULATIONS']), 'Congratulations!');
+  assert.equal(formatIslSentence(['GOODBYE']), 'Goodbye!');
+});
+
 test('formatRawGlosses - formats literal gloss transcripts cleanly', () => {
   assert.equal(
     formatRawGlosses(['HELLO', 'THANK_YOU', 'DRINK', 'YES', 'GOOD']),
@@ -153,4 +182,88 @@ test('formatRawGlosses - formats literal gloss transcripts cleanly', () => {
   );
   assert.equal(formatRawGlosses([]), '');
   assert.equal(formatRawGlosses(null), '');
+});
+
+test('formatIslSentence - FIX 5: comprehensive 30+ case test matrix (WH, Negation, Time, Unknown glosses)', () => {
+  const cases = [
+    // 1-5: WH-questions
+    { input: ['YOU', 'NAME', 'WHAT'], expected: 'What is your name?' },
+    { input: ['HOSPITAL', 'WHERE'], expected: 'Where is the hospital?' },
+    { input: ['YOU', 'WHO'], expected: 'Who are you?' },
+    { input: ['YOU', 'SAD', 'WHY'], expected: 'Why are you sad?' },
+    { input: ['TRAIN', 'ARRIVE', 'WHEN'], expected: 'When will the train arrive?' },
+
+    // 6-10: More WH-questions and transit/quantities
+    { input: ['YOU', 'HOW'], expected: 'How are you?' },
+    { input: ['PLATFORM', 'WHICH'], expected: 'Which platform is it?' },
+    { input: ['TICKET', 'HOW_MUCH'], expected: 'How much is the ticket?' },
+    { input: ['TICKET', 'PRICE_COST', 'HOW_MUCH'], expected: 'How much is the ticket price?' },
+    { input: ['SEAT', 'HOW_MANY'], expected: 'How many seats are there?' },
+
+    // 11-15: Negation clauses (with verbs, nouns, unknown)
+    { input: ['I_ME', 'UNDERSTAND', 'NO'], expected: 'I do not understand.' },
+    { input: ['I_ME', 'KNOW', 'NO'], expected: 'I do not know.' },
+    { input: ['I_ME', 'FOOD', 'EAT', 'NO'], expected: 'I do not eat food.' },
+    { input: ['TICKET', 'NO'], expected: 'No ticket.' },
+    { input: ['I_ME', 'COLD_WATER', 'DRINK', 'NO'], expected: 'I do not drink cold water.' },
+
+    // 16-20: Temporal & Time words
+    { input: ['TODAY', 'I_ME', 'HAPPY'], expected: 'I am happy today.' },
+    { input: ['TOMORROW', 'I_ME', 'HOSPITAL', 'GO'], expected: 'I am going to the hospital tomorrow.' },
+    { input: ['YESTERDAY', 'I_ME', 'SAD'], expected: 'I am sad yesterday.' },
+    { input: ['NOW', 'WATER', 'WANT'], expected: 'I want water now.' },
+    { input: ['TIME', 'WHAT'], expected: 'What time is it?' },
+
+    // 21-25: Healthcare, Emergencies, Feelings
+    { input: ['EMERGENCY', 'HELP', 'PLEASE'], expected: 'Please help, it is an emergency!' },
+    { input: ['AMBULANCE', 'CALL', 'PLEASE'], expected: 'Please call the ambulance.' },
+    { input: ['I_ME', 'FEVER'], expected: 'I have a fever.' },
+    { input: ['I_ME', 'MEDICINE', 'NEED'], expected: 'I need medicine.' },
+    { input: ['I_ME', 'TIRED'], expected: 'I am tired.' },
+
+    // 26-30: Transit & Greetings
+    { input: ['TRAIN', 'WHERE'], expected: 'Where is the train?' },
+    { input: ['BUS', 'STATION', 'WHERE'], expected: 'Where is the bus?' },
+    { input: ['HELLO', 'YOU', 'HOW'], expected: 'Hello! How are you?' },
+    { input: ['GOOD_MORNING', 'THANK_YOU'], expected: 'Good morning! Thank you!' },
+    { input: ['PLEASE', 'HELP'], expected: 'Please help me!' },
+
+    // 31-35: Unknown gloss passthrough & safety
+    { input: ['CUSTOM_UNSEEN_SIGN'], expected: 'Custom unseen sign.' },
+    { input: ['I_ME', 'ORGANIC_TEA', 'WANT'], expected: 'I want organic tea.' },
+    { input: ['I_ME', 'APPLE', 'EAT'], expected: 'I am eating apple.' },
+    { input: ['ORGANIC_TEA', 'NO'], expected: 'No organic tea.' },
+    { input: ['UNKNOWN_SHOP', 'WHERE'], expected: 'Where is the unknown shop?' }
+  ];
+
+  for (let i = 0; i < cases.length; i++) {
+    const { input, expected } = cases[i];
+    const actual = formatIslSentence(input);
+    assert.equal(
+      actual,
+      expected,
+      `Case #${i + 1} failed: input=${JSON.stringify(input)} -> got "${actual}", expected "${expected}"`
+    );
+  }
+});
+
+test('refineWithOptionalLlm - optional off-by-default LLM cleanup hook (FIX 5)', async () => {
+  const { refineWithOptionalLlm, DEFAULT_LLM_CONFIG } = await import('../src/nlp/llmGrammarHook.js');
+
+  assert.strictEqual(DEFAULT_LLM_CONFIG.enabled, false, 'LLM hook must be disabled by default');
+
+  const glosses = ['I_ME', 'WATER', 'WANT'];
+  const draft = 'I want water.';
+
+  // Test 1: When disabled (default), returns draft immediately
+  const result1 = await refineWithOptionalLlm(glosses, draft);
+  assert.strictEqual(result1, draft);
+
+  // Test 2: When enabled without apiKey, safely returns draft without making requests
+  const result2 = await refineWithOptionalLlm(glosses, draft, { enabled: true, apiKey: '' });
+  assert.strictEqual(result2, draft);
+
+  // Test 3: Unknown gloss passed through hook
+  const result3 = await refineWithOptionalLlm(['CUSTOM_SIGN'], 'Custom sign.', { enabled: false });
+  assert.strictEqual(result3, 'Custom sign.');
 });

@@ -37,7 +37,6 @@ export function KeypointRecorderDrawer({
       if (countdown > 0) {
         timer = setTimeout(() => setCountdown(c => c - 1), 1000);
       } else {
-        // Countdown reached 0 -> Start actual recording
         setIsCountingDown(false);
         setIsRecording(true);
         isRecordingRef.current = true;
@@ -48,17 +47,15 @@ export function KeypointRecorderDrawer({
     return () => clearTimeout(timer);
   }, [isCountingDown, countdown]);
 
-  // Frame collector: triggers on each incoming normalized feature vector
+  // Frame collector
   useEffect(() => {
     if (!isRecordingRef.current || !latestNormalizedFeatures) return;
 
-    // Clone frame vector
     const frameClone = new Float32Array(latestNormalizedFeatures);
     framesBufferRef.current.push(frameClone);
     setRecordedFrames([...framesBufferRef.current]);
 
     if (framesBufferRef.current.length >= targetFrames) {
-      // Completed capturing targetFrames
       isRecordingRef.current = false;
       setIsRecording(false);
 
@@ -90,7 +87,6 @@ export function KeypointRecorderDrawer({
     setRecordedFrames([]);
   };
 
-  // Download single sample as JSON
   const exportSampleJSON = (sample) => {
     const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(sample, null, 2));
     const downloadAnchor = document.createElement('a');
@@ -101,7 +97,6 @@ export function KeypointRecorderDrawer({
     downloadAnchor.remove();
   };
 
-  // Download single sample as CSV
   const exportSampleCSV = (sample) => {
     const headers = ['frame'];
     for (let k = 0; k < 80; k++) {
@@ -110,7 +105,6 @@ export function KeypointRecorderDrawer({
     headers.push('label');
 
     const rows = [headers.join(',')];
-
     sample.frames.forEach((frame, idx) => {
       const row = [idx + 1, ...frame, sample.label];
       rows.push(row.join(','));
@@ -125,7 +119,6 @@ export function KeypointRecorderDrawer({
     downloadAnchor.remove();
   };
 
-  // Download all captured samples as a single JSON dataset bundle
   const exportAllJSON = () => {
     if (recordedSamples.length === 0) return;
     const bundle = {
@@ -152,44 +145,42 @@ export function KeypointRecorderDrawer({
 
   return (
     <aside
-      className="fixed inset-y-0 right-0 z-50 w-full max-w-md retro-outset bg-[#C0C0C0] border-l-2 border-[#000000] shadow-2xl flex flex-col select-none"
+      className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white border-l-2 border-zinc-900 shadow-2xl flex flex-col select-none animate-in slide-in-from-right duration-200"
       aria-label="Keypoint Dataset Recorder Drawer"
     >
-      {/* 1. Title Bar */}
-      <div className="retro-window-titlebar">
-        <div className="flex items-center gap-1.5">
-          <Database className="w-3.5 h-3.5 stroke-[2px]" />
-          <span>Dataset Recorder - [Feature Vector Utility]</span>
+      {/* Title Bar */}
+      <div className="px-4 py-3 bg-[#FAF8F5] border-b-2 border-zinc-900 flex items-center justify-between gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-xl bg-zinc-900 text-white flex items-center justify-center flex-shrink-0 shadow-cartoon-sm">
+            <Database className="w-4 h-4 stroke-[2.2]" />
+          </div>
+          <div>
+            <h3 className="font-extrabold text-sm text-zinc-900">Dataset Recorder</h3>
+            <p className="text-xs text-zinc-500 font-medium">Capture 240-dim biometric keypoints</p>
+          </div>
         </div>
         <button
           onClick={onClose}
-          className="retro-window-btn"
+          className="w-8 h-8 rounded-xl border-2 border-zinc-900 bg-white hover:bg-zinc-100 flex items-center justify-center shadow-cartoon-sm active:translate-x-[1px] active:translate-y-[1px] transition-all"
           title="Close Utility"
           aria-label="Close Utility"
         >
-          ×
+          <X className="w-4 h-4 stroke-[2.5] text-zinc-900" />
         </button>
       </div>
 
-      {/* 2. Construction Warning Stripes Banner (Checklist Item #11) */}
-      <div className="retro-stripes h-4 border-b border-[#000000] flex items-center justify-center">
-        <span className="bg-[#FFFF00] text-[#000000] font-mono font-bold text-[9px] px-2 tracking-widest border border-[#000000]">
-          CAUTION: AI TRAINING ZONE • LIVE RECORDING
-        </span>
-      </div>
-
-      {/* 3. Drawer Body */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-3 font-sans text-xs bg-[#C0C0C0]">
+      {/* Drawer Body */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#FAF8F5] text-xs">
         {/* Form Container */}
-        <div className="retro-window p-2.5 bg-[#C0C0C0]">
-          <div className="font-heading text-xs font-bold text-[#000080] mb-2 uppercase border-b border-[#808080] pb-1">
-            Capture Parameters
+        <div className="cartoon-card p-3.5 bg-white space-y-3">
+          <div className="font-extrabold text-xs text-zinc-900 uppercase tracking-wider pb-1 border-b border-zinc-200">
+            Capture Configuration
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             <div>
-              <label className="block text-[11px] font-mono font-bold text-[#000000] mb-0.5">
-                GESTURE LABEL:
+              <label className="block text-[11px] font-bold text-zinc-700 mb-1">
+                Gesture Label:
               </label>
               <input
                 type="text"
@@ -197,33 +188,33 @@ export function KeypointRecorderDrawer({
                 onChange={e => setLabelName(e.target.value)}
                 placeholder="e.g. A, B, NAMASTE, HELLO"
                 disabled={isRecording || isCountingDown}
-                className="retro-input w-full font-mono font-bold"
+                className="cartoon-input w-full font-mono font-bold"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-[11px] font-mono font-bold text-[#000000] mb-0.5">
-                  SIGNER ID:
+                <label className="block text-[11px] font-bold text-zinc-700 mb-1">
+                  Signer ID:
                 </label>
                 <input
                   type="text"
                   value={signerName}
                   onChange={e => setSignerName(e.target.value)}
                   disabled={isRecording || isCountingDown}
-                  className="retro-input w-full font-mono"
+                  className="cartoon-input w-full font-mono"
                 />
               </div>
               <div>
-                <label className="block text-[11px] font-mono font-bold text-[#000000] mb-0.5">
-                  TARGET FRAMES:
+                <label className="block text-[11px] font-bold text-zinc-700 mb-1">
+                  Target Frames:
                 </label>
                 <input
                   type="number"
                   value={targetFrames}
                   onChange={e => setTargetFrames(Number(e.target.value) || 100)}
                   disabled={isRecording || isCountingDown}
-                  className="retro-input w-full font-mono"
+                  className="cartoon-input w-full font-mono"
                 />
               </div>
             </div>
@@ -232,36 +223,35 @@ export function KeypointRecorderDrawer({
             {!isRecording && !isCountingDown ? (
               <button
                 onClick={startRecordingFlow}
-                className="retro-btn retro-btn-primary w-full py-2 font-bold text-xs mt-2"
+                className="cartoon-btn cartoon-btn-primary w-full py-2 font-bold text-xs mt-2"
               >
-                <Play className="w-3.5 h-3.5 stroke-[2px]" />
-                <span>[ START RECORDING ({targetFrames} FRAMES) ]</span>
+                <Play className="w-3.5 h-3.5 stroke-[2.2]" />
+                <span>Start Recording ({targetFrames} frames)</span>
               </button>
             ) : isCountingDown ? (
-              <div className="retro-inset bg-[#FFFFCC] p-3 text-center">
-                <span className="text-2xl font-black font-mono text-[#CC0000] animate-bounce block">
+              <div className="cartoon-card p-3 bg-[#FFF9E5] text-center border-amber-300">
+                <span className="text-3xl font-black font-mono text-[#EF4444] animate-bounce block">
                   {countdown}
                 </span>
-                <span className="text-[11px] font-bold text-[#000000]">GET READY TO SIGN...</span>
+                <span className="text-xs font-bold text-zinc-800">Get Ready to Sign...</span>
               </div>
             ) : (
-              <div className="retro-inset bg-[#FFFFCC] p-2 space-y-1">
-                <div className="flex items-center justify-between text-[11px] font-mono font-bold text-[#000080]">
-                  <span>RECORDING IN PROGRESS...</span>
-                  <span>{recordedFrames.length} / {targetFrames}</span>
+              <div className="cartoon-card p-3 bg-[#FFF9E5] space-y-2 border-amber-300">
+                <div className="flex items-center justify-between text-xs font-bold text-zinc-900">
+                  <span>Recording in progress...</span>
+                  <span className="font-mono">{recordedFrames.length} / {targetFrames}</span>
                 </div>
-                {/* 90s Segmented Progress Bar */}
-                <div className="w-full bg-[#808080] h-3 retro-inset p-0.5 flex">
+                <div className="w-full bg-amber-200 h-2 rounded-full overflow-hidden">
                   <div
-                    className="bg-[#00AA00] h-full"
+                    className="bg-[#22C55E] h-full rounded-full transition-all duration-100"
                     style={{ width: `${(recordedFrames.length / targetFrames) * 100}%` }}
                   />
                 </div>
                 <button
                   onClick={cancelRecording}
-                  className="retro-btn retro-btn-danger w-full text-[11px] py-1 mt-1"
+                  className="cartoon-btn cartoon-btn-coral w-full text-xs py-1.5 mt-1"
                 >
-                  [ CANCEL RECORDING ]
+                  Cancel Recording
                 </button>
               </div>
             )}
@@ -269,53 +259,51 @@ export function KeypointRecorderDrawer({
         </div>
 
         {/* Live Vector Feed Status */}
-        <div className="retro-inset bg-[#FFFFFF] p-2 flex items-center justify-between text-[11px] font-mono">
-          <span className="text-[#808080] font-bold">VECTOR STREAM:</span>
-          <span className={latestNormalizedFeatures ? 'text-[#00AA00] font-bold' : 'text-[#808080]'}>
-            {latestNormalizedFeatures ? 'ONLINE (240 FLOATS)' : 'WAITING FOR CAMERA'}
+        <div className="cartoon-card p-2.5 bg-white flex items-center justify-between text-[11px] font-mono">
+          <span className="font-bold text-zinc-500">Vector Stream:</span>
+          <span className={latestNormalizedFeatures ? 'text-[#16A34A] font-bold' : 'text-zinc-400'}>
+            {latestNormalizedFeatures ? '● Online (240 floats)' : 'Waiting for camera'}
           </span>
         </div>
 
         {/* Recorded Samples Table */}
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <h4 className="font-heading text-xs font-bold text-[#000000] uppercase">
+            <h4 className="font-extrabold text-xs text-zinc-900 uppercase">
               Recorded Samples ({recordedSamples.length})
             </h4>
             {recordedSamples.length > 0 && (
               <button
                 onClick={exportAllJSON}
-                className="retro-btn !px-2 !py-0.5 text-[11px]"
+                className="cartoon-btn !py-0.5 !px-2 text-xs"
               >
-                <Download className="w-3 h-3 stroke-[2px]" />
-                <span>Export All (JSON)</span>
+                <Download className="w-3 h-3 stroke-[2.2]" />
+                <span>Export All</span>
               </button>
             )}
           </div>
 
           {recordedSamples.length === 0 ? (
-            <div className="retro-inset bg-[#FFFFFF] p-6 text-center text-[#808080] font-mono text-xs">
-              [ NO SAMPLES RECORDED THIS SESSION ]
+            <div className="cartoon-card p-6 text-center text-zinc-400 text-xs">
+              No samples recorded this session yet.
             </div>
           ) : (
-            <div className="space-y-1 retro-inset bg-[#FFFFFF] p-1 max-h-[220px] overflow-y-auto">
-              {recordedSamples.map((sample, idx) => (
+            <div className="space-y-1.5 max-h-[220px] overflow-y-auto">
+              {recordedSamples.map((sample) => (
                 <div
                   key={sample.id}
-                  className={`p-1.5 border-b border-[#808080] flex items-center justify-between ${
-                    idx % 2 === 0 ? 'bg-[#FFFFFF]' : 'bg-[#E8E8E8]'
-                  }`}
+                  className="cartoon-card p-2.5 bg-white flex items-center justify-between gap-2"
                 >
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <span className="font-mono font-bold text-xs text-[#000080]">
+                      <span className="font-mono font-bold text-xs text-zinc-900">
                         {sample.label}
                       </span>
-                      <span className="retro-inset px-1 text-[9px] font-mono bg-[#C0C0C0]">
-                        {sample.frameCount} frames
+                      <span className="text-[10px] font-mono text-zinc-500">
+                        ({sample.frameCount} frames)
                       </span>
                     </div>
-                    <p className="text-[10px] text-[#808080] font-mono">
+                    <p className="text-[10px] text-zinc-400 font-mono">
                       {new Date(sample.timestamp).toLocaleTimeString()} • {sample.signer}
                     </p>
                   </div>
@@ -323,24 +311,24 @@ export function KeypointRecorderDrawer({
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => exportSampleJSON(sample)}
-                      className="retro-btn !p-1 text-[10px]"
+                      className="cartoon-btn !p-1 text-xs"
                       title="Export as JSON"
                     >
-                      <FileText className="w-3 h-3 stroke-[2px]" />
+                      <FileText className="w-3 h-3 stroke-[2.2]" />
                     </button>
                     <button
                       onClick={() => exportSampleCSV(sample)}
-                      className="retro-btn !p-1 text-[10px]"
+                      className="cartoon-btn !p-1 text-xs"
                       title="Export as CSV"
                     >
-                      <FileSpreadsheet className="w-3 h-3 stroke-[2px]" />
+                      <FileSpreadsheet className="w-3 h-3 stroke-[2.2]" />
                     </button>
                     <button
                       onClick={() => deleteSample(sample.id)}
-                      className="retro-btn retro-btn-danger !p-1 text-[10px]"
+                      className="cartoon-btn cartoon-btn-coral !p-1 text-xs"
                       title="Delete Sample"
                     >
-                      <Trash2 className="w-3 h-3 stroke-[2px]" />
+                      <Trash2 className="w-3 h-3 stroke-[2.2]" />
                     </button>
                   </div>
                 </div>

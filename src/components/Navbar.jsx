@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Home,
   Video,
   Activity,
   Zap,
@@ -12,13 +13,14 @@ import {
   Wifi,
   MessageSquare,
   Sparkles,
-  Flame,
-  Construction,
-  Monitor,
-  HelpCircle
+  HelpCircle,
+  Hand,
+  Info
 } from 'lucide-react';
 
 export function Navbar({
+  currentPage = 'home',
+  onPageChange,
   fps = 0,
   workerStatus = 'idle',
   workerLatencyMs = 0,
@@ -28,6 +30,7 @@ export function Navbar({
   onOpenRecorder,
   onOpenDictionary,
   onOpenGuide,
+  onOpenAbout,
   roomId = '',
   connectionMode = 'p2p',
   rttMs = 18,
@@ -35,7 +38,6 @@ export function Navbar({
   onCopyLink
 }) {
   const [copied, setCopied] = useState(false);
-  const [activeMenu, setActiveMenu] = useState(null);
 
   const handleCopy = () => {
     if (onCopyLink) {
@@ -50,153 +52,194 @@ export function Navbar({
   const getStatusBadge = () => {
     switch (workerStatus) {
       case 'ready':
-        return { label: 'AI: READY', colorClass: 'text-[#00AA00]' };
+        return { label: 'AI Ready', bg: 'bg-[#22C55E]', text: 'text-white', dot: 'bg-white' };
       case 'compiling':
       case 'loading':
-        return { label: 'AI: LOAD', colorClass: 'text-[#0000FF]' };
+        return { label: 'AI Loading', bg: 'bg-[#38BDF8]', text: 'text-zinc-900', dot: 'bg-zinc-900' };
       case 'error':
-        return { label: 'AI: ERR', colorClass: 'text-[#FF0000]' };
+        return { label: 'AI Error', bg: 'bg-[#FF6B6B]', text: 'text-white', dot: 'bg-white' };
       default:
-        return { label: 'AI: IDLE', colorClass: 'text-[#808080]' };
+        return { label: 'AI Idle', bg: 'bg-zinc-200', text: 'text-zinc-700', dot: 'bg-zinc-500' };
     }
   };
 
   const status = getStatusBadge();
 
   return (
-    <header className="retro-outset bg-[#C0C0C0] border-b-2 border-[#000000] shadow-sm select-none flex-shrink-0">
-      {/* 1. Main Windows 95/98 Application Title Bar */}
-      <div className="retro-window-titlebar flex items-center justify-between px-2 py-0.5">
-        <div className="flex items-center gap-2">
-          {/* 90s Pixelated Desktop Icon */}
-          <div className="w-4 h-4 bg-[#C0C0C0] border border-[#FFFFFF] flex items-center justify-center text-[#000080]">
-            <Monitor className="w-3.5 h-3.5 stroke-[2px]" />
-          </div>
-          {/* Animated Rainbow Headline In Titlebar */}
-          <span className="font-heading text-xs sm:text-sm tracking-wide font-black text-rainbow uppercase">
-            SIGNBRIDGE ISL '98
-          </span>
-          <span className="hidden md:inline font-bold text-xs text-[#FFFFFF]">
-            - [Indian Sign Language Cyber-Bridge]
-          </span>
+    <header className="w-full px-2 py-1.5 sm:px-4 sm:py-2.5 flex-shrink-0">
+      <div className="cartoon-card px-2.5 py-1.5 sm:px-3.5 sm:py-2 flex items-center justify-between gap-2 sm:gap-3 flex-nowrap">
+        {/* Left: Brand & Main Mode Selector */}
+        <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+          {/* Logo Mark - Click to navigate Home */}
+          <button
+            type="button"
+            onClick={() => onPageChange && onPageChange('home')}
+            className="flex items-center gap-1.5 sm:gap-2 text-left cursor-pointer hover:opacity-90 transition-opacity"
+            title="Go to Home"
+          >
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#FFD15C] border-2 border-zinc-900 flex items-center justify-center shadow-cartoon-sm flex-shrink-0">
+              <Hand className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-900 stroke-[2.5]" />
+            </div>
+            <div>
+              <div className="flex items-center gap-1 sm:gap-1.5 leading-none">
+                <span className="font-extrabold text-sm sm:text-base tracking-tight text-zinc-900">
+                  Sanket
+                </span>
+                <span className="cartoon-badge !py-0 !px-1 text-[8px] sm:text-[9px] bg-[#FFD15C] text-zinc-900 hidden sm:inline-block">
+                  ISL
+                </span>
+              </div>
+              <span className="text-[10px] font-bold text-zinc-400 font-mono hidden lg:inline">
+                संकेत • Edge AI
+              </span>
+            </div>
+          </button>
 
-          {/* Badges in Titlebar */}
-          <span className="hidden sm:inline-block bg-[#FFFF00] text-[#000000] text-[9px] px-1 font-mono font-bold animate-pulse-glow">
-            ★ NEW! v1.97 ★
-          </span>
-          <span className="hidden lg:inline-block bg-[#00AA00] text-[#FFFFFF] text-[9px] px-1 font-mono font-bold">
-            Y2K READY
-          </span>
-        </div>
+          <div className="h-5 w-[2px] bg-zinc-200 hidden sm:block" />
 
-        {/* Windows 95 Window Controls [_] [□] [X] */}
-        <div className="flex items-center gap-1">
-          <button className="retro-window-btn" title="Minimize" aria-label="Minimize">_</button>
-          <button className="retro-window-btn" title="Maximize" aria-label="Maximize">□</button>
-          <button className="retro-window-btn" title="Close" aria-label="Close">×</button>
-        </div>
-      </div>
-
-      {/* 2. Unified Toolbar & Menu Controls Row */}
-      <div className="flex flex-wrap items-center justify-between gap-1 px-2 py-1 bg-[#C0C0C0] border-t border-[#FFFFFF]">
-        {/* Left: Mode Buttons & Knowledge Tools (Unified Interface for Both Users) */}
-        <div className="flex items-center gap-1 flex-wrap">
-          {/* User Identity Chip */}
-          <div className="retro-inset px-2 py-0.5 bg-[#FFFFFF] text-[11px] font-mono font-bold text-[#000080] flex items-center gap-1">
-            <span className="text-[#808080]">ME:</span>
-            <span>{userName}</span>
-          </div>
-
-          {/* Mode Selector (Words vs A-Z) */}
-          <div className="flex items-center retro-inset-gray p-0.5 gap-0.5">
+          {/* Primary Page Navigation: Home vs Learn ISL vs Live Chat */}
+          <div className="flex items-center bg-[#F4EFEA] p-0.5 rounded-xl border-2 border-zinc-900 shadow-cartoon-sm">
             <button
-              onClick={() => onToggleMode && onToggleMode('word')}
-              className={`retro-btn text-xs !py-0.5 !px-2 ${recognitionMode === 'word' ? 'retro-btn-success' : ''}`}
-              title="AI4Bharat 50 Words Neural Model"
+              onClick={() => onPageChange && onPageChange('home')}
+              className={`px-2 sm:px-3 py-1 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1 ${
+                currentPage === 'home'
+                  ? 'bg-white text-zinc-900 border-2 border-zinc-900 shadow-cartoon-sm'
+                  : 'text-zinc-600 hover:text-zinc-900 border-2 border-transparent'
+              }`}
+              title="Home Screen"
             >
-              <span>Words</span>
+              <Home className="w-3.5 h-3.5 stroke-[2.2]" />
+              <span className="inline">Home</span>
             </button>
             <button
-              onClick={() => onToggleMode && onToggleMode('alphabet')}
-              className={`retro-btn text-xs !py-0.5 !px-2 ${recognitionMode === 'alphabet' ? 'retro-btn-primary' : ''}`}
-              title="Two-Handed Fingerspelling A-Z"
+              onClick={() => onPageChange && onPageChange('learn')}
+              className={`px-2 sm:px-3 py-1 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1 ${
+                currentPage === 'learn'
+                  ? 'bg-[#FFD15C] text-zinc-900 border-2 border-zinc-900 shadow-cartoon-sm'
+                  : 'text-zinc-600 hover:text-zinc-900 border-2 border-transparent'
+              }`}
+              title="Practice & Learn ISL with Biometric Guides"
             >
-              <span>A–Z</span>
+              <BookOpen className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span className="sm:hidden">Learn</span>
+              <span className="hidden sm:inline">Learn ISL</span>
+            </button>
+            <button
+              onClick={() => onPageChange && onPageChange('chat')}
+              className={`px-2 sm:px-3 py-1 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1.5 ${
+                currentPage === 'chat'
+                  ? 'bg-[#38BDF8] text-zinc-900 border-2 border-zinc-900 shadow-cartoon-sm'
+                  : 'text-zinc-600 hover:text-zinc-900 border-2 border-transparent'
+              }`}
+              title="Real-Time ISL Video & Text Messenger (Beta)"
+            >
+              <Video className="w-3.5 h-3.5 stroke-[2.2]" />
+              <span className="sm:hidden">Call</span>
+              <span className="hidden sm:inline">Call &amp; Chat</span>
+              <span className="text-[9px] font-black tracking-wider uppercase px-1 py-0.5 rounded bg-amber-300 text-amber-950 border border-amber-600/70 leading-none">
+                BETA
+              </span>
             </button>
           </div>
 
-          {/* 50 Words Dictionary Modal Trigger */}
+          {/* Mode Switcher Pills: Words vs A-Z Letters (only in active Learn or Chat pages) */}
+          {currentPage !== 'home' && (
+            <>
+              <div className="h-5 w-[2px] bg-zinc-200 hidden md:block" />
+              <div className="hidden lg:flex items-center bg-[#F4EFEA] p-0.5 rounded-xl border-2 border-zinc-900 shadow-cartoon-sm">
+                <button
+                  onClick={() => onToggleMode && onToggleMode('word')}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+                    recognitionMode === 'word'
+                      ? 'bg-[#FFD15C] text-zinc-900 border-2 border-zinc-900 shadow-cartoon-sm'
+                      : 'text-zinc-600 hover:text-zinc-900 border-2 border-transparent'
+                  }`}
+                  title="Daily Vocabulary Signs"
+                >
+                  <span>Words</span>
+                </button>
+                <button
+                  onClick={() => onToggleMode && onToggleMode('alphabet')}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+                    recognitionMode === 'alphabet'
+                      ? 'bg-[#38BDF8] text-zinc-900 border-2 border-zinc-900 shadow-cartoon-sm'
+                      : 'text-zinc-600 hover:text-zinc-900 border-2 border-transparent'
+                  }`}
+                  title="Two-Handed Fingerspelling A-Z"
+                >
+                  <span>A–Z</span>
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Center: Share Room Link (Visible in Chat Mode) */}
+        {currentPage === 'chat' && roomId && (
+          <div className="hidden md:flex items-center gap-1.5 bg-[#FAF8F5] border-2 border-zinc-900 rounded-xl px-2.5 py-1 shadow-cartoon-sm flex-shrink-0">
+            <span className="text-[11px] font-mono font-bold text-zinc-500">
+              Room <span className="text-zinc-900">#{roomId}</span>
+            </span>
+            <button
+              onClick={handleCopy}
+              className={`cartoon-btn !py-0.5 !px-2 text-[10px] font-bold ${
+                copied ? 'cartoon-btn-mint' : 'bg-white hover:bg-zinc-100'
+              }`}
+              title="Copy Shareable Room Link"
+            >
+              {copied ? (
+                <>
+                  <Check className="w-2.5 h-2.5 stroke-[2.5]" />
+                  <span>Copied</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-2.5 h-2.5 stroke-[2.2]" />
+                  <span>Share</span>
+                </>
+              )}
+            </button>
+          </div>
+        )}
+
+        {/* Right: Modals & Telemetry status */}
+        <div className="flex items-center gap-1.5 flex-shrink-0">
           {onOpenDictionary && (
             <button
               onClick={onOpenDictionary}
-              className="retro-btn text-xs !py-0.5 !px-2 bg-[#FFFFCC] text-[#000000]"
-              title="Open 50 ISL Words Reference Table"
+              className="cartoon-btn !py-1 !px-2 text-xs bg-white hover:bg-zinc-50"
+              title="Open ISL Visual Sign Dictionary"
             >
-              <BookOpen className="w-3 h-3 stroke-[2px] text-[#000080]" />
-              <span>Dictionary (50)</span>
+              <BookOpen className="w-3.5 h-3.5 text-zinc-800 stroke-[2.2]" />
+              <span className="hidden sm:inline">Dictionary</span>
             </button>
           )}
 
-          {/* How It Works & Features Guide Trigger */}
           {onOpenGuide && (
             <button
               onClick={onOpenGuide}
-              className="retro-btn text-xs !py-0.5 !px-2 bg-[#FFFFCC] text-[#000000] font-bold flex items-center gap-1"
-              title="Learn How Sanket Works and Explore Features"
+              className="cartoon-btn !py-1 !px-2 text-xs bg-[#FFF9E5] hover:bg-[#FFD15C]"
+              title="Learn how to sign & explore features"
             >
-              <HelpCircle className="w-3 h-3 stroke-[2px] text-[#000080]" />
-              <span>How It Works</span>
+              <HelpCircle className="w-3.5 h-3.5 text-zinc-900 stroke-[2.2]" />
+              <span className="hidden sm:inline">Guide</span>
             </button>
           )}
 
-          {/* Keypoint Dataset Recorder Trigger */}
-          {onOpenRecorder && (
-            <button
-              onClick={onOpenRecorder}
-              className="retro-btn text-xs !py-0.5 !px-2"
-              title="Record and Export Keypoint Dataset"
-            >
-              <Database className="w-3 h-3 stroke-[2px] text-[#800080]" />
-              <span>Recorder</span>
-            </button>
-          )}
-        </div>
+          {/* AI Status Badge */}
+          <div className={`cartoon-badge !py-0.5 !px-1.5 sm:!py-1 sm:!px-2.5 ${status.bg} ${status.text} shadow-none text-[10px] sm:text-[11px]`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${status.dot} animate-pulse`} />
+            <span className="hidden sm:inline">{status.label}</span>
+            <span className="sm:hidden font-bold">AI</span>
+            <span className="text-[9px] font-mono opacity-80 hidden md:inline">({workerLatencyMs}ms)</span>
+          </div>
 
-        {/* Right: Room ID & System Telemetry Status Panels */}
-        <div className="flex items-center gap-1 font-mono text-xs flex-wrap">
-          {/* Room Slug & Copy Button */}
-          {roomId && (
-            <div className="flex items-center retro-inset bg-[#FFFFFF] px-1.5 py-0.2 text-xs">
-              <span className="text-[#808080] font-bold mr-1 text-[11px]">ROOM:</span>
-              <span className="font-bold text-[#000080] text-[11px]">#{roomId}</span>
-              <button
-                onClick={handleCopy}
-                className="ml-1.5 retro-btn !px-1 !py-0 text-[9px]"
-                title="Copy Shareable Room Link"
-              >
-                {copied ? <Check className="w-2.5 h-2.5 text-[#00AA00] stroke-[2px]" /> : <Copy className="w-2.5 h-2.5 stroke-[2px]" />}
-                <span>{copied ? 'COPIED' : 'COPY'}</span>
-              </button>
+          {/* FPS Badge (Only shown in active camera sessions) */}
+          {currentPage !== 'home' && (
+            <div className="cartoon-badge bg-zinc-900 text-white font-mono shadow-none text-[10px] hidden sm:inline-flex">
+              {fps} FPS
             </div>
           )}
-
-          {/* AI Neural Engine Status */}
-          <div className="retro-inset px-1.5 py-0.2 bg-[#FFFFCC] text-[11px] font-bold flex items-center gap-1">
-            <span className={status.colorClass}>{status.label}</span>
-            <span className="text-[9px] text-[#808080]">({workerLatencyMs}ms)</span>
-          </div>
-
-          {/* Connection Dial-Up Badge */}
-          <div className="retro-inset px-1.5 py-0.2 bg-[#FFFFFF] text-[11px] font-bold flex items-center gap-1">
-            <Wifi className="w-2.5 h-2.5 stroke-[2px] text-[#000080]" />
-            <span className="text-[#000080]">{connectionMode === 'p2p' ? 'P2P' : 'NET'}</span>
-            <span className="text-[#808080] text-[9px]">{rttMs}ms</span>
-          </div>
-
-          {/* FPS Counter */}
-          <div className="retro-inset px-1.5 py-0.2 bg-[#000000] text-[#00FF00] font-mono text-[11px] font-bold">
-            {fps} FPS
-          </div>
         </div>
       </div>
     </header>

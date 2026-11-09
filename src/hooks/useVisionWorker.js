@@ -19,6 +19,14 @@ export function useVisionWorker() {
   });
   const [bufferSize, setBufferSize] = useState(0);
   const [workerError, setWorkerError] = useState(null);
+  const [profilingData, setProfilingData] = useState({
+    holisticMs: 0,
+    normMs: 0,
+    classifierMs: 0,
+    totalWorkerMs: 0,
+    wordGateDelayMs: 0,
+    alphabetGateDelayMs: 0
+  });
 
   // Prevent queuing frames when worker is busy
   const isProcessingFrameRef = useRef(false);
@@ -59,12 +67,18 @@ export function useVisionWorker() {
               setAlphabetPredictions(data.alphabetPredictions);
             }
             if (data.latestConfirmedLetter) {
-              setLatestConfirmedLetter(data.latestConfirmedLetter);
+              setLatestConfirmedLetter({
+                letter: data.latestConfirmedLetter,
+                id: `${data.latestConfirmedLetter}_${data.timestamp || Date.now()}`
+              });
             }
             if (data.wordPredictions) {
               setWordPredictions(data.wordPredictions);
               if (data.wordPredictions.confirmedWord) {
-                setLatestConfirmedWord(data.wordPredictions.confirmedWord);
+                setLatestConfirmedWord({
+                  word: data.wordPredictions.confirmedWord,
+                  id: `${data.wordPredictions.confirmedWord}_${data.timestamp || Date.now()}`
+                });
               }
             }
             if (data.motion) {
@@ -72,6 +86,9 @@ export function useVisionWorker() {
             }
             if (typeof data.bufferSize === 'number') {
               setBufferSize(data.bufferSize);
+            }
+            if (data.profiling) {
+              setProfilingData(data.profiling);
             }
             break;
 
@@ -146,6 +163,13 @@ export function useVisionWorker() {
     }
   }, [isWorkerReady]);
 
+  // Dynamically configure gating and pause duration
+  const configureGate = useCallback((config) => {
+    if (workerRef.current && isWorkerReady) {
+      workerRef.current.postMessage({ type: 'CONFIGURE_GATE', config });
+    }
+  }, [isWorkerReady]);
+
   return {
     isWorkerReady,
     workerStatus,
@@ -159,8 +183,10 @@ export function useVisionWorker() {
     motionState,
     bufferSize,
     workerError,
+    profilingData,
     sendFrame,
-    clearBuffer
+    clearBuffer,
+    configureGate
   };
 }
 

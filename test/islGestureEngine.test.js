@@ -100,6 +100,134 @@ test('islGestureEngine - Alphabet Letter L recognized accurately', () => {
   assert.ok(letters[0].confidence >= 0.90);
 });
 
+test('islGestureEngine - Authentic Two-Handed ISL Vowel A recognized accurately', () => {
+  // Non-dominant hand: open palm with thumb pointing out
+  const baseHand = [
+    { x: 0.45, y: 0.60, z: 0 }, // wrist (0)
+    { x: 0.43, y: 0.58, z: 0 },
+    { x: 0.41, y: 0.55, z: 0 },
+    { x: 0.39, y: 0.53, z: 0 },
+    { x: 0.36, y: 0.50, z: 0 }, // thumb tip (4)
+    { x: 0.45, y: 0.52, z: 0 },
+    { x: 0.45, y: 0.45, z: 0 },
+    { x: 0.45, y: 0.40, z: 0 },
+    { x: 0.45, y: 0.35, z: 0 }, // index tip (8)
+    ...Array(12).fill({ x: 0.48, y: 0.40, z: 0 })
+  ];
+
+  // Dominant hand: index extended touching the non-dominant thumb tip (0.36, 0.50)
+  const pointerHand = [
+    { x: 0.55, y: 0.60, z: 0 }, // wrist (0)
+    ...Array(4).fill({ x: 0.53, y: 0.58, z: 0 }),
+    { x: 0.50, y: 0.55, z: 0 },
+    { x: 0.45, y: 0.53, z: 0 },
+    { x: 0.40, y: 0.51, z: 0 },
+    { x: 0.37, y: 0.50, z: 0 }, // index tip (8) - touching thumb tip at 0.36, 0.50!
+    ...Array(12).fill({ x: 0.55, y: 0.58, z: 0 })
+  ];
+
+  const letters = classifyIslAlphabet(baseHand, pointerHand, []);
+  assert.ok(letters.length > 0, 'Must recognize two-handed vowel touch');
+  assert.strictEqual(letters[0].label, 'A', 'Must recognize touching thumb tip as ISL letter A');
+  assert.ok(letters[0].confidence >= 0.88);
+});
+
+test('islGestureEngine - Single-Handed Alphabet Letter A recognized accurately', () => {
+  // Closed fist with thumb resting alongside index finger
+  const aFist = [
+    { x: 0.5, y: 0.65, z: 0 }, // wrist (0)
+    { x: 0.47, y: 0.62, z: 0 },
+    { x: 0.46, y: 0.58, z: 0 },
+    { x: 0.46, y: 0.54, z: 0 },
+    { x: 0.46, y: 0.51, z: 0 }, // thumb tip (4) resting alongside index
+    { x: 0.48, y: 0.58, z: 0 }, // index MCP (5)
+    { x: 0.48, y: 0.54, z: 0 }, // index PIP (6)
+    { x: 0.48, y: 0.59, z: 0 }, // index DIP (7)
+    { x: 0.48, y: 0.62, z: 0 }, // index tip (8) - curled inward
+    ...Array(4).fill({ x: 0.50, y: 0.62, z: 0 }), // middle curled
+    ...Array(4).fill({ x: 0.52, y: 0.62, z: 0 }), // ring curled
+    ...Array(4).fill({ x: 0.54, y: 0.62, z: 0 })  // pinky curled
+  ];
+
+  const letters = classifyIslAlphabet(null, aFist, []);
+  assert.ok(letters.length > 0, 'Must recognize single-handed A');
+  assert.strictEqual(letters[0].label, 'A');
+  assert.ok(letters[0].confidence >= 0.90);
+});
+
+test('islGestureEngine - Two-Handed ISL Vowel E recognized accurately', () => {
+  // Base hand: open index tip at (0.45, 0.35)
+  const baseHand = [
+    { x: 0.45, y: 0.60, z: 0 },
+    ...Array(7).fill({ x: 0.45, y: 0.50, z: 0 }),
+    { x: 0.45, y: 0.35, z: 0 }, // index tip (8)
+    ...Array(12).fill({ x: 0.48, y: 0.40, z: 0 })
+  ];
+
+  // Dominant hand: index tip touching base hand index tip at (0.46, 0.35)
+  const pointerHand = [
+    { x: 0.58, y: 0.60, z: 0 },
+    ...Array(7).fill({ x: 0.52, y: 0.50, z: 0 }),
+    { x: 0.46, y: 0.35, z: 0 }, // index tip (8)
+    ...Array(12).fill({ x: 0.55, y: 0.58, z: 0 })
+  ];
+
+  const letters = classifyIslAlphabet(baseHand, pointerHand, []);
+  assert.ok(letters.length > 0);
+  assert.strictEqual(letters[0].label, 'E', 'Must recognize touching index tip as ISL letter E');
+  assert.ok(letters[0].confidence >= 0.88);
+});
+
+test('islGestureEngine - TIME gesture (tapping wrist) recognized accurately', () => {
+  // Non-dominant left wrist at (0.45, 0.55)
+  const leftHand = [
+    { x: 0.45, y: 0.55, z: 0 }, // wrist (0)
+    ...Array(20).fill({ x: 0.45, y: 0.45, z: 0 })
+  ];
+
+  // Dominant right hand: index tip (8) touching non-dominant wrist (0.45, 0.55)
+  const rightHand = [
+    { x: 0.60, y: 0.65, z: 0 }, // wrist (0)
+    ...Array(7).fill({ x: 0.55, y: 0.60, z: 0 }),
+    { x: 0.46, y: 0.55, z: 0 }, // index tip (8) touching left wrist
+    ...Array(12).fill({ x: 0.62, y: 0.68, z: 0 }) // other fingers curled
+  ];
+
+  const pose = Array.from({ length: 33 }, () => ({ x: 0.5, y: 0.4, z: 0 }));
+  const words = classifyIslWord(leftHand, rightHand, pose, { state: 'SIGNING_ACTIVE' });
+  assert.ok(words.length > 0);
+  assert.strictEqual(words[0].label, 'TIME');
+  assert.ok(words[0].confidence >= 0.90);
+});
+
+test('islGestureEngine - CALL gesture (phone hand near ear) recognized accurately', () => {
+  // Right hand in Y-shape (thumb & pinky extended, others curled) near ear (x: 0.70, y: 0.25)
+  const phoneHand = [
+    { x: 0.70, y: 0.30, z: 0 }, // wrist
+    { x: 0.68, y: 0.27, z: 0 },
+    { x: 0.66, y: 0.24, z: 0 },
+    { x: 0.64, y: 0.21, z: 0 },
+    { x: 0.62, y: 0.18, z: 0 }, // thumb extended up/out (4)
+    ...Array(4).fill({ x: 0.70, y: 0.32, z: 0 }), // index curled
+    ...Array(4).fill({ x: 0.70, y: 0.32, z: 0 }), // middle curled
+    ...Array(4).fill({ x: 0.70, y: 0.32, z: 0 }), // ring curled
+    { x: 0.72, y: 0.28, z: 0 },
+    { x: 0.74, y: 0.25, z: 0 },
+    { x: 0.76, y: 0.22, z: 0 },
+    { x: 0.78, y: 0.18, z: 0 }  // pinky extended up/out (20)
+  ];
+
+  const pose = Array.from({ length: 33 }, () => ({ x: 0.5, y: 0.3, z: 0 }));
+  pose[0] = { x: 0.5, y: 0.25, z: 0 }; // nose
+  pose[11] = { x: 0.4, y: 0.45, z: 0 }; // left shoulder
+  pose[12] = { x: 0.6, y: 0.45, z: 0 }; // right shoulder
+
+  const words = classifyIslWord(null, phoneHand, pose, { state: 'SIGNING_ACTIVE' });
+  assert.ok(words.length > 0);
+  assert.strictEqual(words[0].label, 'CALL');
+  assert.ok(words[0].confidence >= 0.90);
+});
+
 test('islGestureEngine - rejects resting hand at bottom of frame', () => {
   const restingHand = [
     { x: 0.5, y: 0.92, z: 0 }, // wrist below 0.85

@@ -1,14 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MessageSquareQuote, Sparkles } from 'lucide-react';
 
-/**
- * IncomingSubtitleOverlay (Retro Edition)
- * 
- * Closed Captioning / HUD Overlay on Video Viewport:
- * - Authentic 90s closed-caption box with 3D bevels.
- * - Yellow notepad (#FFFFCC) high-contrast dialog.
- * - 0px border radius, 2px stroke icons.
- */
 export function IncomingSubtitleOverlay({ latestReply = null }) {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -29,27 +21,28 @@ export function IncomingSubtitleOverlay({ latestReply = null }) {
   return (
     <aside
       aria-label="Incoming Subtitles"
-      className="absolute top-2 inset-x-2 z-30 flex justify-center pointer-events-none"
+      className="absolute top-3 inset-x-3 z-30 flex justify-center pointer-events-none animate-in fade-in slide-in-from-top-2 duration-200"
     >
-      <div className="retro-outset bg-[#FFFFCC] text-[#000000] border-2 border-[#000000] p-2 max-w-xl w-full shadow-xl flex items-center justify-between gap-2 pointer-events-auto">
-        <div className="flex items-center gap-2 overflow-hidden">
-          <div className="w-6 h-6 retro-inset bg-[#000080] text-[#FFFFFF] flex items-center justify-center flex-shrink-0">
-            <MessageSquareQuote className="w-4 h-4 stroke-[2px]" />
+      <div className="cartoon-card bg-[#FFF9E5] text-zinc-950 border-2 border-zinc-900 p-3 max-w-lg w-full shadow-cartoon-md flex items-center justify-between gap-3 pointer-events-auto">
+        <div className="flex items-center gap-2.5 overflow-hidden">
+          <div className="w-8 h-8 rounded-xl bg-zinc-900 text-white flex items-center justify-center flex-shrink-0 shadow-cartoon-sm">
+            <MessageSquareQuote className="w-4 h-4 stroke-[2.2]" />
           </div>
           <div className="flex flex-col text-left overflow-hidden">
-            <div className="flex items-center gap-2 text-[10px] font-mono font-bold text-[#000080]">
-              <span>[SUBTITLES] {latestReply.sender || 'Partner'} SAYS:</span>
-              <span className="text-[#808080]">({latestReply.timestamp || 'Just now'})</span>
+            <div className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+              <span>{latestReply.sender || 'Partner'} says:</span>
+              <span>•</span>
+              <span className="font-mono">{latestReply.timestamp || 'Just now'}</span>
             </div>
-            <p className="text-sm font-bold text-[#000000] tracking-tight truncate">
+            <p className="text-xs sm:text-sm font-extrabold text-zinc-950 truncate leading-snug">
               "{latestReply.text}"
             </p>
           </div>
         </div>
 
-        <div className="hidden sm:flex items-center gap-1 text-[10px] font-mono font-bold text-[#000000] px-1.5 py-0.5 retro-inset bg-[#FFFFFF] flex-shrink-0">
-          <span>HUD CC [ON]</span>
-        </div>
+        <span className="cartoon-badge !py-0.5 !px-2 text-[10px] bg-white text-zinc-700 shadow-none hidden sm:inline-flex flex-shrink-0">
+          Subtitles On
+        </span>
       </div>
     </aside>
   );

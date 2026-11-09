@@ -182,14 +182,24 @@ function drawFramingGuide(ctx, marginPercent = 0.10) {
  *
  * @param {CanvasRenderingContext2D} ctx
  * @param {Object} landmarks - { leftHandLandmarks, rightHandLandmarks, poseLandmarks, faceLandmarks }
- * @param {Object} options - { showGuide: boolean, showFace: boolean }
+ * @param {Object} options - { showGuide, showFace, showPose, isBlackScreen }
  */
 export function drawSkeleton(ctx, landmarks, options = {}) {
-  const { showGuide = true, showFace = true } = options;
+  const {
+    showGuide = true,
+    showFace = true,
+    showPose = true,
+    isBlackScreen = false
+  } = options;
   const { width, height } = ctx.canvas;
 
   // Clear previous frame
-  ctx.clearRect(0, 0, width, height);
+  if (isBlackScreen) {
+    ctx.fillStyle = '#090A0F';
+    ctx.fillRect(0, 0, width, height);
+  } else {
+    ctx.clearRect(0, 0, width, height);
+  }
 
   // Safe-zone framing guide
   if (showGuide) {
@@ -198,36 +208,36 @@ export function drawSkeleton(ctx, landmarks, options = {}) {
 
   if (!landmarks) return;
 
-  const leftHand = getLandmarkArray(landmarks.leftHandLandmarks);
-  const rightHand = getLandmarkArray(landmarks.rightHandLandmarks);
-  const pose = getLandmarkArray(landmarks.poseLandmarks);
-  const face = getLandmarkArray(landmarks.faceLandmarks);
+  const liveLeftHand = getLandmarkArray(landmarks?.leftHandLandmarks);
+  const liveRightHand = getLandmarkArray(landmarks?.rightHandLandmarks);
+  const livePose = getLandmarkArray(landmarks?.poseLandmarks);
+  const liveFace = getLandmarkArray(landmarks?.faceLandmarks);
 
   // 1. Upper Body Pose (White)
-  if (pose.length > 0) {
-    drawConnections(ctx, pose, UPPER_POSE_CONNECTIONS, COLOR_TOKENS.pose, 2, true);
-    drawJoints(ctx, [pose[11], pose[12], pose[13], pose[14]], COLOR_TOKENS.pose, 3, true);
+  if (showPose && livePose.length > 0) {
+    drawConnections(ctx, livePose, UPPER_POSE_CONNECTIONS, COLOR_TOKENS.pose, 2, true);
+    drawJoints(ctx, [livePose[11], livePose[12], livePose[13], livePose[14]], COLOR_TOKENS.pose, 3, true);
   }
 
   // 2. Facial Expressions (Amber)
-  if (showFace && face.length > 0) {
-    drawContour(ctx, face, FACE_CONTOURS.leftEyebrow, COLOR_TOKENS.face, 1.5, false);
-    drawContour(ctx, face, FACE_CONTOURS.rightEyebrow, COLOR_TOKENS.face, 1.5, false);
-    drawContour(ctx, face, FACE_CONTOURS.lips, COLOR_TOKENS.face, 1.5, true);
+  if (showFace && liveFace.length > 0) {
+    drawContour(ctx, liveFace, FACE_CONTOURS.leftEyebrow, COLOR_TOKENS.face, 1.5, false);
+    drawContour(ctx, liveFace, FACE_CONTOURS.rightEyebrow, COLOR_TOKENS.face, 1.5, false);
+    drawContour(ctx, liveFace, FACE_CONTOURS.lips, COLOR_TOKENS.face, 1.5, true);
   }
 
   // 3. Left Hand & Fingers (Sky Blue - #38BDF8)
-  if (leftHand.length > 0) {
-    drawConnections(ctx, leftHand, HAND_CONNECTIONS, COLOR_TOKENS.leftHand, 2.5, false);
-    drawJoints(ctx, leftHand, COLOR_TOKENS.leftHand, 3.5, false);
-    drawFingertips(ctx, leftHand, COLOR_TOKENS.leftHand, 5.5);
+  if (liveLeftHand.length > 0) {
+    drawConnections(ctx, liveLeftHand, HAND_CONNECTIONS, COLOR_TOKENS.leftHand, 2.5, false);
+    drawJoints(ctx, liveLeftHand, COLOR_TOKENS.leftHand, 3.5, false);
+    drawFingertips(ctx, liveLeftHand, COLOR_TOKENS.leftHand, 5.5);
   }
 
   // 4. Right Hand & Fingers (Emerald Green - #34D399)
-  if (rightHand.length > 0) {
-    drawConnections(ctx, rightHand, HAND_CONNECTIONS, COLOR_TOKENS.rightHand, 2.5, false);
-    drawJoints(ctx, rightHand, COLOR_TOKENS.rightHand, 3.5, false);
-    drawFingertips(ctx, rightHand, COLOR_TOKENS.rightHand, 5.5);
+  if (liveRightHand.length > 0) {
+    drawConnections(ctx, liveRightHand, HAND_CONNECTIONS, COLOR_TOKENS.rightHand, 2.5, false);
+    drawJoints(ctx, liveRightHand, COLOR_TOKENS.rightHand, 3.5, false);
+    drawFingertips(ctx, liveRightHand, COLOR_TOKENS.rightHand, 5.5);
   }
 }
 

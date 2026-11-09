@@ -5,6 +5,8 @@
  * Pre-allocates memory to eliminate Garbage Collection (GC) pauses during 30 FPS video loops.
  */
 
+import { extractKinematicsFromRingBuffer } from './kinematics.js';
+
 export class RingBuffer {
   /**
    * @param {number} windowSize - Number of frames in the sliding window (default 30)
@@ -89,6 +91,17 @@ export class RingBuffer {
     }
 
     return output;
+  }
+
+  /**
+   * Extracts multi-frame dynamic kinematics (nodding, waving, circular rubbing, stationary)
+   * from the sliding window.
+   *
+   * @param {number} [windowFrames=18] - Number of recent frames to analyze (~600ms at 30fps)
+   * @returns {Object} Comprehensive kinematics state
+   */
+  getKinematics(windowFrames = 18) {
+    return extractKinematicsFromRingBuffer(this, windowFrames);
   }
 }
 

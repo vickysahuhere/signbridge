@@ -3,371 +3,230 @@
 @tailwind utilities;
 
 /* 
- * Retro / 90s Nostalgia Design System Core Styles
- * Windows 95/98 & Early Web Authentic Tokens
+ * Sanket Design System
+ * Aesthetic: Playful Cartoonish Minimal & Premium
+ * Principles:
+ * - Solid, high-contrast flat colors (NO cheap gradients)
+ * - Warm cream paper backdrop with crisp dark ink outlines
+ * - Generous rounded curves (rounded-2xl, rounded-3xl, rounded-full)
+ * - Tactile physical drop-shadows with satisfying active press states
+ * - Delightfully easy and clear for everyday signers & hearing partners
  */
 
 :root {
   color-scheme: light;
-  --retro-bg: #C0C0C0;
-  --retro-fg: #000000;
-  --retro-muted: #808080;
-  --retro-accent: #0000FF;
-  --retro-titlebar-start: #000080;
-  --retro-titlebar-end: #1084D0;
-  --retro-panel-yellow: #FFFFCC;
-}
-
-/* Strict 0px Border Radius Everywhere - The 90s had no border-radius */
-*, *::before, *::after {
-  border-radius: 0px !important;
-  box-sizing: border-box;
-}
-
-::selection {
-  background-color: #000080;
-  color: #FFFFFF;
+  --bg-canvas: #FAF8F5;
+  --ink: #18181B;
+  --surface: #FFFFFF;
+  --sunny: #FFD15C;
+  --mint: #22C55E;
+  --coral: #FF6B6B;
+  --sky: #38BDF8;
 }
 
 body {
   margin: 0;
-  background-color: #C0C0C0;
-  color: #000000;
-  font-family: "MS Sans Serif", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  font-size: 14px;
+  background-color: #FAF8F5;
+  color: #18181B;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   line-height: 1.5;
-  background-image:
-    linear-gradient(45deg, #b8b8b8 25%, transparent 25%),
-    linear-gradient(-45deg, #b8b8b8 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #b8b8b8 75%),
-    linear-gradient(-45deg, transparent 75%, #b8b8b8 75%);
-  background-size: 4px 4px;
-  background-position: 0 0, 0 2px, 2px -2px, -2px 0px;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Classic Hyperlinks */
-a, .retro-link {
-  color: #0000FF;
-  text-decoration: underline;
-  cursor: pointer;
-  transition: none;
-}
-a:visited, .retro-link:visited {
-  color: #800080;
-}
-a:hover, .retro-link:hover, a:active, .retro-link:active {
-  color: #FF0000;
+/* Custom Delightful Minimal Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-/* 3D Bevel Raised (Outset) */
-.retro-outset {
-  border: 2px solid;
-  border-color: #FFFFFF #808080 #808080 #FFFFFF;
-  box-shadow: inset -1px -1px 0 #404040, inset 1px 1px 0 #DFDFDF;
-  background-color: #C0C0C0;
+::-webkit-scrollbar-track {
+  background: #F4EFEA;
+  border-radius: 9999px;
 }
 
-/* Authentic High-Contrast Token Chips (Windows Navy with White Bold text) */
-.retro-token {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1px 6px;
-  font-family: "Courier New", Courier, monospace;
-  font-size: 11px;
-  font-weight: bold;
-  background-color: #000080 !important;
-  color: #FFFFFF !important;
-  border: 2px solid;
-  border-color: #5555FF #000040 #000040 #5555FF;
-  box-shadow: inset -1px -1px 0 #000030, inset 1px 1px 0 #8080FF;
-  white-space: nowrap;
-  letter-spacing: 0.5px;
+::-webkit-scrollbar-thumb {
+  background: #D4CEBF;
+  border-radius: 9999px;
+  border: 2px solid #F4EFEA;
 }
 
-/* Enhanced Deeper Outset */
-.retro-outset-deep {
-  border: 2px solid;
-  border-color: #FFFFFF #808080 #808080 #FFFFFF;
-  box-shadow:
-    inset -2px -2px 0 #808080,
-    inset 2px 2px 0 #FFFFFF,
-    inset -4px -4px 0 #404040,
-    inset 4px 4px 0 #DFDFDF;
-  background-color: #C0C0C0;
+::-webkit-scrollbar-thumb:hover {
+  background: #A8A190;
 }
 
-/* 3D Bevel Sunken (Inset) */
-.retro-inset {
-  border: 2px solid;
-  border-color: #808080 #FFFFFF #FFFFFF #808080;
-  box-shadow: inset 1px 1px 0 #404040, inset -1px -1px 0 #DFDFDF;
-  background-color: #FFFFFF;
+/* Focus Visible Accessibility */
+:focus-visible {
+  outline: 2px solid #18181B !important;
+  outline-offset: 2px !important;
 }
 
-/* Gray Inset for sunken toolbars/statusbars */
-.retro-inset-gray {
-  border: 2px solid;
-  border-color: #808080 #FFFFFF #FFFFFF #808080;
-  box-shadow: inset 1px 1px 0 #404040, inset -1px -1px 0 #DFDFDF;
-  background-color: #C0C0C0;
-}
-
-/* Standard Retro Button */
-.retro-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 4px 12px;
-  font-family: "MS Sans Serif", "Segoe UI", Tahoma, sans-serif;
-  font-size: 12px;
-  font-weight: bold;
-  color: #000000;
-  background-color: #C0C0C0;
-  border: 2px solid;
-  border-color: #FFFFFF #808080 #808080 #FFFFFF;
-  box-shadow: inset -1px -1px 0 #404040, inset 1px 1px 0 #DFDFDF;
-  cursor: pointer;
-  user-select: none;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.retro-btn:hover:not(:disabled) {
-  background-color: #D4D4D4;
-}
-
-.retro-btn:active:not(:disabled),
-.retro-btn.active {
-  border-color: #808080 #FFFFFF #FFFFFF #808080;
-  box-shadow: inset 1px 1px 0 #404040, inset -1px -1px 0 #DFDFDF;
-  transform: translate(1px, 1px);
-}
-
-.retro-btn:focus-visible {
-  outline: 2px dotted #000000 !important;
-  outline-offset: -4px !important;
-}
-
-.retro-btn:disabled {
-  color: #808080 !important;
-  text-shadow: 1px 1px 0 #FFFFFF;
-  cursor: not-allowed;
-  transform: none !important;
-}
-
-/* Primary Button (Windows Navy) */
-.retro-btn-primary {
-  background-color: #000080;
-  color: #FFFFFF;
-  border-color: #5555FF #000040 #000040 #5555FF;
-}
-.retro-btn-primary:hover:not(:disabled) {
-  background-color: #1084D0;
-}
-.retro-btn-primary:active:not(:disabled) {
-  border-color: #000040 #5555FF #5555FF #000040;
-}
-
-/* Success Button (Forest Green) */
-.retro-btn-success {
-  background-color: #00AA00;
-  color: #FFFFFF;
-  border-color: #55FF55 #006600 #006600 #55FF55;
-}
-.retro-btn-success:hover:not(:disabled) {
-  background-color: #00C800;
-}
-.retro-btn-success:active:not(:disabled) {
-  border-color: #006600 #55FF55 #55FF55 #006600;
-}
-
-/* Danger Button (Red) */
-.retro-btn-danger {
-  background-color: #CC0000;
-  color: #FFFFFF;
-  border-color: #FF6666 #660000 #660000 #FF6666;
-}
-.retro-btn-danger:hover:not(:disabled) {
-  background-color: #E60000;
-}
-.retro-btn-danger:active:not(:disabled) {
-  border-color: #660000 #FF6666 #FF6666 #660000;
-}
-
-/* Windows 95 Window Frame */
-.retro-window {
-  border: 2px solid;
-  border-color: #FFFFFF #808080 #808080 #FFFFFF;
-  box-shadow: inset -1px -1px 0 #404040, inset 1px 1px 0 #DFDFDF;
-  background-color: #C0C0C0;
-}
-
-.retro-window-titlebar {
-  background: linear-gradient(to right, #000080, #1084D0);
-  color: #FFFFFF;
-  font-family: "MS Sans Serif", "Segoe UI", Tahoma, sans-serif;
-  font-weight: bold;
-  font-size: 13px;
-  padding: 3px 6px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  user-select: none;
-}
-
-.retro-window-titlebar.inactive {
-  background: linear-gradient(to right, #808080, #B0B0B0);
-  color: #D4D4D4;
-}
-
-.retro-window-btn {
-  width: 16px;
-  height: 14px;
-  background-color: #C0C0C0;
-  border: 2px solid;
-  border-color: #FFFFFF #808080 #808080 #FFFFFF;
-  box-shadow: inset -1px -1px 0 #404040, inset 1px 1px 0 #DFDFDF;
-  color: #000000;
-  font-size: 9px;
-  font-family: "MS Sans Serif", Tahoma, sans-serif;
-  font-weight: bold;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  padding: 0;
-}
-
-.retro-window-btn:active {
-  border-color: #808080 #FFFFFF #FFFFFF #808080;
-  transform: translate(1px, 1px);
-}
-
-/* Inset Text Input */
-.retro-input {
-  border: 2px solid;
-  border-color: #808080 #FFFFFF #FFFFFF #808080;
-  box-shadow: inset 1px 1px 0 #404040, inset -1px -1px 0 #DFDFDF;
-  background-color: #FFFFFF;
-  color: #000000;
-  padding: 4px 8px;
-  font-family: "MS Sans Serif", "Segoe UI", Tahoma, sans-serif;
-  font-size: 13px;
-  outline: none;
-}
-
-.retro-input:focus {
-  outline: 2px dotted #000000 !important;
-  outline-offset: -3px;
-}
-
-.retro-input:disabled {
-  background-color: #C0C0C0;
-  color: #808080;
-}
-
-/* Etched Groove Horizontal Rule */
-.retro-hr {
-  border: none;
-  height: 4px;
-  background: linear-gradient(
-    to bottom,
-    #808080 0%, #808080 50%,
-    #FFFFFF 50%, #FFFFFF 100%
-  );
-  margin: 16px 0;
-}
-
-/* 45deg Hazard Construction Warning Stripes */
-.retro-stripes {
-  background: repeating-linear-gradient(
-    45deg,
-    #FFFF00,
-    #FFFF00 10px,
-    #000000 10px,
-    #000000 20px
-  );
-}
-
-/* Hit Counter Frame */
-.retro-hit-counter {
-  background-color: #000000;
-  color: #00FF00;
-  font-family: "Courier New", Courier, monospace;
-  font-weight: bold;
-  border: 2px solid;
-  border-color: #808080 #FFFFFF #FFFFFF #808080;
-  box-shadow: inset 1px 1px 0 #202020;
-  padding: 2px 8px;
-  letter-spacing: 2px;
-  display: inline-block;
-  text-shadow: 0 0 4px #00FF00;
-}
-
-/* Animations */
-@keyframes rainbow {
-  0%   { color: #FF0000; }
-  17%  { color: #FF8000; }
-  33%  { color: #FFFF00; }
-  50%  { color: #00AA00; }
-  67%  { color: #0000FF; }
-  83%  { color: #8000FF; }
-  100% { color: #FF0000; }
-}
-
-.text-rainbow {
-  animation: rainbow 4s linear infinite;
-}
-
-@keyframes pulse-glow {
-  0%, 100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7);
+/* Base Cartoon Component Classes */
+@layer components {
+  /* Cartoon Card / Panel */
+  .cartoon-card {
+    background-color: #FFFFFF;
+    border: 2px solid #18181B;
+    border-radius: 1.25rem;
+    box-shadow: 3px 3px 0px #18181B;
   }
-  50% {
-    transform: scale(1.05);
-    box-shadow: 0 0 10px 2px rgba(255, 0, 0, 0.6);
+
+  .cartoon-card-subtle {
+    background-color: #FAF8F5;
+    border: 2px solid #18181B;
+    border-radius: 1rem;
+    box-shadow: 2px 2px 0px #18181B;
+  }
+
+  /* Tactile Interactive Buttons */
+  .cartoon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    font-size: 0.875rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 0.75rem;
+    border: 2px solid #18181B;
+    background-color: #FFFFFF;
+    color: #18181B;
+    box-shadow: 2.5px 2.5px 0px #18181B;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+    white-space: nowrap;
+  }
+
+  .cartoon-btn:hover:not(:disabled) {
+    transform: translate(-1px, -1px);
+    box-shadow: 3.5px 3.5px 0px #18181B;
+  }
+
+  .cartoon-btn:active:not(:disabled) {
+    transform: translate(2px, 2px);
+    box-shadow: 0px 0px 0px #18181B;
+  }
+
+  .cartoon-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: 2px 2px 0px #18181B !important;
+  }
+
+  /* Primary Accent Button (Sunny Warm Yellow) */
+  .cartoon-btn-primary {
+    background-color: #FFD15C;
+    color: #18181B;
+  }
+  .cartoon-btn-primary:hover:not(:disabled) {
+    background-color: #F5C240;
+  }
+
+  /* Mint Green Button (Success / Send / Start) */
+  .cartoon-btn-mint {
+    background-color: #22C55E;
+    color: #FFFFFF;
+  }
+  .cartoon-btn-mint:hover:not(:disabled) {
+    background-color: #16A34A;
+  }
+
+  /* Coral Red Button (Stop / Danger / Delete) */
+  .cartoon-btn-coral {
+    background-color: #FF6B6B;
+    color: #FFFFFF;
+  }
+  .cartoon-btn-coral:hover:not(:disabled) {
+    background-color: #EF4444;
+  }
+
+  /* Dark Ink Button */
+  .cartoon-btn-dark {
+    background-color: #18181B;
+    color: #FFFFFF;
+  }
+  .cartoon-btn-dark:hover:not(:disabled) {
+    background-color: #27272A;
+  }
+
+  /* Cartoon Pill Badges */
+  .cartoon-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.2rem 0.65rem;
+    border-radius: 9999px;
+    border: 2px solid #18181B;
+    background-color: #FFFFFF;
+    color: #18181B;
+    box-shadow: 1.5px 1.5px 0px #18181B;
+    white-space: nowrap;
+  }
+
+  /* Sign Token Chip */
+  .cartoon-token {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 0.65rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 800;
+    background-color: #18181B;
+    color: #FFFFFF;
+    border: 2px solid #18181B;
+    box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.15);
+    white-space: nowrap;
+    letter-spacing: 0.025em;
+  }
+
+  /* Cartoon Input */
+  .cartoon-input {
+    border: 2px solid #18181B;
+    border-radius: 0.75rem;
+    background-color: #FFFFFF;
+    color: #18181B;
+    padding: 0.5rem 0.85rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: box-shadow 120ms ease;
+  }
+
+  .cartoon-input:focus {
+    outline: none;
+    box-shadow: 3px 3px 0px #18181B;
   }
 }
 
-.animate-pulse-glow {
-  animation: pulse-glow 1.5s ease-in-out infinite;
+/* Animations with Respect for Reduced Motion */
+@keyframes subtle-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
 }
 
-@keyframes blink-step {
-  0%, 49% { opacity: 1; }
-  50%, 100% { opacity: 0; }
+.animate-subtle-bounce {
+  animation: subtle-bounce 2s ease-in-out infinite;
 }
 
-.animate-blink {
-  animation: blink-step 0.9s step-end infinite;
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
 }
 
-/* Continuous Marquee Animation */
-@keyframes marquee-scroll {
-  0% { transform: translateX(100%); }
-  100% { transform: translateX(-100%); }
-}
-
-.marquee-content {
-  display: inline-block;
-  white-space: nowrap;
-  animation: marquee-scroll 25s linear infinite;
-}
-.marquee-content:hover {
-  animation-play-state: paused;
+.animate-pulse-ring {
+  animation: pulse-ring 2s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .text-rainbow {
-    animation: none;
-    color: #FF0000;
-  }
-  .animate-pulse-glow, .animate-blink, .marquee-content {
-    animation: none;
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

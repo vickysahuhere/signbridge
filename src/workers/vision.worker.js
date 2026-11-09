@@ -29,22 +29,27 @@ let frameCounter = 0;
 
 const wordConfirmationGate = new ConsecutiveConfirmationGate({
   confidenceThreshold: 0.80,
-  requiredConsecutive: 6,
-  cooldownFrames: 20,
+  requiredConsecutive: 3,
+  cooldownFrames: 8,
   lockUntilRelease: true
 });
 
 const alphabetConfirmationGate = new ConsecutiveConfirmationGate({
-  confidenceThreshold: 0.80,
-  requiredConsecutive: 8,
-  cooldownFrames: 18,
+  confidenceThreshold: 0.78,
+  requiredConsecutive: 3,
+  cooldownFrames: 6,
   lockUntilRelease: true
 });
 const WORD_GLOSS_LABELS = ISL_WORD_LABELS.map(w => w.gloss);
 
 // Configure ONNX WASM execution
 if (typeof ort !== 'undefined' && ort?.env?.wasm) {
-  ort.env.wasm.numThreads = 1;
+  if (typeof self !== 'undefined' && self.crossOriginIsolated && (self.navigator?.hardwareConcurrency || 1) > 1) {
+    ort.env.wasm.numThreads = Math.min(4, Math.max(1, Math.floor((self.navigator.hardwareConcurrency || 2) / 2)));
+    console.log(`[vision.worker] ONNX Runtime Web multi-threading enabled: ${ort.env.wasm.numThreads} threads`);
+  } else {
+    ort.env.wasm.numThreads = 1;
+  }
   const baseOrigin = (typeof self !== 'undefined' && self.location?.origin) || '';
   ort.env.wasm.wasmPaths = baseOrigin ? `${baseOrigin}/onnx/` : '/onnx/';
 }
@@ -52,11 +57,11 @@ if (typeof ort !== 'undefined' && ort?.env?.wasm) {
 // 30-frame temporal buffer storing 240-float feature vectors
 const ringBuffer = new RingBuffer(30, 240);
 
-// Motion energy detector and 1.2s auto-commit pause state machine
+// Motion energy detector and configurable auto-commit pause state machine (default 700ms)
 const velocityGate = new VelocityGate({
   activeThreshold: 0.015,
   idleThreshold: 0.008,
-  commitDurationMs: 1200,
+  commitDurationMs: 700,
   windowSize: 5
 });
 
@@ -79,12 +84,12 @@ async function initAlphabetModel(modelPath = DEFAULT_ALPHABET_MODEL_URL) {
         if (resp.ok) {
           modelData = await resp.arrayBuffer();
         } else {
-          console.warn(`[vision.worker] Fetching ${modelPath} returned status ${resp.status}`);
-          modelData = modelPath;
+          console.info(`[vision.worker] No pre-trained alphabet model at ${modelPath} (status ${resp.status}). Using authentic 3D geometric heuristics engine.`);
+          return;
         }
       } catch (fetchErr) {
-        console.warn('[vision.worker] Fetch error for alphabet model, using direct path:', fetchErr);
-        modelData = modelPath;
+        console.info('[vision.worker] Alphabet model fetch skipped, using geometric heuristics engine:', fetchErr.message);
+        return;
       }
     } else {
       modelData = modelPath;
@@ -120,12 +125,12 @@ async function initWordModel(modelPath = DEFAULT_WORD_MODEL_URL) {
         if (resp.ok) {
           modelData = await resp.arrayBuffer();
         } else {
-          console.warn(`[vision.worker] Fetching ${modelPath} returned status ${resp.status}`);
-          modelData = modelPath;
+          console.info(`[vision.worker] No pre-trained temporal word model at ${modelPath} (status ${resp.status}). Using authentic 3D geometric heuristics engine.`);
+          return;
         }
       } catch (fetchErr) {
-        console.warn('[vision.worker] Fetch error for word model, using direct path:', fetchErr);
-        modelData = modelPath;
+        console.info('[vision.worker] Word model fetch skipped, using geometric heuristics engine:', fetchErr.message);
+        return;
       }
     } else {
       modelData = modelPath;
@@ -317,28 +322,47 @@ async function processFrame(imageBitmap, timestamp) {
   const frameStart = performance.now();
 
   try {
+    const tHolisticStart = performance.now();
     const results = holisticLandmarker.detectForVideo(imageBitmap, timestamp);
+    const holisticMs = Math.round((performance.now() - tHolisticStart) * 10) / 10;
 
     // Free transferred GPU bitmap immediately
     imageBitmap.close();
 
+    const tNormStart = performance.now();
     // 1. Normalize 80 keypoints into 240 floats (translation & scale invariant)
     const normalized = extractAndNormalizeFrame(results);
 
     // 2. Push 240-float frame into 30-frame FIFO RingBuffer
     ringBuffer.push(normalized.features);
 
-    // 3. Update velocity gate with normalized wrists and current frame timestamp
-    const motion = velocityGate.update(normalized.leftWrist, normalized.rightWrist, timestamp);
+    // 3. Extract multi-frame dynamic kinematics & update velocity gate
+    const kinematics = ringBuffer.getKinematics(18);
+    const velocityMotion = velocityGate.update(normalized.leftWrist, normalized.rightWrist, timestamp);
+    const motion = {
+      ...velocityMotion,
+      kinematics,
+      isNodding: kinematics.isNodding,
+      isWaving: kinematics.isWaving,
+      isCircular: kinematics.isCircular,
+      isStationary: kinematics.isStationary,
+      verticalOscillations: kinematics.verticalOscillations,
+      horizontalOscillations: kinematics.horizontalOscillations,
+      verticalDisplacement: kinematics.verticalDisplacement,
+      horizontalDisplacement: kinematics.horizontalDisplacement
+    };
     frameCounter++;
+    const normMs = Math.round((performance.now() - tNormStart) * 10) / 10;
 
     const leftHand = getLandmarkArray(results.leftHandLandmarks);
     const rightHand = getLandmarkArray(results.rightHandLandmarks);
     const pose = getLandmarkArray(results.poseLandmarks);
 
+    const tClassifierStart = performance.now();
     // 4. Run Authentic Two-Handed & One-Handed ISL Alphabet Fingerspelling Classification
     let alphabetPredictions = [];
     let confirmedLetter = null;
+    let alphabetGateDelayMs = 0;
     if (leftHand.length > 0 || rightHand.length > 0) {
       alphabetPredictions = classifyIslAlphabet(leftHand, rightHand, pose);
       if (alphabetPredictions.length > 0) {
@@ -346,6 +370,7 @@ async function processFrame(imageBitmap, timestamp) {
         const confirmation = alphabetConfirmationGate.processCandidate(topCandidate);
         if (confirmation.confirmed) {
           confirmedLetter = confirmation.word;
+          alphabetGateDelayMs = confirmation.gateDelayMs || 0;
         }
       } else {
         alphabetConfirmationGate.reset();
@@ -354,16 +379,49 @@ async function processFrame(imageBitmap, timestamp) {
       alphabetConfirmationGate.reset();
     }
 
-    // 5. Run Authentic ISL Word Recognition grounded in 3D joint geometry & kinematics
+    // 5. Run Authentic ISL Word Recognition: ONNX temporal model (if trained) with 3D geometric fallback
     let wordPredictions = { topCandidates: [], confirmedWord: null };
+    let wordGateDelayMs = 0;
     if (leftHand.length > 0 || rightHand.length > 0) {
-      const candidates = classifyIslWord(leftHand, rightHand, pose, motion);
+      let candidates = [];
+      let engineSource = 'heuristic_fallback';
+
+      // 5a. If an ONNX temporal sequence model is loaded and ring buffer has 30 frames, run it
+      if (isWordModelReady && wordSession && ringBuffer.isFull()) {
+        try {
+          const temporalFeatures = ringBuffer.getFlattened();
+          const inputTensor = new ort.Tensor('float32', temporalFeatures, [1, 7200]);
+          const outputs = await wordSession.run({ input: inputTensor });
+          if (outputs?.output?.data) {
+            const numClasses = outputs.output.data.length;
+            const glossLabels = ISL_WORD_LABELS.slice(0, numClasses).map(w => w.gloss);
+            const modelCandidates = getTopKPredictions(outputs.output.data, glossLabels, 3, 0.80);
+            if (modelCandidates.length > 0 && modelCandidates[0].isConfident) {
+              candidates = modelCandidates;
+              engineSource = 'onnx_temporal_model';
+            }
+          }
+        } catch (modelErr) {
+          console.warn('[vision.worker] ONNX word inference error, falling back to heuristics:', modelErr.message);
+        }
+      }
+
+      // 5b. Fallback: Authentic 3D joint geometry & kinematics classifier
+      if (candidates.length === 0) {
+        candidates = classifyIslWord(leftHand, rightHand, pose, motion);
+        engineSource = 'geometric_rule_engine';
+      }
+
       if (candidates.length > 0) {
-        const topCandidate = candidates[0];
+        const topCandidate = { ...candidates[0], engineSource };
         const confirmation = wordConfirmationGate.processCandidate(topCandidate);
+        if (confirmation.confirmed) {
+          wordGateDelayMs = confirmation.gateDelayMs || 0;
+        }
         wordPredictions = {
           topCandidates: candidates,
-          confirmedWord: confirmation.confirmed ? confirmation.word : null
+          confirmedWord: confirmation.confirmed ? confirmation.word : null,
+          engineSource
         };
       } else {
         wordConfirmationGate.reset();
@@ -372,6 +430,7 @@ async function processFrame(imageBitmap, timestamp) {
       wordConfirmationGate.reset();
     }
 
+    const classifierMs = Math.round((performance.now() - tClassifierStart) * 10) / 10;
     const processingTimeMs = Math.round(performance.now() - frameStart);
 
     self.postMessage({
@@ -389,7 +448,15 @@ async function processFrame(imageBitmap, timestamp) {
       latestConfirmedLetter: confirmedLetter,
       wordPredictions,
       timestamp,
-      processingTimeMs
+      processingTimeMs,
+      profiling: {
+        holisticMs,
+        normMs,
+        classifierMs,
+        totalWorkerMs: processingTimeMs,
+        wordGateDelayMs,
+        alphabetGateDelayMs
+      }
     });
   } catch (err) {
     if (imageBitmap && typeof imageBitmap.close === 'function') {
@@ -432,6 +499,30 @@ self.onmessage = async (event) => {
         type: 'FLATTENED_BUFFER',
         buffer: ringBuffer.getFlattened(),
         size: ringBuffer.size()
+      });
+      break;
+
+    case 'CONFIGURE_GATE':
+      if (typeof config?.commitDurationMs === 'number') {
+        velocityGate.commitDurationMs = config.commitDurationMs;
+      }
+      if (typeof config?.wordRequiredConsecutive === 'number') {
+        wordConfirmationGate.requiredConsecutive = config.wordRequiredConsecutive;
+      }
+      if (typeof config?.wordCooldownFrames === 'number') {
+        wordConfirmationGate.cooldownFrames = config.wordCooldownFrames;
+      }
+      if (typeof config?.alphabetRequiredConsecutive === 'number') {
+        alphabetConfirmationGate.requiredConsecutive = config.alphabetRequiredConsecutive;
+      }
+      if (typeof config?.alphabetCooldownFrames === 'number') {
+        alphabetConfirmationGate.cooldownFrames = config.alphabetCooldownFrames;
+      }
+      self.postMessage({
+        type: 'GATE_CONFIGURED',
+        commitDurationMs: velocityGate.commitDurationMs,
+        wordRequiredConsecutive: wordConfirmationGate.requiredConsecutive,
+        alphabetRequiredConsecutive: alphabetConfirmationGate.requiredConsecutive
       });
       break;
 

@@ -69,6 +69,19 @@ export class GlossBufferManager {
   }
 
   /**
+   * Removes a sign token at the specified index from the buffer (1-click remove).
+   * @param {number} index - The index of the token to remove.
+   * @returns {string|null} The removed token gloss, or null if invalid index.
+   */
+  removeAt(index) {
+    if (typeof index !== 'number' || index < 0 || index >= this.buffer.length) {
+      return null;
+    }
+    const removed = this.buffer.splice(index, 1);
+    return removed.length > 0 ? removed[0].gloss : null;
+  }
+
+  /**
    * Replaces the most recently added sign in the buffer with an alternative choice.
    * If the buffer is empty, acts as push().
    * @param {string} token - New sign gloss identifier or alphabet character.

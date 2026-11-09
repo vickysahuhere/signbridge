@@ -1,5 +1,21 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { Camera, CameraOff, AlertCircle, RefreshCw, Activity, Video, Monitor, HelpCircle } from 'lucide-react';
+import {
+  Camera,
+  CameraOff,
+  AlertCircle,
+  RefreshCw,
+  Activity,
+  Video,
+  Sparkles,
+  HelpCircle,
+  Maximize2,
+  ArrowRightLeft,
+  Hand,
+  CheckCircle2,
+  X,
+  Undo2,
+  Trash2
+} from 'lucide-react';
 import { startCameraLoop } from '../vision/cameraLoop.js';
 import { drawSkeleton, checkBoundaryAlert } from '../vision/drawSkeleton.js';
 import { IncomingSubtitleOverlay } from './IncomingSubtitleOverlay.jsx';
@@ -9,6 +25,10 @@ export function SignerStage({
   latestLandmarks,
   isWorkerReady = false,
   onFpsUpdate,
+  fps = 0,
+  profilingData = null,
+  commitPauseMs = 700,
+  onPauseChange = null,
   motionState = { state: 'IDLE', pauseProgress: 0, rollingVelocity: 0 },
   bufferSize = 0,
   alphabetPredictions = [],
@@ -26,7 +46,9 @@ export function SignerStage({
   onSelectCandidate = null,
   onDismissCandidates = null,
   onSetInteracting = null,
-  currentGlosses = []
+  currentGlosses = [],
+  onUndo = null,
+  onClear = null
 }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -36,8 +58,33 @@ export function SignerStage({
   const [isLoadingCamera, setIsLoadingCamera] = useState(false);
   const [showSkeleton, setShowSkeleton] = useState(true);
   const [boundaryAlert, setBoundaryAlert] = useState({ isOutOfFrame: false, message: '' });
-  const [isHoveredCandidate, setIsHoveredCandidate] = useState(false);
   const [isSwapped, setIsSwapped] = useState(false);
+  const [showProfiler, setShowProfiler] = useState(false);
+  const lastProfileLogRef = useRef(0);
+
+  // Periodic profiling console log
+  useEffect(() => {
+    if (!isCameraActive || !profilingData) return;
+    const now = performance.now();
+    if (now - lastProfileLogRef.current > 3000) {
+      lastProfileLogRef.current = now;
+      const gateDelay = profilingData.wordGateDelayMs || (recognitionMode === 'word' ? 200 : 167);
+      const commitDelay = 1200;
+      const holistic = profilingData.holisticMs || 0;
+      const classifier = profilingData.classifierMs || 0;
+      const norm = profilingData.normMs || 0;
+      const e2e = Math.round(holistic + norm + classifier + gateDelay + commitDelay);
+      console.log('[SignBridge Profiler]', {
+        cameraFps: fps,
+        holisticMs: holistic,
+        ruleModelMs: classifier,
+        normMs: norm,
+        gateDelayMs: gateDelay,
+        commitDelayMs: commitDelay,
+        endToEndSignToTextMs: e2e
+      });
+    }
+  }, [isCameraActive, profilingData, fps, recognitionMode]);
 
   // When remote stream arrives, default to Remote in Big stage, Local in PiP
   useEffect(() => {
@@ -58,7 +105,6 @@ export function SignerStage({
     }
   }, [remoteStream]);
 
-  // FPS calculation refs
   const frameCountRef = useRef(0);
   const lastFpsCalcTimeRef = useRef(performance.now());
 
@@ -156,7 +202,7 @@ export function SignerStage({
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (showSkeleton && latestLandmarks) {
-      drawSkeleton(ctx, latestLandmarks, canvas.width, canvas.height);
+      drawSkeleton(ctx, latestLandmarks);
     }
 
     if (latestLandmarks) {
@@ -171,81 +217,103 @@ export function SignerStage({
   const hasRemote = Boolean(remoteStream);
   const isRemoteBig = hasRemote && !isSwapped;
 
+  // Active candidate list to display
+  const displayList = candidates.length > 0
+    ? candidates
+    : (recognitionMode === 'word' ? (wordPredictions?.topCandidates || []) : (alphabetPredictions || []));
+
   return (
-    <div className="retro-window w-full shadow-md flex-1 min-h-0 flex flex-col overflow-hidden">
-      {/* 1. Window Title Bar */}
-      <div className="retro-window-titlebar flex-shrink-0">
-        <div className="flex items-center gap-1.5 min-w-0">
-          <Video className="w-3.5 h-3.5 stroke-[2px] flex-shrink-0" />
-          <span className="truncate">
-            {hasRemote
-              ? `Video Call - [${isRemoteBig ? (peerPresence?.name || 'Partner') + ' (Big)' : 'Self View (Big)'}]`
-              : 'Capture Window - [ISL Video Feed 640x480 @ 30 FPS]'}
-          </span>
+    <div className="cartoon-card w-full flex-1 min-h-0 flex flex-col overflow-hidden bg-white">
+      {/* 1. Header Bar: Stage Identity & Quick Controls */}
+      <div className="px-3.5 py-2 border-b-2 border-zinc-900 bg-[#FAF8F5] flex items-center justify-between gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="w-6 h-6 rounded-lg bg-zinc-900 flex items-center justify-center text-white flex-shrink-0">
+            <Video className="w-3.5 h-3.5 stroke-[2.2]" />
+          </div>
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="font-extrabold text-xs sm:text-sm text-zinc-900 truncate">
+              {hasRemote
+                ? `Live Video Call — ${isRemoteBig ? (peerPresence?.name || 'Partner') : 'Your Camera'}`
+                : 'ISL Camera Feed'}
+            </span>
+            <span className="text-[9px] font-black uppercase px-1 py-0.2 rounded bg-amber-300 text-amber-950 border border-amber-600/70 shadow-none leading-none flex-shrink-0">
+              BETA
+            </span>
+          </div>
+          {isCameraActive && (
+            <span className="cartoon-badge !py-0 !px-2 text-[10px] bg-[#22C55E] text-white hidden sm:inline-flex">
+              ● Active
+            </span>
+          )}
         </div>
-        <div className="flex items-center gap-1 flex-shrink-0">
+
+        <div className="flex items-center gap-1.5 flex-shrink-0">
           {hasRemote && (
             <button
               onClick={() => setIsSwapped(prev => !prev)}
-              className="retro-btn !py-0.2 !px-1.5 text-[9px] font-mono font-bold bg-[#FFFF00] text-[#000000] hover:bg-[#FFFFFF] active:translate-y-[1px] flex items-center gap-1"
+              className="cartoon-btn !py-0.5 !px-2 text-xs bg-[#FFD15C] text-zinc-900"
               title="Swap Big and Small video feeds"
             >
-              <span>⇄ Swap View</span>
+              <ArrowRightLeft className="w-3 h-3 stroke-[2.5]" />
+              <span className="hidden sm:inline">Swap View</span>
             </button>
           )}
-          <button className="retro-window-btn" aria-label="Minimize">_</button>
-          <button className="retro-window-btn" aria-label="Maximize">□</button>
-          <button className="retro-window-btn" aria-label="Close">×</button>
+
+          <div className="flex items-center gap-1 text-[11px] font-mono font-bold text-zinc-600 bg-zinc-100 px-2 py-0.5 rounded-lg border border-zinc-300">
+            <span>Hands:</span>
+            <span className={hasLeftHand ? 'text-[#22C55E]' : 'text-zinc-400'}>L</span>
+            <span>•</span>
+            <span className={hasRightHand ? 'text-[#22C55E]' : 'text-zinc-400'}>R</span>
+          </div>
         </div>
       </div>
 
-      {/* 2. Main Video Viewport (Takes all remaining height in the window) */}
-      <div className="p-1.5 bg-[#C0C0C0] flex-1 min-h-0 flex flex-col justify-between overflow-hidden">
-        <div className="relative w-full flex-1 min-h-0 retro-inset bg-[#000000] overflow-hidden flex items-center justify-center">
-          {/* Incoming Subtitle HUD */}
+      {/* 2. Main Viewport Area */}
+      <div className="p-2.5 sm:p-3 flex-1 min-h-0 flex flex-col justify-between overflow-hidden bg-[#FAF8F5]">
+        <div className="relative w-full flex-1 min-h-0 rounded-2xl border-2 border-zinc-900 bg-zinc-950 overflow-hidden flex items-center justify-center shadow-inner">
+          {/* Subtitle Overlay for Incoming Partner Replies */}
           <IncomingSubtitleOverlay latestReply={latestReply} />
 
           {/* ======================================================== */}
-          {/* CONTAINER 1: LOCAL USER CAMERA FEED (WITH ON-DEVICE SKELETON) */}
+          {/* CONTAINER 1: LOCAL CAMERA VIEWPORT (WITH 3D SKELETON)   */}
           {/* ======================================================== */}
           <div
             className={
               isRemoteBig
-                ? "absolute bottom-2 right-2 z-30 retro-window bg-[#C0C0C0] p-0.5 border-2 border-[#000000] shadow-2xl max-w-[220px] w-[38%] sm:w-[200px] flex flex-col select-none transition-all"
-                : "absolute inset-0 w-full h-full z-0 flex items-center justify-center bg-[#000000] overflow-hidden"
+                ? "absolute bottom-3 right-3 z-30 cartoon-card bg-white p-1 border-2 border-zinc-900 shadow-cartoon-md max-w-[210px] w-[40%] sm:w-[190px] flex flex-col select-none transition-all"
+                : "absolute inset-0 w-full h-full z-0 flex items-center justify-center bg-zinc-950 overflow-hidden"
             }
           >
-            {/* If Local is PiP, show mini titlebar with Swap button */}
+            {/* If Local is in PiP, show mini header with swap button */}
             {isRemoteBig && (
-              <div className="retro-window-titlebar !py-0.2 !px-1 text-[9px] flex items-center justify-between select-none flex-shrink-0">
-                <div className="flex items-center gap-1 font-mono font-bold truncate">
-                  <span className={`w-1.5 h-1.5 ${isCameraActive ? 'bg-[#00AA00]' : 'bg-[#CC0000]'} flex-shrink-0`}></span>
-                  <span className="truncate">Self View (You)</span>
-                </div>
+              <div className="px-1.5 py-0.5 text-[10px] font-bold text-zinc-800 flex items-center justify-between border-b border-zinc-200 mb-0.5 flex-shrink-0">
+                <span className="flex items-center gap-1">
+                  <span className={`w-1.5 h-1.5 rounded-full ${isCameraActive ? 'bg-[#22C55E]' : 'bg-[#EF4444]'}`} />
+                  <span>You</span>
+                </span>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsSwapped(true);
                   }}
-                  className="retro-btn !p-0 !px-1 text-[8px] font-mono font-bold flex items-center gap-0.5 bg-[#FFFF00] text-[#000000] hover:bg-[#FFFFFF]"
+                  className="text-zinc-600 hover:text-zinc-900 font-mono text-[9px] flex items-center gap-0.5"
                   title="Make self view big"
                 >
-                  <span>⇄ Swap</span>
+                  <Maximize2 className="w-2.5 h-2.5" />
+                  <span>Swap</span>
                 </button>
               </div>
             )}
 
-            {/* Inner local video wrapper */}
+            {/* Video wrapper */}
             <div
               className={
                 isRemoteBig
-                  ? "retro-inset bg-[#000000] aspect-[4/3] relative overflow-hidden flex items-center justify-center cursor-pointer"
+                  ? "relative aspect-[4/3] rounded-lg overflow-hidden bg-black flex items-center justify-center cursor-pointer"
                   : "w-full h-full relative overflow-hidden flex items-center justify-center"
               }
               onClick={isRemoteBig ? () => setIsSwapped(true) : undefined}
-              title={isRemoteBig ? "Click to make self view big" : undefined}
             >
-              {/* Local video feed (Mirrored for natural self-view) */}
               <video
                 ref={videoRef}
                 playsInline
@@ -256,7 +324,7 @@ export function SignerStage({
                 }`}
               />
 
-              {/* Local Skeleton Canvas: Strictly rendered on local user's feed ONLY */}
+              {/* Skeleton Canvas (Local user only) */}
               <canvas
                 ref={canvasRef}
                 width={640}
@@ -266,331 +334,249 @@ export function SignerStage({
                 }`}
               />
 
-              {/* Out-of-frame warning badge inside PiP if hands are cut off */}
+              {/* PiP Out of frame indicator */}
               {isRemoteBig && boundaryAlert.isOutOfFrame && isCameraActive && (
                 <div className="absolute bottom-1 inset-x-1 z-20 flex justify-center pointer-events-none">
-                  <span className="bg-[#FFFF00] text-[#000000] font-mono text-[8px] font-bold px-1 border border-[#000000] shadow-sm">
-                    OUT OF FRAME
+                  <span className="cartoon-badge !py-0 !px-1.5 text-[8px] bg-[#FFD15C] text-zinc-900">
+                    Keep In View
                   </span>
                 </div>
               )}
-
-              {/* Compact Inactive/Error notice inside PiP when local cam is off during call */}
-              {isRemoteBig && !isCameraActive && !cameraError && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center p-1 text-center bg-[#000080] text-[#FFFFFF] z-20">
-                  <span className="text-[9px] font-bold">Cam Off</span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      startCamera();
-                    }}
-                    disabled={isLoadingCamera}
-                    className="retro-btn !py-0.2 !px-1 text-[8px] font-bold mt-1 bg-[#FFFFCC] text-[#000000]"
-                  >
-                    {isLoadingCamera ? 'Starting...' : 'Start'}
-                  </button>
-                </div>
-              )}
-
-              {isRemoteBig && cameraError && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center p-1 text-center bg-[#CC0000] text-[#FFFFFF] z-20">
-                  <span className="text-[8px] font-bold leading-tight">Cam Error</span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      startCamera();
-                    }}
-                    className="retro-btn !py-0.2 !px-1 text-[8px] font-bold mt-0.5 bg-[#FFFFFF] text-[#000000]"
-                  >
-                    Retry
-                  </button>
-                </div>
-              )}
             </div>
-
-            {/* If Local is Big while connected to remote partner, show banner */}
-            {!isRemoteBig && hasRemote && (
-              <div className="absolute top-2 left-2 z-20 retro-outset bg-[#C0C0C0] px-2 py-0.5 text-[10px] font-mono border border-[#000000] shadow-md flex items-center gap-1.5 select-none pointer-events-none">
-                <span className="w-2 h-2 bg-[#000080]"></span>
-                <span className="font-bold text-[#000000]">Self View (Big)</span>
-                <span className="text-[#808080] text-[9px]">(Partner in PiP)</span>
-              </div>
-            )}
           </div>
 
           {/* ======================================================== */}
-          {/* CONTAINER 2: REMOTE PEER VIDEO FEED (ZERO SKELETON OVERLAY!) */}
+          {/* CONTAINER 2: REMOTE PEER VIDEO (ZERO SKELETON OVERLAY)   */}
           {/* ======================================================== */}
-          <div
-            className={
-              !hasRemote
-                ? "hidden"
-                : isRemoteBig
-                  ? "absolute inset-0 w-full h-full z-0 flex items-center justify-center bg-[#000000] overflow-hidden"
-                  : "absolute bottom-2 right-2 z-30 retro-window bg-[#C0C0C0] p-0.5 border-2 border-[#000000] shadow-2xl max-w-[220px] w-[38%] sm:w-[200px] flex flex-col select-none transition-all"
-            }
-          >
-            {/* If Remote is in PiP (because user swapped), show mini titlebar */}
-            {hasRemote && !isRemoteBig && (
-              <div className="retro-window-titlebar !py-0.2 !px-1 text-[9px] flex items-center justify-between select-none flex-shrink-0">
-                <div className="flex items-center gap-1 font-mono font-bold truncate">
-                  <span className="w-1.5 h-1.5 bg-[#00AA00] flex-shrink-0 animate-pulse"></span>
-                  <span className="truncate">{peerPresence?.name || 'Remote Partner'}</span>
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsSwapped(false);
-                  }}
-                  className="retro-btn !p-0 !px-1 text-[8px] font-mono font-bold flex items-center gap-0.5 bg-[#FFFF00] text-[#000000] hover:bg-[#FFFFFF]"
-                  title="Make partner big"
-                >
-                  <span>⇄ Swap</span>
-                </button>
-              </div>
-            )}
-
-            {/* Remote video box - Notice: NO SKELETON CANVAS EVER PLACED HERE! */}
+          {hasRemote && (
             <div
               className={
-                !isRemoteBig
-                  ? "retro-inset bg-[#000000] aspect-[4/3] relative overflow-hidden flex items-center justify-center cursor-pointer"
-                  : "w-full h-full relative overflow-hidden flex items-center justify-center"
+                isRemoteBig
+                  ? "absolute inset-0 w-full h-full z-0 flex items-center justify-center bg-zinc-950 overflow-hidden"
+                  : "absolute bottom-3 right-3 z-30 cartoon-card bg-white p-1 border-2 border-zinc-900 shadow-cartoon-md max-w-[210px] w-[40%] sm:w-[190px] flex flex-col select-none transition-all"
               }
-              onClick={!isRemoteBig ? () => setIsSwapped(false) : undefined}
-              title={!isRemoteBig ? "Click to make partner big" : undefined}
             >
-              <video
-                ref={remoteVideoRef}
-                playsInline
-                autoPlay
-                className={`w-full h-full ${!isRemoteBig ? 'object-cover' : 'object-contain'}`}
-              />
-
-              {/* Status indicator on Big Remote Feed */}
-              {isRemoteBig && (
-                <div className="absolute top-2 left-2 z-20 retro-outset bg-[#C0C0C0] px-2 py-0.5 text-[10px] font-mono border border-[#000000] shadow-md flex items-center gap-1.5 select-none pointer-events-none">
-                  <span className="w-2 h-2 bg-[#00AA00] animate-pulse"></span>
-                  <span className="font-bold text-[#000000]">{peerPresence?.name || 'Remote Partner'}</span>
-                  <span className="text-[#000080] font-bold text-[9px]">[LIVE CALL]</span>
+              {!isRemoteBig && (
+                <div className="px-1.5 py-0.5 text-[10px] font-bold text-zinc-800 flex items-center justify-between border-b border-zinc-200 mb-0.5 flex-shrink-0">
+                  <span className="flex items-center gap-1 truncate">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] animate-pulse" />
+                    <span className="truncate">{peerPresence?.name || 'Partner'}</span>
+                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsSwapped(false);
+                    }}
+                    className="text-zinc-600 hover:text-zinc-900 font-mono text-[9px] flex items-center gap-0.5"
+                    title="Make partner big"
+                  >
+                    <Maximize2 className="w-2.5 h-2.5" />
+                    <span>Swap</span>
+                  </button>
                 </div>
               )}
-            </div>
-          </div>
 
-          {/* Out-of-frame Boundary Alert Notice (when local view is large) */}
-          {!isRemoteBig && boundaryAlert.isOutOfFrame && isCameraActive && (
-            <div className="absolute top-1.5 inset-x-1.5 z-20 flex justify-center pointer-events-none">
-              <div className="retro-outset bg-[#FFFF00] text-[#000000] border-2 border-[#000000] px-2 py-0.5 font-mono font-bold text-[10px] flex items-center gap-1 shadow-md">
-                <AlertCircle className="w-3 h-3 text-[#FF0000] stroke-[2px]" />
-                <span>WARNING: {boundaryAlert.message}</span>
+              <div
+                className={
+                  !isRemoteBig
+                    ? "relative aspect-[4/3] rounded-lg overflow-hidden bg-black flex items-center justify-center cursor-pointer"
+                    : "w-full h-full relative overflow-hidden flex items-center justify-center"
+                }
+                onClick={!isRemoteBig ? () => setIsSwapped(false) : undefined}
+              >
+                <video
+                  ref={remoteVideoRef}
+                  playsInline
+                  autoPlay
+                  className={`w-full h-full ${!isRemoteBig ? 'object-cover' : 'object-contain'}`}
+                />
+
+                {isRemoteBig && (
+                  <div className="absolute top-3 left-3 z-20 cartoon-badge bg-white text-zinc-900 flex items-center gap-1.5 shadow-cartoon-sm">
+                    <span className="w-2 h-2 rounded-full bg-[#22C55E] animate-pulse" />
+                    <span>{peerPresence?.name || 'Partner'}</span>
+                    <span className="text-[10px] font-mono text-zinc-500">• Live</span>
+                  </div>
+                )}
               </div>
             </div>
           )}
 
-          {/* Active HUD Overlays: Stabilized Candidate Box (Does NOT disappear every second; words stay tappable) */}
-          {isCameraActive && (candidates.length > 0 || (recognitionMode === 'word' ? wordPredictions?.topCandidates?.length > 0 : alphabetPredictions?.length > 0)) && (() => {
-            const displayList = candidates.length > 0
-              ? candidates
-              : (recognitionMode === 'word' ? (wordPredictions?.topCandidates || []) : (alphabetPredictions || []));
+          {/* Out of Frame Alert Notice */}
+          {!isRemoteBig && boundaryAlert.isOutOfFrame && isCameraActive && (
+            <div className="absolute top-3 inset-x-3 z-20 flex justify-center pointer-events-none">
+              <div className="cartoon-badge bg-[#FFD15C] text-zinc-900 border-2 border-zinc-900 px-3 py-1 font-bold text-xs flex items-center gap-1.5 shadow-cartoon-sm">
+                <AlertCircle className="w-3.5 h-3.5 text-zinc-900 stroke-[2.5]" />
+                <span>Please keep both hands centered inside camera</span>
+              </div>
+            </div>
+          )}
 
-            if (!displayList || displayList.length === 0) return null;
+          {/* Floating Candidate Suggestions Card (When Camera is Active & Signs are Detected) */}
+          {isCameraActive && displayList && displayList.length > 0 && (
+            <div
+              onMouseEnter={() => onSetInteracting && onSetInteracting(true)}
+              onMouseLeave={() => onSetInteracting && onSetInteracting(false)}
+              className="absolute top-3 right-3 z-20 cartoon-card bg-white p-2.5 border-2 border-zinc-900 shadow-cartoon w-[210px] max-w-[85%] select-none animate-in fade-in duration-150"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-zinc-200">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#22C55E] animate-pulse" />
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-700">
+                    {displayList[0]?.isAlphabetHint ? 'Letter Match' : 'Detected Sign'}
+                  </span>
+                </div>
+                {onDismissCandidates && (
+                  <button
+                    onClick={onDismissCandidates}
+                    className="w-4 h-4 rounded-md text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 flex items-center justify-center text-xs font-bold"
+                    title="Dismiss"
+                  >
+                    <X className="w-3 h-3 stroke-[2.5]" />
+                  </button>
+                )}
+              </div>
 
-            return (
-              <div
-                onMouseEnter={() => {
-                  setIsHoveredCandidate(true);
-                  if (onSetInteracting) onSetInteracting(true);
-                }}
-                onMouseLeave={() => {
-                  setIsHoveredCandidate(false);
-                  if (onSetInteracting) onSetInteracting(false);
-                }}
-                className="absolute top-1.5 right-1.5 z-20 retro-outset bg-[#C0C0C0] p-1 border border-[#000000] shadow-xl w-[205px] max-w-[85%] select-none"
-              >
-                {/* Titlebar with status & dismiss */}
-                <div className="bg-[#000080] text-[#FFFFFF] px-1.5 py-0.5 text-[9px] font-bold flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-1 font-mono">
-                    <span>{recognitionMode === 'word' ? 'ISL DETECTED' : 'FINGERSPELLING'}</span>
-                    {isCandidateLive ? (
-                      <span className="text-[#00FF00] text-[8px] animate-pulse">● LIVE</span>
-                    ) : (
-                      <span className="text-[#FFFF00] text-[8px]">● HELD</span>
-                    )}
+              {/* Hero Top Match */}
+              {displayList[0] && (
+                <div className="p-2 rounded-xl bg-[#FFF9E5] border border-amber-200 mb-2">
+                  <div className="flex items-start justify-between gap-1 mb-1">
+                    <div className="min-w-0">
+                      <div className="text-[9px] font-mono font-bold text-amber-800 uppercase">
+                        Top Match
+                      </div>
+                      <div className="font-extrabold text-sm text-zinc-950 truncate">
+                        {displayList[0].label}
+                      </div>
+                    </div>
+                    <span className="font-mono text-xs font-black text-[#16A34A] bg-white px-1.5 py-0.5 rounded-md border border-zinc-200">
+                      {Math.round(displayList[0].confidence * 100)}%
+                    </span>
                   </div>
-                  {onDismissCandidates && (
-                    <button
-                      onClick={onDismissCandidates}
-                      className="retro-btn !p-0 w-3.5 h-3.5 text-[8px] font-bold leading-none flex items-center justify-center hover:bg-[#CC0000] hover:text-[#FFFFFF]"
-                      title="Dismiss suggestions"
-                    >
-                      ×
-                    </button>
+
+                  {/* Confidence Progress */}
+                  <div className="w-full bg-amber-200 h-1.5 rounded-full overflow-hidden mb-2">
+                    <div
+                      className="bg-[#22C55E] h-full rounded-full transition-all duration-150"
+                      style={{ width: `${Math.min(100, Math.round(displayList[0].confidence * 100))}%` }}
+                    />
+                  </div>
+
+                  {/* Action buttons */}
+                  {onSelectCandidate && (
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => onSelectCandidate(displayList[0].label, 'smart')}
+                        className="cartoon-btn !py-1 text-xs flex-1 bg-white hover:bg-zinc-100 text-zinc-900 font-bold"
+                        title={`Tap to use ${displayList[0].label}`}
+                      >
+                        <span>+ Tap to Use</span>
+                      </button>
+                      {currentGlosses && currentGlosses.length > 0 && currentGlosses[currentGlosses.length - 1] !== displayList[0].label && (
+                        <button
+                          onClick={() => onSelectCandidate(displayList[0].label, 'replace')}
+                          className="cartoon-btn !py-1 !px-2 text-xs bg-white text-zinc-700"
+                          title="Swap last sign"
+                        >
+                          ⇄ Swap
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 1-Click Undo / Clear actions inside Detected Sign HUD */}
+                  {currentGlosses && currentGlosses.length > 0 && onUndo && (
+                    <div className="flex items-center gap-1 mt-1.5 pt-1.5 border-t border-amber-200">
+                      <button
+                        type="button"
+                        onClick={onUndo}
+                        className="cartoon-btn !py-0.5 !px-1.5 text-[10px] font-bold bg-white text-zinc-800 hover:text-zinc-950 flex-1 flex items-center justify-center gap-1"
+                        title="Undo last detected sign (1-click)"
+                      >
+                        <Undo2 className="w-2.5 h-2.5 stroke-[2.2]" />
+                        <span>Undo Last</span>
+                      </button>
+                      {onClear && (
+                        <button
+                          type="button"
+                          onClick={onClear}
+                          className="cartoon-btn !py-0.5 !px-1.5 text-[10px] font-bold bg-white text-zinc-800 hover:text-[#EF4444] flex items-center justify-center gap-1"
+                          title="Clear all signs (1-click)"
+                        >
+                          <Trash2 className="w-2.5 h-2.5 stroke-[2.2]" />
+                          <span>Clear</span>
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
+              )}
 
-                {/* Top Match Hero Card */}
-                {displayList[0] && (
-                  <div className="retro-inset bg-[#FFFFCC] p-1.5 mb-1 text-black font-sans">
-                    <div className="flex items-start justify-between">
-                      <div className="min-w-0 flex-1 mr-1">
-                        <div className="text-[8px] font-mono font-bold text-[#808080] uppercase">
-                          Top Match #1
-                        </div>
-                        <div className="font-heading text-sm font-black text-[#000080] truncate">
-                          {displayList[0].label}
-                        </div>
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        <span className="font-mono text-[11px] font-bold text-[#008000] bg-[#FFFFFF] px-1 retro-inset inline-block">
-                          {Math.round(displayList[0].confidence * 100)}%
+              {/* Runner-Up Suggestions */}
+              {displayList.length > 1 && (
+                <div className="space-y-1">
+                  <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider px-0.5">
+                    Other Suggestions:
+                  </div>
+                  {displayList.slice(1, 3).map((candidate) => (
+                    <div
+                      key={candidate.label}
+                      className="flex items-center justify-between p-1 rounded-lg bg-zinc-50 border border-zinc-200 text-xs"
+                    >
+                      <span className="font-bold text-zinc-800 text-[11px] truncate max-w-[90px]">
+                        {candidate.label}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <span className="font-mono text-[10px] text-zinc-500 font-bold">
+                          {Math.round(candidate.confidence * 100)}%
                         </span>
-                      </div>
-                    </div>
-
-                    {/* Progress bar */}
-                    <div className="w-full bg-[#808080] h-1.5 my-1 retro-inset p-0.2 flex">
-                      <div
-                        className="bg-[#00AA00] h-full transition-all duration-150"
-                        style={{
-                          width: `${Math.min(100, Math.round(displayList[0].confidence * 100))}%`
-                        }}
-                      />
-                    </div>
-
-                    {/* Tap to select / swap hero sign */}
-                    {onSelectCandidate && (
-                      <div className="flex items-center gap-1 mt-0.5">
-                        <button
-                          onClick={() => onSelectCandidate(displayList[0].label, 'smart')}
-                          className="retro-btn flex-1 !py-0.5 text-[10px] font-bold bg-[#E0E0E0] hover:bg-[#000080] hover:text-[#FFFFFF] flex items-center justify-center gap-1 active:translate-y-[1px]"
-                          title={`Tap to select "${displayList[0].label}"`}
-                        >
-                          <span>+ TAP TO USE</span>
-                        </button>
-                        {currentGlosses && currentGlosses.length > 0 && currentGlosses[currentGlosses.length - 1] !== displayList[0].label && (
+                        {onSelectCandidate && (
                           <button
-                            onClick={() => onSelectCandidate(displayList[0].label, 'replace')}
-                            className="retro-btn !py-0.5 !px-1.5 text-[9px] font-mono text-[#000080] hover:bg-[#000080] hover:text-[#FFFFFF] active:translate-y-[1px]"
-                            title={`Swap last sign with "${displayList[0].label}"`}
+                            onClick={() => onSelectCandidate(candidate.label, 'smart')}
+                            className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-zinc-200 hover:bg-zinc-900 hover:text-white"
                           >
-                            ⇄ Swap
+                            +
                           </button>
                         )}
                       </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Alternative Candidates with Good Confidence (Runners-up) */}
-                {displayList.length > 1 && (
-                  <div className="space-y-1">
-                    <div className="text-[8px] font-mono font-bold text-[#000080] uppercase px-0.5 flex items-center justify-between">
-                      <span>ALTERNATIVES (TAP TO USE):</span>
                     </div>
-
-                    {displayList.slice(1, 4).map((candidate) => {
-                      const isGoodConfidence = candidate.confidence >= 0.20;
-                      if (!isGoodConfidence) return null;
-
-                      return (
-                        <div
-                          key={candidate.label}
-                          className="p-1 bg-[#FFFFFF] retro-inset flex flex-col gap-0.5"
-                        >
-                          <div className="flex items-center justify-between text-[9px] font-mono">
-                            <span className="font-bold text-[#000000] truncate max-w-[110px]">
-                              #{candidate.rank || ''} {candidate.label}
-                            </span>
-                            <span className="font-bold text-[#008000]">
-                              {Math.round(candidate.confidence * 100)}%
-                            </span>
-                          </div>
-
-                          {/* Micro progress bar */}
-                          <div className="w-full bg-[#E0E0E0] h-1 retro-inset p-0.1 flex">
-                            <div
-                              className="bg-[#000080] h-full"
-                              style={{
-                                width: `${Math.min(100, Math.round(candidate.confidence * 100))}%`
-                              }}
-                            />
-                          </div>
-
-                          {/* Quick action buttons */}
-                          {onSelectCandidate && (
-                            <div className="flex items-center gap-1 mt-0.5">
-                              <button
-                                onClick={() => onSelectCandidate(candidate.label, 'smart')}
-                                className="retro-btn flex-1 !py-0 !px-1 text-[9px] font-bold hover:bg-[#000080] hover:text-[#FFFFFF] active:translate-y-[1px]"
-                                title={`Select "${candidate.label}"`}
-                              >
-                                + Tap
-                              </button>
-                              {currentGlosses && currentGlosses.length > 0 && (
-                                <button
-                                  onClick={() => onSelectCandidate(candidate.label, 'replace')}
-                                  className="retro-btn !py-0 !px-1 text-[9px] font-mono text-[#000080] hover:bg-[#000080] hover:text-[#FFFFFF] active:translate-y-[1px]"
-                                  title={`Swap last sign with "${candidate.label}"`}
-                                >
-                                  ⇄ Swap
-                                </button>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            );
-          })()}
-
-          {/* Connected Partner Camera Status Chip (when online but camera not sending video) */}
-          {peerPresence?.isOnline && !hasRemote && (
-            <div className="absolute bottom-2 right-2 z-20 retro-outset bg-[#C0C0C0] px-2 py-0.5 text-[10px] font-mono border border-[#000000] shadow-md flex items-center gap-1.5 select-none">
-              <span className="w-2 h-2 bg-[#00AA00]"></span>
-              <span className="font-bold text-[#000000]">{peerPresence?.name || 'Partner'} online</span>
-              <span className="text-[#808080] hidden sm:inline">(Cam Off)</span>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
-          {/* Inactive Camera Placeholder Screen (when alone) */}
+          {/* Friendly Inactive Camera Welcome Screen */}
           {!hasRemote && !isCameraActive && !cameraError && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-3 text-center bg-[#000080] text-[#FFFFFF] z-20">
-              <div className="retro-outset bg-[#C0C0C0] text-[#000000] p-3 max-w-xs w-full border-2 border-[#000000] shadow-xl">
-                <div className="bg-[#000080] text-[#FFFFFF] px-1.5 py-0.2 font-bold text-[11px] mb-2 flex items-center justify-between">
-                  <span>SYSTEM DIALOG</span>
-                  <span>[X]</span>
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center bg-zinc-950/95 z-20">
+              <div className="cartoon-card max-w-sm w-full p-5 sm:p-6 bg-white text-center flex flex-col items-center shadow-cartoon-lg">
+                {/* Cheerful Animated Hand Mark */}
+                <div className="w-14 h-14 rounded-2xl bg-[#FFD15C] border-2 border-zinc-900 flex items-center justify-center shadow-cartoon mb-3 animate-subtle-bounce">
+                  <Hand className="w-8 h-8 text-zinc-900 stroke-[2.2]" />
                 </div>
 
-                <div className="flex items-center gap-2 mb-2 text-left">
-                  <div className="w-8 h-8 retro-inset bg-[#FFFFFF] flex items-center justify-center flex-shrink-0 text-[#000080]">
-                    <Monitor className="w-5 h-5 stroke-[2px]" />
-                  </div>
-                  <div>
-                    <h4 className="font-heading text-xs font-bold text-[#000000]">Webcam Inactive</h4>
-                    <p className="text-[10px] text-[#000000]">
-                      Initialize device to track 3D gestures.
-                    </p>
-                  </div>
-                </div>
+                <h3 className="font-extrabold text-lg text-zinc-900 tracking-tight mb-1">
+                  Ready to Start Signing?
+                </h3>
+                <p className="text-xs text-zinc-600 mb-4 max-w-xs leading-relaxed">
+                  Turn on your camera to begin recognizing Indian Sign Language in real time. 100% private in your browser.
+                </p>
 
                 <button
                   onClick={startCamera}
                   disabled={isLoadingCamera}
-                  className="retro-btn retro-btn-primary w-full py-1 text-xs font-bold"
+                  className="cartoon-btn cartoon-btn-mint w-full py-2.5 text-sm font-extrabold flex items-center justify-center gap-2 shadow-cartoon"
                 >
                   {isLoadingCamera ? (
                     <>
-                      <RefreshCw className="w-3 h-3 stroke-[2px] animate-spin" />
-                      <span>INITIALIZING...</span>
+                      <RefreshCw className="w-4 h-4 stroke-[2.5] animate-spin" />
+                      <span>Starting Camera...</span>
                     </>
                   ) : (
                     <>
-                      <Camera className="w-3 h-3 stroke-[2px]" />
-                      <span>START CAMERA FEED</span>
+                      <Camera className="w-4 h-4 stroke-[2.5]" />
+                      <span>Start Camera</span>
                     </>
                   )}
                 </button>
@@ -598,114 +584,143 @@ export function SignerStage({
                 {onOpenGuide && (
                   <button
                     onClick={onOpenGuide}
-                    className="retro-btn w-full mt-2 py-1 text-xs font-bold bg-[#FFFFCC] text-[#000000] flex items-center justify-center gap-1.5"
-                    title="Learn how to sign and explore features"
+                    className="mt-3 text-xs font-bold text-zinc-600 hover:text-zinc-900 flex items-center gap-1.5 transition-colors"
                   >
-                    <HelpCircle className="w-3.5 h-3.5 text-[#000080]" />
-                    <span>HOW IT WORKS &amp; FEATURES</span>
+                    <HelpCircle className="w-3.5 h-3.5" />
+                    <span>How it works &amp; features guide</span>
                   </button>
                 )}
               </div>
             </div>
           )}
 
-          {/* Camera Permission Error Screen (when alone) */}
+          {/* Camera Permission / Device Error Screen */}
           {!hasRemote && cameraError && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-3 text-center bg-[#000080] text-[#FFFFFF] z-20">
-              <div className="retro-outset bg-[#C0C0C0] text-[#000000] p-3 max-w-xs w-full border-2 border-[#000000] shadow-xl">
-                <div className="bg-[#CC0000] text-[#FFFFFF] px-1.5 py-0.2 font-bold text-[11px] mb-2 flex items-center justify-between">
-                  <span>DEVICE ERROR</span>
-                  <span>[!]</span>
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center bg-zinc-950/95 z-20">
+              <div className="cartoon-card max-w-sm w-full p-5 bg-white text-center flex flex-col items-center shadow-cartoon-lg">
+                <div className="w-12 h-12 rounded-2xl bg-[#FF6B6B] border-2 border-zinc-900 flex items-center justify-center shadow-cartoon mb-3">
+                  <AlertCircle className="w-7 h-7 text-white stroke-[2.5]" />
                 </div>
-                <div className="flex items-center gap-2 mb-2 text-left">
-                  <AlertCircle className="w-6 h-6 text-[#CC0000] stroke-[2px] flex-shrink-0" />
-                  <p className="text-[10px] text-[#000000] leading-tight">
-                    {cameraError}
-                  </p>
-                </div>
+                <h3 className="font-extrabold text-base text-zinc-900 mb-1">
+                  Camera Access Needed
+                </h3>
+                <p className="text-xs text-zinc-600 mb-4 leading-relaxed">
+                  {cameraError}
+                </p>
                 <button
                   onClick={startCamera}
-                  className="retro-btn retro-btn-danger w-full py-1 text-xs font-bold"
+                  className="cartoon-btn cartoon-btn-coral w-full py-2 text-xs font-bold"
                 >
-                  <RefreshCw className="w-3 h-3 stroke-[2px]" />
-                  <span>RETRY CAMERA</span>
+                  <RefreshCw className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>Try Again</span>
                 </button>
+              </div>
+            </div>
+          )}
 
-                {onOpenGuide && (
-                  <button
-                    onClick={onOpenGuide}
-                    className="retro-btn w-full mt-2 py-1 text-xs font-bold bg-[#FFFFCC] text-[#000000] flex items-center justify-center gap-1.5"
-                    title="Learn how to sign and explore features"
-                  >
-                    <HelpCircle className="w-3.5 h-3.5 text-[#000080]" />
-                    <span>HOW IT WORKS &amp; FEATURES</span>
-                  </button>
-                )}
+          {/* Telemetry Profiler Panel (Conditional) */}
+          {showProfiler && (
+            <div className="absolute top-3 left-3 z-30 cartoon-card bg-white p-3 border-2 border-zinc-900 shadow-cartoon-md w-[220px] text-xs font-mono select-none">
+              <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-zinc-200">
+                <span className="font-bold text-zinc-900 text-[11px]">AI Profiler</span>
+                <button
+                  onClick={() => setShowProfiler(false)}
+                  className="w-4 h-4 text-zinc-400 hover:text-zinc-900 text-xs font-bold"
+                >
+                  ×
+                </button>
+              </div>
+              <div className="space-y-1 text-[10px] text-zinc-700">
+                <div className="flex justify-between">
+                  <span>Camera:</span>
+                  <span className="font-bold">{fps || 30} FPS</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Holistic AI:</span>
+                  <span className="font-bold">{profilingData?.holisticMs ?? 0} ms</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Rule Model:</span>
+                  <span>{profilingData?.classifierMs ?? 0} ms</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Gate Delay:</span>
+                  <span className="text-amber-700 font-bold">
+                    {profilingData?.wordGateDelayMs || (recognitionMode === 'word' ? 200 : 167)} ms
+                  </span>
+                </div>
+                <div className="pt-1 mt-1 border-t border-zinc-200 flex justify-between font-bold text-zinc-950">
+                  <span>Total Latency:</span>
+                  <span className="text-[#16A34A]">
+                    ~{Math.round((profilingData?.holisticMs || 0) + (profilingData?.wordGateDelayMs || 150) + commitPauseMs)} ms
+                  </span>
+                </div>
               </div>
             </div>
           )}
         </div>
 
-        {/* 3. Lower Camera Control & Telemetry Bar */}
-        <div className="flex items-center justify-between gap-1.5 mt-1 pt-0.5 border-t border-[#808080] flex-shrink-0">
-          <div className="flex items-center gap-1">
+        {/* 3. Bottom Controls Bar */}
+        <div className="flex items-center justify-between gap-2 mt-2 pt-1 flex-shrink-0 flex-wrap">
+          <div className="flex items-center gap-1.5">
             {isCameraActive ? (
               <button
                 onClick={stopCamera}
-                className="retro-btn retro-btn-danger text-xs !py-0.5 !px-2"
+                className="cartoon-btn cartoon-btn-coral !py-1 !px-2.5 text-xs font-bold"
               >
-                <CameraOff className="w-3 h-3 stroke-[2px]" />
-                <span>[ Stop ]</span>
+                <CameraOff className="w-3.5 h-3.5 stroke-[2.2]" />
+                <span>Stop Camera</span>
               </button>
             ) : (
               <button
                 onClick={startCamera}
                 disabled={isLoadingCamera}
-                className="retro-btn retro-btn-success text-xs !py-0.5 !px-2"
+                className="cartoon-btn cartoon-btn-mint !py-1 !px-2.5 text-xs font-bold"
               >
-                <Camera className="w-3 h-3 stroke-[2px]" />
-                <span>[ Start ]</span>
+                <Camera className="w-3.5 h-3.5 stroke-[2.2]" />
+                <span>Start Camera</span>
               </button>
             )}
 
             {isCameraActive && (
               <button
                 onClick={() => setShowSkeleton(!showSkeleton)}
-                className={`retro-btn text-xs !py-0.5 !px-1.5 ${showSkeleton ? 'retro-btn-primary' : ''}`}
-                title="Toggle skeleton landmark lines on your self-view"
+                className={`cartoon-btn !py-1 !px-2.5 text-xs font-bold ${
+                  showSkeleton ? 'bg-zinc-900 text-white' : 'bg-white text-zinc-700'
+                }`}
+                title="Toggle skeleton landmarks overlay"
               >
-                <Activity className="w-3 h-3 stroke-[2px]" />
-                <span>Skeleton {showSkeleton ? 'ON' : 'OFF'}</span>
+                <Activity className="w-3.5 h-3.5 stroke-[2.2]" />
+                <span>Skeleton {showSkeleton ? 'On' : 'Off'}</span>
               </button>
             )}
 
-            {hasRemote && (
+            <button
+              onClick={() => setShowProfiler(prev => !prev)}
+              className={`cartoon-btn !py-1 !px-2 text-xs font-bold ${
+                showProfiler ? 'bg-[#FFD15C] text-zinc-900' : 'bg-white text-zinc-600'
+              }`}
+              title="Toggle Pipeline Latency HUD"
+            >
+              <span>Telemetry</span>
+            </button>
+
+            {currentGlosses && currentGlosses.length > 0 && onUndo && (
               <button
-                onClick={() => setIsSwapped(prev => !prev)}
-                className="retro-btn text-xs !py-0.5 !px-1.5 bg-[#E0E0E0] hover:bg-[#000080] hover:text-[#FFFFFF] flex items-center gap-1 font-bold"
-                title="Swap Big and Small video feeds"
+                type="button"
+                onClick={onUndo}
+                className="cartoon-btn !py-1 !px-2.5 text-xs font-extrabold bg-white text-zinc-800 hover:text-zinc-950 flex items-center gap-1 border-2 border-zinc-900 shadow-cartoon-sm"
+                title="Undo last sign (1-click)"
               >
-                <span>⇄ Swap Video</span>
+                <Undo2 className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>Undo ({currentGlosses.length})</span>
               </button>
             )}
           </div>
 
-          <div className="flex items-center gap-1 font-mono text-[10px]">
-            {hasRemote && (
-              <div className="retro-inset px-1 py-0.2 bg-[#000080] text-[#00FF00] font-bold hidden sm:flex items-center gap-1">
-                <span className="w-1.5 h-1.5 bg-[#00FF00] rounded-full animate-pulse"></span>
-                <span>2-WAY CALL</span>
-              </div>
-            )}
-            <div className="retro-inset px-1 py-0.2 bg-[#C0C0C0] text-[#000000]">
-              L: <span className={hasLeftHand ? 'text-[#00AA00] font-bold' : 'text-[#808080]'}>{hasLeftHand ? 'OK' : '--'}</span>
-            </div>
-            <div className="retro-inset px-1 py-0.2 bg-[#C0C0C0] text-[#000000]">
-              R: <span className={hasRightHand ? 'text-[#00AA00] font-bold' : 'text-[#808080]'}>{hasRightHand ? 'OK' : '--'}</span>
-            </div>
-            <div className="retro-inset px-1 py-0.2 bg-[#C0C0C0] text-[#000000]">
-              BUF: <span className="font-bold text-[#000080]">{bufferSize}/30</span>
-            </div>
+          <div className="flex items-center gap-1 text-[11px] font-mono text-zinc-500">
+            <span>Buffer:</span>
+            <span className="font-bold text-zinc-800">{bufferSize}/30</span>
           </div>
         </div>
       </div>

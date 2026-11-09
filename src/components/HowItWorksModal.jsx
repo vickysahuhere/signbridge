@@ -15,21 +15,9 @@ import {
   Eye,
   Smile,
   ShieldCheck,
-  Printer,
   X
 } from 'lucide-react';
 
-/**
- * HowItWorksModal
- * 
- * Non-technical, user-friendly guide explaining:
- * 1. How Sanket works (step-by-step visual workflow)
- * 2. Key features (50 signs, A-Z fingerspelling, auto-grammar, live subtitles, privacy)
- * 3. Tips for the best sign recognition accuracy
- * 4. Common FAQs for everyday signers and hearing chat partners
- * 
- * Styled in authentic Windows 95 / Retro '98 aesthetic with 0px border radius and 3D bevels.
- */
 export function HowItWorksModal({ isOpen, onClose, onOpenDictionary }) {
   const [activeTab, setActiveTab] = useState('how-it-works'); // 'how-it-works' | 'features' | 'tips' | 'faq'
   const [dontShowAgain, setDontShowAgain] = useState(false);
@@ -69,52 +57,44 @@ export function HowItWorksModal({ isOpen, onClose, onOpenDictionary }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-[#000000]/60 select-none font-sans"
-      aria-label="How SignBridge ISL Works and Features Guide"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-zinc-950/60 backdrop-blur-sm select-none"
+      aria-label="How Sanket Works Guide"
       role="dialog"
     >
-      <div className="retro-window w-full max-w-3xl max-h-[92vh] flex flex-col shadow-2xl border-2 border-[#000000] bg-[#C0C0C0]">
+      <div className="cartoon-card w-full max-w-3xl max-h-[92vh] flex flex-col shadow-cartoon-lg bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Title Bar */}
-        <div className="retro-window-titlebar flex items-center justify-between px-2 py-1">
-          <div className="flex items-center gap-1.5">
-            <HelpCircle className="w-3.5 h-3.5 stroke-[2px] text-[#FFFF00]" />
-            <span className="font-bold text-xs sm:text-sm text-[#FFFFFF]">
-              SignBridge ISL (संकेत) — Welcome Guide &amp; Features
-            </span>
+        <div className="px-4 py-3 bg-[#FAF8F5] border-b-2 border-zinc-900 flex items-center justify-between gap-2 flex-shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-[#FFD15C] border-2 border-zinc-900 flex items-center justify-center shadow-cartoon-sm flex-shrink-0">
+              <Sparkles className="w-4 h-4 text-zinc-900 stroke-[2.5]" />
+            </div>
+            <div>
+              <h2 className="font-extrabold text-sm sm:text-base text-zinc-900">
+                Welcome to Sanket (संकेत)
+              </h2>
+              <p className="text-xs text-zinc-500 font-medium">
+                Indian Sign Language Real-Time AI Bridge
+              </p>
+            </div>
           </div>
           <button
             onClick={handleClose}
-            className="retro-window-btn"
+            className="w-8 h-8 rounded-xl border-2 border-zinc-900 bg-white hover:bg-zinc-100 flex items-center justify-center shadow-cartoon-sm active:translate-x-[1px] active:translate-y-[1px] transition-all"
             title="Close Guide"
             aria-label="Close Guide"
           >
-            ×
+            <X className="w-4 h-4 stroke-[2.5] text-zinc-900" />
           </button>
         </div>
 
-        {/* Sub-header Banner */}
-        <div className="bg-[#FFFFCC] border-b border-[#808080] p-2.5 flex items-center gap-2.5">
-          <div className="w-9 h-9 bg-[#000080] text-[#FFFFFF] flex items-center justify-center flex-shrink-0 border border-[#000040]">
-            <Sparkles className="w-5 h-5 text-[#FFFF00]" />
-          </div>
-          <div>
-            <h2 className="text-xs sm:text-sm font-black text-[#000080] uppercase tracking-wide">
-              Connecting Deaf Signers &amp; Hearing Friends in Real Time
-            </h2>
-            <p className="text-[11px] text-[#333333]">
-              No software to install, 100% private in your browser, and completely free forever.
-            </p>
-          </div>
-        </div>
-
         {/* Tab Header Navigation */}
-        <div className="px-3 pt-2.5 flex gap-1 border-b border-[#808080] bg-[#C0C0C0] overflow-x-auto">
+        <div className="px-4 pt-3 flex gap-2 border-b border-zinc-200 bg-white overflow-x-auto flex-shrink-0">
           <button
             onClick={() => setActiveTab('how-it-works')}
-            className={`px-3 py-1.5 text-xs font-bold border-t-2 border-l-2 border-r-2 flex items-center gap-1.5 whitespace-nowrap ${
+            className={`px-3 py-1.5 text-xs font-bold rounded-t-xl border-2 border-b-0 transition-all flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === 'how-it-works'
-                ? 'bg-[#C0C0C0] border-[#FFFFFF] border-r-[#808080] border-b-0 -mb-[1px] z-10 text-[#000080]'
-                : 'bg-[#B0B0B0] border-[#808080] text-[#404040] hover:bg-[#B8B8B8]'
+                ? 'bg-[#FAF8F5] border-zinc-900 text-zinc-900 -mb-[1px] z-10'
+                : 'bg-white border-transparent text-zinc-500 hover:text-zinc-900'
             }`}
           >
             <Hand className="w-3.5 h-3.5" />
@@ -122,10 +102,10 @@ export function HowItWorksModal({ isOpen, onClose, onOpenDictionary }) {
           </button>
           <button
             onClick={() => setActiveTab('features')}
-            className={`px-3 py-1.5 text-xs font-bold border-t-2 border-l-2 border-r-2 flex items-center gap-1.5 whitespace-nowrap ${
+            className={`px-3 py-1.5 text-xs font-bold rounded-t-xl border-2 border-b-0 transition-all flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === 'features'
-                ? 'bg-[#C0C0C0] border-[#FFFFFF] border-r-[#808080] border-b-0 -mb-[1px] z-10 text-[#000080]'
-                : 'bg-[#B0B0B0] border-[#808080] text-[#404040] hover:bg-[#B8B8B8]'
+                ? 'bg-[#FAF8F5] border-zinc-900 text-zinc-900 -mb-[1px] z-10'
+                : 'bg-white border-transparent text-zinc-500 hover:text-zinc-900'
             }`}
           >
             <Zap className="w-3.5 h-3.5" />
@@ -133,10 +113,10 @@ export function HowItWorksModal({ isOpen, onClose, onOpenDictionary }) {
           </button>
           <button
             onClick={() => setActiveTab('tips')}
-            className={`px-3 py-1.5 text-xs font-bold border-t-2 border-l-2 border-r-2 flex items-center gap-1.5 whitespace-nowrap ${
+            className={`px-3 py-1.5 text-xs font-bold rounded-t-xl border-2 border-b-0 transition-all flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === 'tips'
-                ? 'bg-[#C0C0C0] border-[#FFFFFF] border-r-[#808080] border-b-0 -mb-[1px] z-10 text-[#000080]'
-                : 'bg-[#B0B0B0] border-[#808080] text-[#404040] hover:bg-[#B8B8B8]'
+                ? 'bg-[#FAF8F5] border-zinc-900 text-zinc-900 -mb-[1px] z-10'
+                : 'bg-white border-transparent text-zinc-500 hover:text-zinc-900'
             }`}
           >
             <Lightbulb className="w-3.5 h-3.5" />
@@ -144,10 +124,10 @@ export function HowItWorksModal({ isOpen, onClose, onOpenDictionary }) {
           </button>
           <button
             onClick={() => setActiveTab('faq')}
-            className={`px-3 py-1.5 text-xs font-bold border-t-2 border-l-2 border-r-2 flex items-center gap-1.5 whitespace-nowrap ${
+            className={`px-3 py-1.5 text-xs font-bold rounded-t-xl border-2 border-b-0 transition-all flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === 'faq'
-                ? 'bg-[#C0C0C0] border-[#FFFFFF] border-r-[#808080] border-b-0 -mb-[1px] z-10 text-[#000080]'
-                : 'bg-[#B0B0B0] border-[#808080] text-[#404040] hover:bg-[#B8B8B8]'
+                ? 'bg-[#FAF8F5] border-zinc-900 text-zinc-900 -mb-[1px] z-10'
+                : 'bg-white border-transparent text-zinc-500 hover:text-zinc-900'
             }`}
           >
             <HelpCircle className="w-3.5 h-3.5" />
@@ -156,103 +136,102 @@ export function HowItWorksModal({ isOpen, onClose, onOpenDictionary }) {
         </div>
 
         {/* Tab Body */}
-        <div className="p-3 sm:p-4 bg-[#C0C0C0] text-[#000000] text-xs flex-1 overflow-y-auto min-h-[300px]">
+        <div className="p-4 sm:p-5 bg-[#FAF8F5] text-zinc-900 text-xs flex-1 overflow-y-auto min-h-[300px]">
           {/* TAB 1: HOW IT WORKS */}
           {activeTab === 'how-it-works' && (
-            <div className="space-y-3">
-              <div className="retro-inset p-2 bg-[#FFFFFF] border border-[#808080]">
-                <p className="text-[11px] leading-relaxed text-[#202020]">
-                  <strong>SignBridge ISL</strong> translates Indian Sign Language directly into English in real time.
-                  Follow these 4 simple steps to start chatting:
+            <div className="space-y-3.5">
+              <div className="cartoon-card p-3.5 bg-white border-2 border-zinc-900">
+                <p className="text-xs sm:text-sm leading-relaxed text-zinc-700 font-medium">
+                  <strong>Sanket</strong> bridges Indian Sign Language and English directly in your browser. Follow these 4 easy steps to start communicating:
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {/* Step 1 */}
-                <div className="retro-outset p-3 bg-[#FFFFFF] flex flex-col justify-between">
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className="bg-[#000080] text-[#FFFFFF] text-[10px] font-bold px-1.5 py-0.5">
+                <div className="cartoon-card p-3.5 bg-white flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="cartoon-badge !py-0 !px-1.5 text-[9px] bg-[#FFD15C] text-zinc-900">
                         STEP 1
                       </span>
-                      <Camera className="w-4 h-4 text-[#000080]" />
-                      <h4 className="font-bold text-xs text-[#000080]">Turn On Your Camera</h4>
+                      <Camera className="w-4 h-4 text-zinc-900" />
+                      <h4 className="font-extrabold text-xs text-zinc-900">Start Your Camera</h4>
                     </div>
-                    <p className="text-[11px] text-[#404040]">
-                      Click <strong>Start Camera</strong> and sit so your head, shoulders, and both hands are clearly in view.
+                    <p className="text-xs text-zinc-600 leading-relaxed">
+                      Click <strong>Start Camera</strong> and sit comfortably so your upper body and both hands are in view.
                     </p>
                   </div>
-                  <div className="mt-2 text-[10px] text-[#008000] font-bold bg-[#E8F5E9] p-1 border border-[#C8E6C9]">
-                    ✓ No green screen or special webcam needed!
+                  <div className="mt-2.5 text-[11px] text-[#16A34A] font-bold bg-[#EDFDF2] p-1.5 rounded-lg border border-green-200">
+                    ✓ 100% on-device. No video ever uploaded.
                   </div>
                 </div>
 
                 {/* Step 2 */}
-                <div className="retro-outset p-3 bg-[#FFFFFF] flex flex-col justify-between">
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className="bg-[#000080] text-[#FFFFFF] text-[10px] font-bold px-1.5 py-0.5">
+                <div className="cartoon-card p-3.5 bg-white flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="cartoon-badge !py-0 !px-1.5 text-[9px] bg-[#38BDF8] text-zinc-900">
                         STEP 2
                       </span>
-                      <Hand className="w-4 h-4 text-[#000080]" />
-                      <h4 className="font-bold text-xs text-[#000080]">Sign Your Words or Letters</h4>
+                      <Hand className="w-4 h-4 text-zinc-900" />
+                      <h4 className="font-extrabold text-xs text-zinc-900">Sign Words or Letters</h4>
                     </div>
-                    <p className="text-[11px] text-[#404040]">
-                      Sign naturally (e.g. <em>Namaste</em>, <em>Help</em>, <em>Water</em>, <em>Thank You</em>) or spell names in <strong>A–Z</strong> fingerspelling mode.
+                    <p className="text-xs text-zinc-600 leading-relaxed">
+                      Perform conversational signs (e.g. <em>Namaste</em>, <em>Help</em>, <em>Water</em>, <em>Thank You</em>) or switch to <strong>A–Z</strong> mode to spell names.
                     </p>
                   </div>
-                  <div className="mt-2 text-[10px] text-[#000080] font-bold bg-[#E8EAF6] p-1 border border-[#C5CAE9]">
-                    ✓ Watch recognized sign badges appear on screen!
+                  <div className="mt-2.5 text-[11px] text-zinc-800 font-bold bg-[#FAF8F5] p-1.5 rounded-lg border border-zinc-200">
+                    ✓ Recognized tokens appear instantly in composer!
                   </div>
                 </div>
 
                 {/* Step 3 */}
-                <div className="retro-outset p-3 bg-[#FFFFFF] flex flex-col justify-between">
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className="bg-[#000080] text-[#FFFFFF] text-[10px] font-bold px-1.5 py-0.5">
+                <div className="cartoon-card p-3.5 bg-white flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="cartoon-badge !py-0 !px-1.5 text-[9px] bg-[#FFD15C] text-zinc-900">
                         STEP 3
                       </span>
-                      <Sparkles className="w-4 h-4 text-[#000080]" />
-                      <h4 className="font-bold text-xs text-[#000080]">Automatic English Sentences</h4>
+                      <Sparkles className="w-4 h-4 text-zinc-900" />
+                      <h4 className="font-extrabold text-xs text-zinc-900">Automatic English Grammar</h4>
                     </div>
-                    <p className="text-[11px] text-[#404040]">
-                      The built-in grammar helper rearranges Indian Sign Language word order into fluent, polished English sentences.
+                    <p className="text-xs text-zinc-600 leading-relaxed">
+                      ISL has its own natural grammar (SOV). Sanket rearranges your signs into fluent, natural English sentences automatically.
                     </p>
                   </div>
-                  <div className="mt-2 text-[10px] text-[#800080] font-bold bg-[#F3E5F5] p-1 border border-[#E1BEE7]">
+                  <div className="mt-2.5 text-[11px] text-amber-900 font-bold bg-[#FFF9E5] p-1.5 rounded-lg border border-amber-200">
                     ✓ e.g. [I, WATER, WANT] → "I want water."
                   </div>
                 </div>
 
                 {/* Step 4 */}
-                <div className="retro-outset p-3 bg-[#FFFFFF] flex flex-col justify-between">
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className="bg-[#000080] text-[#FFFFFF] text-[10px] font-bold px-1.5 py-0.5">
+                <div className="cartoon-card p-3.5 bg-white flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="cartoon-badge !py-0 !px-1.5 text-[9px] bg-[#22C55E] text-white">
                         STEP 4
                       </span>
-                      <Send className="w-4 h-4 text-[#000080]" />
-                      <h4 className="font-bold text-xs text-[#000080]">Rest Hands to Send</h4>
+                      <Send className="w-4 h-4 text-zinc-900" />
+                      <h4 className="font-extrabold text-xs text-zinc-900">Rest Hands to Send</h4>
                     </div>
-                    <p className="text-[11px] text-[#404040]">
-                      When you finish a sentence, simply lower your hands or pause for 1 second. The app automatically confirms and sends your message!
+                    <p className="text-xs text-zinc-600 leading-relaxed">
+                      When finished signing, lower your hands or pause for 700ms (configurable). The message sends automatically without touching the mouse!
                     </p>
                   </div>
-                  <div className="mt-2 text-[10px] text-[#D97706] font-bold bg-[#FFFBEB] p-1 border border-[#FDE68A]">
-                    ✓ No need to reach for a mouse or keyboard!
+                  <div className="mt-2.5 text-[11px] text-[#16A34A] font-bold bg-[#EDFDF2] p-1.5 rounded-lg border border-green-200">
+                    ✓ Hands-free auto-commit motion gating
                   </div>
                 </div>
               </div>
 
-              {/* Connecting with a Friend */}
-              <div className="retro-inset p-3 bg-[#FFFFCC] border border-[#808080] flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <Users className="w-5 h-5 text-[#000080] flex-shrink-0" />
+              {/* Share link callout */}
+              <div className="cartoon-card p-3 bg-[#FFF9E5] border-2 border-zinc-900 flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-2.5">
+                  <Users className="w-5 h-5 text-zinc-900 flex-shrink-0" />
                   <div>
-                    <h5 className="font-bold text-xs text-[#000080]">Want to chat with someone?</h5>
-                    <p className="text-[11px] text-[#404040]">
-                      Click the <strong>COPY</strong> button next to <strong>ROOM</strong> at the top bar and send the link to a hearing friend, colleague, or doctor.
+                    <h5 className="font-extrabold text-xs text-zinc-900">Invite a Hearing Chat Partner</h5>
+                    <p className="text-[11px] text-zinc-600">
+                      Copy the room link in the top bar to chat with friends, colleagues, or healthcare providers in real time.
                     </p>
                   </div>
                 </div>
@@ -262,92 +241,45 @@ export function HowItWorksModal({ isOpen, onClose, onOpenDictionary }) {
 
           {/* TAB 2: KEY FEATURES */}
           {activeTab === 'features' && (
-            <div className="space-y-3">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {/* Feature 1 */}
-                <div className="retro-outset p-2.5 bg-[#FFFFFF] space-y-1">
-                  <div className="flex items-center gap-1.5 font-bold text-[#000080]">
-                    <Hand className="w-4 h-4 text-[#000080]" />
-                    <span>50 Common ISL Words</span>
-                  </div>
-                  <p className="text-[11px] text-[#404040]">
-                    Covers everyday conversational words including greetings (Namaste, Hello), healthcare (Doctor, Hospital, Medicine, Pain), daily needs (Water, Food), and family.
-                  </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="cartoon-card p-3.5 bg-white space-y-1">
+                <div className="flex items-center gap-2 font-extrabold text-xs text-zinc-900">
+                  <Hand className="w-4 h-4 text-zinc-900" />
+                  <span>22 Core Signs + 26 A–Z Alphabet</span>
                 </div>
-
-                {/* Feature 2 */}
-                <div className="retro-outset p-2.5 bg-[#FFFFFF] space-y-1">
-                  <div className="flex items-center gap-1.5 font-bold text-[#000080]">
-                    <Zap className="w-4 h-4 text-[#000080]" />
-                    <span>Two-Handed A–Z Alphabet</span>
-                  </div>
-                  <p className="text-[11px] text-[#404040]">
-                    Switch to <strong>A–Z Mode</strong> to spell out personal names, specific street addresses, or any custom vocabulary using authentic two-handed Indian fingerspelling.
-                  </p>
-                </div>
-
-                {/* Feature 3 */}
-                <div className="retro-outset p-2.5 bg-[#FFFFFF] space-y-1">
-                  <div className="flex items-center gap-1.5 font-bold text-[#000080]">
-                    <Eye className="w-4 h-4 text-[#000080]" />
-                    <span>Live Heads-Up Subtitles</span>
-                  </div>
-                  <p className="text-[11px] text-[#404040]">
-                    When your chat partner replies with text or speech, subtitles appear directly over your camera video feed so you never have to glance away from the screen.
-                  </p>
-                </div>
-
-                {/* Feature 4 */}
-                <div className="retro-outset p-2.5 bg-[#FFFFFF] space-y-1">
-                  <div className="flex items-center gap-1.5 font-bold text-[#000080]">
-                    <Sparkles className="w-4 h-4 text-[#000080]" />
-                    <span>Smart Sentence Builder</span>
-                  </div>
-                  <p className="text-[11px] text-[#404040]">
-                    Indian Sign Language uses a different grammar order than English. Our smart formatter automatically turns questions, negations, and verbs into natural English sentences.
-                  </p>
-                </div>
-
-                {/* Feature 5 */}
-                <div className="retro-outset p-2.5 bg-[#FFFFFF] space-y-1">
-                  <div className="flex items-center gap-1.5 font-bold text-[#000080]">
-                    <Lock className="w-4 h-4 text-[#008000]" />
-                    <span>100% Private &amp; Secure</span>
-                  </div>
-                  <p className="text-[11px] text-[#404040]">
-                    Your camera video NEVER leaves your device! Recognition happens entirely in your browser using local AI. No images, videos, or facial data are ever saved or uploaded to the cloud.
-                  </p>
-                </div>
-
-                {/* Feature 6 */}
-                <div className="retro-outset p-2.5 bg-[#FFFFFF] space-y-1">
-                  <div className="flex items-center gap-1.5 font-bold text-[#000080]">
-                    <Smile className="w-4 h-4 text-[#008000]" />
-                    <span>Free Forever &amp; No Installs</span>
-                  </div>
-                  <p className="text-[11px] text-[#404040]">
-                    No accounts to create, no subscriptions, and nothing to download. Open in Chrome, Edge, Brave, or Safari on your computer, tablet, or phone.
-                  </p>
-                </div>
+                <p className="text-[11px] text-zinc-600 leading-relaxed">
+                  22 verified 3D geometric signs and full two-handed A–Z fingerspelling, with a 260-word grammar restructuring lexicon.
+                </p>
               </div>
 
-              {/* Dictionary Callout */}
-              <div className="retro-inset p-2.5 bg-[#FFFFCC] flex items-center justify-between gap-2">
-                <div className="text-[11px] text-[#000000]">
-                  <strong>Need to see how each sign is performed?</strong> Browse our 50-word visual guide with diagrams and descriptions.
+              <div className="cartoon-card p-3.5 bg-white space-y-1">
+                <div className="flex items-center gap-2 font-extrabold text-xs text-zinc-900">
+                  <Zap className="w-4 h-4 text-zinc-900" />
+                  <span>Two-Handed A–Z Alphabet</span>
                 </div>
-                {onOpenDictionary && (
-                  <button
-                    onClick={() => {
-                      onClose();
-                      onOpenDictionary();
-                    }}
-                    className="retro-btn !px-2 !py-1 text-xs font-bold bg-[#FFFFFF] text-[#000080] flex items-center gap-1 flex-shrink-0"
-                  >
-                    <BookOpen className="w-3.5 h-3.5" />
-                    <span>Open Dictionary</span>
-                  </button>
-                )}
+                <p className="text-[11px] text-zinc-600 leading-relaxed">
+                  Authentic Indian fingerspelling support for spelling out names, specific addresses, or custom words.
+                </p>
+              </div>
+
+              <div className="cartoon-card p-3.5 bg-white space-y-1">
+                <div className="flex items-center gap-2 font-extrabold text-xs text-zinc-900">
+                  <Eye className="w-4 h-4 text-zinc-900" />
+                  <span>Heads-Up Subtitles</span>
+                </div>
+                <p className="text-[11px] text-zinc-600 leading-relaxed">
+                  Incoming replies appear directly over your video feed as closed captions so you never lose eye contact.
+                </p>
+              </div>
+
+              <div className="cartoon-card p-3.5 bg-white space-y-1">
+                <div className="flex items-center gap-2 font-extrabold text-xs text-zinc-900">
+                  <Lock className="w-4 h-4 text-[#16A34A]" />
+                  <span>100% Private On-Device</span>
+                </div>
+                <p className="text-[11px] text-zinc-600 leading-relaxed">
+                  Camera video NEVER leaves your device. Local WebAssembly &amp; WebGL neural networks ensure complete privacy.
+                </p>
               </div>
             </div>
           )}
@@ -355,169 +287,74 @@ export function HowItWorksModal({ isOpen, onClose, onOpenDictionary }) {
           {/* TAB 3: TIPS & ACCURACY */}
           {activeTab === 'tips' && (
             <div className="space-y-2.5">
-              <div className="retro-inset p-2 bg-[#FFFFFF]">
-                <p className="text-[11px] text-[#333333]">
-                  Get the most reliable, accurate sign recognition with these simple best practices:
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <div className="p-2 retro-outset bg-[#FFFFFF] flex items-start gap-2.5">
-                  <div className="w-6 h-6 bg-[#FFFFCC] border border-[#808080] flex items-center justify-center flex-shrink-0 text-xs font-bold text-[#000080]">
-                    1
+              {[
+                { title: 'Good Front Lighting', desc: 'Face a window or soft lamp. Avoid bright backlights that create dark silhouettes.' },
+                { title: 'Keep Hands Centered', desc: 'Position camera at chest height so both hands and shoulders fit comfortably in the frame.' },
+                { title: 'Hold Signs for a Split Second', desc: 'Holding handshapes briefly ensures crisp, multi-frame debounce confirmation.' },
+                { title: 'Rest Hands to Finish Sentence', desc: 'Rest your hands on your lap or desk when you finish signing to trigger auto-send.' }
+              ].map((tip, idx) => (
+                <div key={idx} className="cartoon-card p-3 bg-white flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-lg bg-[#FFD15C] border-2 border-zinc-900 flex items-center justify-center flex-shrink-0 text-xs font-black text-zinc-900 shadow-cartoon-sm">
+                    {idx + 1}
                   </div>
                   <div>
-                    <h5 className="font-bold text-xs text-[#000080]">Good, Front-Facing Lighting</h5>
-                    <p className="text-[11px] text-[#404040]">
-                      Make sure light falls directly on your face and hands (sit facing a window or lamp). Avoid strong bright lights directly behind you, which create dark silhouettes.
-                    </p>
+                    <h5 className="font-extrabold text-xs text-zinc-900">{tip.title}</h5>
+                    <p className="text-[11px] text-zinc-600 leading-relaxed">{tip.desc}</p>
                   </div>
                 </div>
-
-                <div className="p-2 retro-outset bg-[#FFFFFF] flex items-start gap-2.5">
-                  <div className="w-6 h-6 bg-[#FFFFCC] border border-[#808080] flex items-center justify-center flex-shrink-0 text-xs font-bold text-[#000080]">
-                    2
-                  </div>
-                  <div>
-                    <h5 className="font-bold text-xs text-[#000080]">Keep Both Hands in Frame</h5>
-                    <p className="text-[11px] text-[#404040]">
-                      Position the camera at chest/table height so your upper torso, shoulders, and full hand movements are comfortably visible within the video box.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-2 retro-outset bg-[#FFFFFF] flex items-start gap-2.5">
-                  <div className="w-6 h-6 bg-[#FFFFCC] border border-[#808080] flex items-center justify-center flex-shrink-0 text-xs font-bold text-[#000080]">
-                    3
-                  </div>
-                  <div>
-                    <h5 className="font-bold text-xs text-[#000080]">Hold Each Sign for a Split Second</h5>
-                    <p className="text-[11px] text-[#404040]">
-                      To avoid accidental false detections while moving between signs, the system confirms a sign once held for a fraction of a second.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-2 retro-outset bg-[#FFFFFF] flex items-start gap-2.5">
-                  <div className="w-6 h-6 bg-[#FFFFCC] border border-[#808080] flex items-center justify-center flex-shrink-0 text-xs font-bold text-[#000080]">
-                    4
-                  </div>
-                  <div>
-                    <h5 className="font-bold text-xs text-[#000080]">Rest Hands to Finish Sentence</h5>
-                    <p className="text-[11px] text-[#404040]">
-                      When you are done signing your thought, simply lower your hands to your lap or rest them on the desk. Sanket notices the pause and automatically delivers your sentence.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-2 retro-outset bg-[#FFFFFF] flex items-start gap-2.5">
-                  <div className="w-6 h-6 bg-[#FFFFCC] border border-[#808080] flex items-center justify-center flex-shrink-0 text-xs font-bold text-[#000080]">
-                    5
-                  </div>
-                  <div>
-                    <h5 className="font-bold text-xs text-[#000080]">Use A–Z Mode for Names and Places</h5>
-                    <p className="text-[11px] text-[#404040]">
-                      If you need to sign a person's name or a city that isn't in the 50-word list, toggle to <strong>A–Z</strong> mode in the top toolbar to spell it letter-by-letter.
-                    </p>
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
           )}
 
           {/* TAB 4: FAQs */}
           {activeTab === 'faq' && (
             <div className="space-y-2.5">
-              <div className="retro-inset p-2 bg-[#FFFFFF]">
-                <h4 className="font-bold text-xs text-[#000080]">Frequently Asked Questions</h4>
-              </div>
-
-              <div className="space-y-2 text-[11px]">
-                <div className="retro-outset p-2.5 bg-[#FFFFFF] space-y-1">
-                  <div className="font-bold text-[#000080]">Q: Is my camera video saved or sent to any server?</div>
-                  <div className="text-[#333333]">
-                    <strong>A: Never.</strong> All sign recognition and AI calculations run directly on your own computer or phone through your web browser. No video, coordinates, or audio ever touch any cloud server.
-                  </div>
+              {[
+                { q: 'Is my video recorded or sent to a server?', a: 'Never. All AI inference runs locally in your browser using WebAssembly. No frames or images leave your machine.' },
+                { q: 'How does a hearing person communicate with me?', a: 'They can type in the Chat panel or use Quick Reply chips. Subtitles pop up right on your camera feed!' },
+                { q: 'Does it cost anything or need an account?', a: 'No. Sanket is free, open, and requires zero sign-up or accounts.' },
+                { q: 'What if I sign a word by accident?', a: 'Click Undo in the sentence composer to remove the last sign, or click Clear to start over.' }
+              ].map((faq, idx) => (
+                <div key={idx} className="cartoon-card p-3 bg-white space-y-1">
+                  <div className="font-extrabold text-xs text-zinc-900">Q: {faq.q}</div>
+                  <div className="text-[11px] text-zinc-600 leading-relaxed font-medium">A: {faq.a}</div>
                 </div>
-
-                <div className="retro-outset p-2.5 bg-[#FFFFFF] space-y-1">
-                  <div className="font-bold text-[#000080]">Q: How does a hearing person talk back to me?</div>
-                  <div className="text-[#333333]">
-                    <strong>A:</strong> Your hearing friend can type in the <strong>Chat &amp; Captions</strong> panel on the right or tap quick-reply chips. Their message will show up right over your video as live subtitles.
-                  </div>
-                </div>
-
-                <div className="retro-outset p-2.5 bg-[#FFFFFF] space-y-1">
-                  <div className="font-bold text-[#000080]">Q: Does it cost money or require an account?</div>
-                  <div className="text-[#333333]">
-                    <strong>A:</strong> No. SignBridge ISL is an open, zero-cost public project designed to bridge the communication gap without barriers or sign-up forms.
-                  </div>
-                </div>
-
-                <div className="retro-outset p-2.5 bg-[#FFFFFF] space-y-1">
-                  <div className="font-bold text-[#000080]">Q: What if I sign a word by accident?</div>
-                  <div className="text-[#333333]">
-                    <strong>A:</strong> You can click the <strong>Undo</strong> button on the live sign bar at the bottom of the video, or click <strong>Clear</strong> to start the sentence over.
-                  </div>
-                </div>
-
-                <div className="retro-outset p-2.5 bg-[#FFFFFF] space-y-1">
-                  <div className="font-bold text-[#000080]">Q: What browsers work best?</div>
-                  <div className="text-[#333333]">
-                    <strong>A:</strong> Google Chrome, Microsoft Edge, Brave, and other modern Chromium-based browsers give the best performance and fastest AI speed.
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
           )}
         </div>
 
-        {/* Footer Actions */}
-        <div className="p-2.5 sm:p-3 bg-[#C0C0C0] border-t border-[#808080] flex flex-wrap items-center justify-between gap-2">
-          {/* Don't show again checkbox */}
-          <label className="flex items-center gap-1.5 cursor-pointer text-[11px] text-[#333333]">
+        {/* Footer */}
+        <div className="p-3.5 bg-[#FAF8F5] border-t-2 border-zinc-900 flex flex-wrap items-center justify-between gap-2.5 flex-shrink-0">
+          <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-zinc-600">
             <input
               type="checkbox"
               checked={dontShowAgain}
               onChange={handleToggleDontShow}
-              className="accent-[#000080]"
+              className="w-4 h-4 accent-zinc-900 rounded"
             />
-            <span>Don't show this welcome guide automatically on launch</span>
+            <span>Don't show this automatically on launch</span>
           </label>
 
-          {/* Action buttons */}
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => {
-                if (typeof window !== 'undefined') window.print();
-              }}
-              className="retro-btn !px-2.5 !py-1 text-xs font-bold flex items-center gap-1 bg-[#FFFFFF] text-[#000000]"
-              title="Print or save this guide as a PDF"
-            >
-              <Printer className="w-3.5 h-3.5 text-[#000080]" />
-              <span>Print / Save PDF</span>
-            </button>
-
             {onOpenDictionary && (
               <button
                 onClick={() => {
                   handleClose();
                   onOpenDictionary();
                 }}
-                className="retro-btn !px-3 !py-1 text-xs font-bold flex items-center gap-1 bg-[#FFFFCC] text-[#000000]"
-                title="View the 50 Indian Sign Language gestures"
+                className="cartoon-btn bg-white hover:bg-zinc-50 text-xs font-bold"
               >
-                <BookOpen className="w-3.5 h-3.5 text-[#000080]" />
-                <span>50-Word Dictionary</span>
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>Open Dictionary</span>
               </button>
             )}
 
             <button
               onClick={handleClose}
-              className="retro-btn retro-btn-primary !px-4 !py-1 text-xs font-bold"
-              title="Close guide and start using Sanket"
+              className="cartoon-btn cartoon-btn-primary text-xs font-extrabold !px-4"
             >
-              Got It! Start Signing
+              Got It, Let's Sign!
             </button>
           </div>
         </div>

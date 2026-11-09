@@ -1,10 +1,23 @@
-import React, { useState, useMemo } from 'react';
-import { X, Search, BookOpen, CheckCircle2, HelpCircle } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { X, Search, BookOpen, CheckCircle2, HelpCircle, Layers, Sparkles } from 'lucide-react';
 import { ISL_WORD_LABELS, ISL_WORD_CATEGORIES } from '../ai/islWordLabels.js';
+import { ISL_ALPHABET_GUIDE } from '../ai/islAlphabetLabels.js';
+
+export const LIVE_VISION_GLOSSES = new Set([
+  'BAD', 'CALL', 'DRINK', 'EAT', 'FEVER', 'GOOD', 'HELLO', 'HELP',
+  'LOVE', 'ME', 'MONEY', 'NAMASTE', 'NO', 'PAIN', 'PLEASE', 'SORRY',
+  'STOP', 'TIME', 'WANT', 'WELCOME', 'YES', 'YOU'
+]);
 
 export function WordDictionaryModal({ isOpen, onClose }) {
+  const [activeTab, setActiveTab] = useState('words'); // 'words' | 'alphabet'
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [displayLimit, setDisplayLimit] = useState(80);
+
+  useEffect(() => {
+    setDisplayLimit(80);
+  }, [searchQuery, selectedCategory]);
 
   const filteredWords = useMemo(() => {
     return ISL_WORD_LABELS.filter(word => {
@@ -20,6 +33,17 @@ export function WordDictionaryModal({ isOpen, onClose }) {
     });
   }, [searchQuery, selectedCategory]);
 
+  const filteredAlphabet = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return ISL_ALPHABET_GUIDE;
+    return ISL_ALPHABET_GUIDE.filter(item =>
+      item.letter.toLowerCase().includes(q) ||
+      item.description.toLowerCase().includes(q) ||
+      item.tip.toLowerCase().includes(q) ||
+      item.category.toLowerCase().includes(q)
+    );
+  }, [searchQuery]);
+
   const categoryCounts = useMemo(() => {
     const counts = { all: ISL_WORD_LABELS.length };
     ISL_WORD_LABELS.forEach(w => {
@@ -32,149 +56,231 @@ export function WordDictionaryModal({ isOpen, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-[#000000]/60 select-none"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-zinc-950/60 backdrop-blur-sm select-none"
       aria-label="ISL Word Dictionary Modal"
     >
-      <div className="retro-window w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl border-2 border-[#000000]">
-        {/* 1. Windows 95 Title Bar */}
-        <div className="retro-window-titlebar">
-          <div className="flex items-center gap-1.5">
-            <BookOpen className="w-3.5 h-3.5 stroke-[2px]" />
-            <span>ISL Vocabulary Database - [INCLUDE-50 Neural Dictionary]</span>
+      <div className="cartoon-card w-full max-w-4xl max-h-[90vh] flex flex-col shadow-cartoon-lg bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        {/* 1. Header */}
+        <div className="px-4 py-3 bg-[#FAF8F5] border-b-2 border-zinc-900 flex items-center justify-between gap-2 flex-shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-[#FFD15C] border-2 border-zinc-900 flex items-center justify-center shadow-cartoon-sm flex-shrink-0">
+              <BookOpen className="w-4 h-4 text-zinc-900 stroke-[2.5]" />
+            </div>
+            <div>
+              <h2 className="font-extrabold text-sm sm:text-base text-zinc-900">
+                ISL Sign Dictionary
+              </h2>
+              <p className="text-xs text-zinc-500 font-medium">
+                {activeTab === 'words' ? '1,000-Word Lexicon (Tier 3 Daily English)' : '26 A–Z Two-Handed Letters'}
+              </p>
+            </div>
           </div>
+
           <button
             onClick={onClose}
-            className="retro-window-btn"
-            title="Close Dialog"
-            aria-label="Close Dialog"
+            className="w-8 h-8 rounded-xl border-2 border-zinc-900 bg-white hover:bg-zinc-100 flex items-center justify-center shadow-cartoon-sm active:translate-x-[1px] active:translate-y-[1px] transition-all"
+            title="Close"
+            aria-label="Close"
           >
-            ×
+            <X className="w-4 h-4 stroke-[2.5] text-zinc-900" />
           </button>
         </div>
 
-        {/* 2. Dialog Toolbar & Filters */}
-        <div className="p-3 bg-[#C0C0C0] border-b border-[#808080] space-y-2">
-          <div className="flex items-center justify-between text-xs font-sans">
-            <div>
-              <span className="font-bold text-[#000080]">
-                AI4Bharat 50 Core Signs
-              </span>
-              <span className="text-[#808080] ml-2">
-                (Client-side browser inference via ONNX Runtime)
-              </span>
+        {/* 2. Mode Selector & Filters */}
+        <div className="p-3.5 bg-white border-b border-zinc-200 space-y-3 flex-shrink-0">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center bg-[#F4EFEA] p-1 rounded-xl border-2 border-zinc-900 shadow-cartoon-sm">
+              <button
+                onClick={() => {
+                  setActiveTab('words');
+                  setSearchQuery('');
+                }}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                  activeTab === 'words'
+                    ? 'bg-[#FFD15C] text-zinc-900 border-2 border-zinc-900 shadow-cartoon-sm'
+                    : 'text-zinc-600 hover:text-zinc-900 border-2 border-transparent'
+                }`}
+              >
+                1,000 Lexicon Words (Tier 3)
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab('alphabet');
+                  setSearchQuery('');
+                }}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                  activeTab === 'alphabet'
+                    ? 'bg-[#38BDF8] text-zinc-900 border-2 border-zinc-900 shadow-cartoon-sm'
+                    : 'text-zinc-600 hover:text-zinc-900 border-2 border-transparent'
+                }`}
+              >
+                A–Z Fingerspelling (26)
+              </button>
             </div>
-            <div className="retro-inset px-2 py-0.5 bg-[#FFFFCC] text-[10px] font-mono font-bold text-[#000000]">
-              TOTAL: {ISL_WORD_LABELS.length} SIGNS
+
+            <div className="cartoon-badge bg-[#FAF8F5] text-zinc-700 shadow-none text-xs">
+              Showing {activeTab === 'words' ? filteredWords.length : filteredAlphabet.length} items
             </div>
           </div>
 
           {/* Search Input Box */}
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-xs font-bold text-[#000000]">
-              SEARCH:
-            </span>
+          <div className="relative">
+            <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 stroke-[2.2]" />
             <input
               type="text"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Filter by gloss, English meaning, or gesture motion..."
-              className="retro-input flex-1 text-xs"
+              placeholder={activeTab === 'words' ? "Search by sign, English meaning, or gesture action..." : "Search alphabet by letter or tip..."}
+              className="cartoon-input w-full pl-9 pr-8 text-xs sm:text-sm py-2 shadow-none focus:shadow-cartoon-sm"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="retro-btn text-xs py-0.5"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400 hover:text-zinc-900"
               >
                 Clear
               </button>
             )}
           </div>
 
-          {/* Category Tabs */}
-          <div className="flex items-center gap-1 overflow-x-auto pb-1 text-xs">
-            <button
-              onClick={() => setSelectedCategory('all')}
-              className={`retro-btn text-xs ${
-                selectedCategory === 'all' ? 'retro-btn-primary' : ''
-              }`}
-            >
-              All ({categoryCounts.all})
-            </button>
-            {ISL_WORD_CATEGORIES.map(cat => (
+          {/* Category Tabs (Words mode) */}
+          {activeTab === 'words' && (
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
               <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`retro-btn text-xs ${
-                  selectedCategory === cat.id ? 'retro-btn-primary' : ''
+                onClick={() => setSelectedCategory('all')}
+                className={`px-2.5 py-1 rounded-lg font-bold border-2 transition-all whitespace-nowrap ${
+                  selectedCategory === 'all'
+                    ? 'bg-zinc-900 text-white border-zinc-900 shadow-cartoon-sm'
+                    : 'bg-[#FAF8F5] text-zinc-700 border-zinc-200 hover:border-zinc-900'
                 }`}
               >
-                {cat.name} ({categoryCounts[cat.id] || 0})
+                All ({categoryCounts.all})
               </button>
-            ))}
-          </div>
+              {ISL_WORD_CATEGORIES.map(cat => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`px-2.5 py-1 rounded-lg font-bold border-2 transition-all whitespace-nowrap ${
+                    selectedCategory === cat.id
+                      ? 'bg-zinc-900 text-white border-zinc-900 shadow-cartoon-sm'
+                      : 'bg-[#FAF8F5] text-zinc-700 border-zinc-200 hover:border-zinc-900'
+                  }`}
+                >
+                  {cat.name} ({categoryCounts[cat.id] || 0})
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* 3. Word Table with Alternating Row Backgrounds */}
-        <div className="flex-1 overflow-y-auto p-2 bg-[#FFFFFF] retro-inset">
-          <table className="w-full text-left text-xs font-sans border-collapse">
-            <thead>
-              <tr className="bg-[#C0C0C0] border-b-2 border-[#808080] text-[11px] font-mono font-bold">
-                <th className="p-2 border-r border-[#808080]">ID</th>
-                <th className="p-2 border-r border-[#808080]">GLOSS</th>
-                <th className="p-2 border-r border-[#808080]">ENGLISH MEANING</th>
-                <th className="p-2 border-r border-[#808080]">CATEGORY</th>
-                <th className="p-2">GESTURE DESCRIPTION</th>
-              </tr>
-            </thead>
-            <tbody>
+        {/* 3. Table / Cards Content */}
+        <div className="flex-1 overflow-y-auto p-3 sm:p-4 bg-[#FAF8F5]">
+          {activeTab === 'words' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
               {filteredWords.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="p-8 text-center text-[#808080] font-mono">
-                    No ISL signs matching "{searchQuery}" in this category.
-                  </td>
-                </tr>
+                <div className="col-span-2 p-10 text-center text-zinc-400 font-medium">
+                  No signs matching "{searchQuery}"
+                </div>
               ) : (
-                filteredWords.map((word, idx) => (
-                  <tr
-                    key={word.id}
-                    className={`border-b border-[#808080] ${
-                      idx % 2 === 0 ? 'bg-[#FFFFFF]' : 'bg-[#E8E8E8]'
-                    }`}
+                <>
+                  {filteredWords.slice(0, displayLimit).map((word) => (
+                    <div
+                      key={word.id}
+                      className="cartoon-card p-3 bg-white border-2 border-zinc-900 hover:shadow-cartoon-md transition-all flex flex-col justify-between gap-2"
+                    >
+                      <div>
+                        <div className="flex items-center justify-between gap-1 mb-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-extrabold text-sm text-zinc-950 font-mono tracking-wide">
+                              {word.gloss}
+                            </span>
+                            {LIVE_VISION_GLOSSES.has(word.gloss) ? (
+                              <span className="cartoon-badge !py-0 !px-1.5 text-[9px] bg-[#EDFDF2] text-[#16A34A] border border-green-300 font-bold">
+                                🟢 Live 3D Vision
+                              </span>
+                            ) : (
+                              <span className="cartoon-badge !py-0 !px-1.5 text-[9px] bg-[#FAF8F5] text-zinc-400 border border-zinc-200">
+                                Lexicon
+                              </span>
+                            )}
+                          </div>
+                          <span className="cartoon-badge !py-0 !px-1.5 text-[9px] bg-[#FAF8F5] text-zinc-600 shadow-none uppercase font-mono">
+                            {word.category}
+                          </span>
+                        </div>
+                        <p className="font-bold text-xs text-amber-800 mb-1.5">
+                          English: "{word.english}"
+                        </p>
+                        <p className="text-[11px] text-zinc-600 leading-relaxed">
+                          {word.description}
+                        </p>
+                      </div>
+                      <div className="text-[10px] font-mono text-zinc-400 pt-1 border-t border-zinc-100 flex justify-between">
+                        <span>Sign ID #{word.id}</span>
+                      </div>
+                    </div>
+                  ))}
+
+                  {filteredWords.length > displayLimit && (
+                    <div className="col-span-full pt-2 pb-1 text-center">
+                      <button
+                        onClick={() => setDisplayLimit(prev => prev + 100)}
+                        className="cartoon-btn bg-white hover:bg-zinc-100 text-zinc-900 border-2 border-zinc-900 px-4 py-2 text-xs font-extrabold shadow-cartoon-sm"
+                      >
+                        Show More (+100 of {filteredWords.length - displayLimit} remaining)
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+              {filteredAlphabet.length === 0 ? (
+                <div className="col-span-3 p-10 text-center text-zinc-400 font-medium">
+                  No letters matching "{searchQuery}"
+                </div>
+              ) : (
+                filteredAlphabet.map((item) => (
+                  <div
+                    key={item.letter}
+                    className="cartoon-card p-3 bg-white border-2 border-zinc-900 hover:shadow-cartoon-md transition-all flex flex-col justify-between gap-2"
                   >
-                    <td className="p-2 font-mono font-bold text-[#808080] border-r border-[#808080] whitespace-nowrap">
-                      #{word.id}
-                    </td>
-                    <td className="p-2 font-mono font-bold text-[#000080] border-r border-[#808080] whitespace-nowrap">
-                      {word.gloss}
-                    </td>
-                    <td className="p-2 font-bold text-[#000000] border-r border-[#808080] whitespace-nowrap">
-                      {word.english}
-                    </td>
-                    <td className="p-2 border-r border-[#808080] whitespace-nowrap">
-                      <span className="retro-outset text-[10px] font-mono px-1.5 py-0.5 bg-[#C0C0C0] text-[#000000] font-bold">
-                        {word.category}
-                      </span>
-                    </td>
-                    <td className="p-2 text-[#000000] text-[11px] leading-snug">
-                      {word.description}
-                    </td>
-                  </tr>
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <div className="w-10 h-10 rounded-xl bg-[#38BDF8] border-2 border-zinc-900 flex items-center justify-center font-black text-xl text-zinc-950 shadow-cartoon-sm">
+                          {item.letter}
+                        </div>
+                        <span className={`cartoon-badge !py-0 !px-2 text-[10px] ${
+                          item.category === 'Vowel' ? 'bg-[#FFD15C] text-zinc-900' : 'bg-zinc-100 text-zinc-700'
+                        } shadow-none`}>
+                          {item.category}
+                        </span>
+                      </div>
+                      <div className="text-[10px] font-mono font-bold text-zinc-500 uppercase mb-1">
+                        {item.type}
+                      </div>
+                      <p className="text-xs text-zinc-800 font-medium leading-relaxed mb-2">
+                        {item.description}
+                      </p>
+                    </div>
+                    <div className="text-[11px] font-semibold text-[#16A34A] bg-[#EDFDF2] p-1.5 rounded-lg border border-green-200">
+                      💡 {item.tip}
+                    </div>
+                  </div>
                 ))
               )}
-            </tbody>
-          </table>
+            </div>
+          )}
         </div>
 
-        {/* 4. Footer Status & Close Button */}
-        <div className="p-2.5 px-3 bg-[#C0C0C0] border-t border-[#808080] flex items-center justify-between text-xs font-sans">
-          <span className="font-mono text-[#808080]">
-            Showing {filteredWords.length} of {ISL_WORD_LABELS.length} loaded vocabulary tokens
-          </span>
+        {/* 4. Footer */}
+        <div className="p-3 bg-[#FAF8F5] border-t-2 border-zinc-900 flex items-center justify-end flex-shrink-0">
           <button
             onClick={onClose}
-            className="retro-btn retro-btn-primary px-6 py-1 font-bold text-xs"
+            className="cartoon-btn cartoon-btn-primary !px-5 !py-1.5 text-xs font-bold"
           >
-            [ OK / CLOSE ]
+            Close Dictionary
           </button>
         </div>
       </div>
