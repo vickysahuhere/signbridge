@@ -87,9 +87,9 @@ export function AboutModal({ isOpen, onClose }) {
 
       setClearSuccess(true);
 
-      // 5. Reload app after a short pause so user sees confirmation
+      // 5. Reload app with ?guide=true so it immediately pops up the fresh App Guide after reset!
       setTimeout(() => {
-        window.location.reload();
+        window.location.href = window.location.origin + window.location.pathname + '?guide=true';
       }, 750);
     } catch (e) {
       console.error('[Dev] Error while clearing cache:', e);

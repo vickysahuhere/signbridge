@@ -73,7 +73,23 @@ export function App() {
       }
     } catch (e) {}
   }, []);
-  const [isGuideOpen, setIsGuideOpen] = useState(false);
+  // Auto-open guide for first-time visitors or after clearing cache / ?guide=true
+  const [isGuideOpen, setIsGuideOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('guide') === 'true' || window.location.hash === '#guide') {
+          return true;
+        }
+        const hasSeen = localStorage.getItem('sanket_has_seen_guide');
+        const skip = localStorage.getItem('sanket_skip_guide_auto');
+        return !hasSeen && !skip;
+      } catch (e) {
+        return false;
+      }
+    }
+    return false;
+  });
 
   // Linguistic Buffer State
   const glossBufferRef = useRef(new GlossBufferManager());

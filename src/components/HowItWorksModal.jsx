@@ -138,9 +138,14 @@ export function HowItWorksModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-zinc-950/65 backdrop-blur-sm select-none"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 md:p-6 bg-zinc-950/70 backdrop-blur-sm select-none"
       aria-label="Sanket Application Guide"
       role="dialog"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          handleClose();
+        }
+      }}
     >
       <div className="cartoon-card w-full max-w-4xl max-h-[94vh] flex flex-col shadow-cartoon-lg bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Title Bar */}
