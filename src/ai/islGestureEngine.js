@@ -373,16 +373,52 @@ export function classifyIslAlphabet(leftHand, rightHand, pose) {
         score('B', 0.94);
       }
 
-      // Letter 'C': Hand curved into deliberate 'C' shape (thumb & index curved, open arc)
+      // Letter 'C': Hand curved into deliberate 'C' shape (thumb & fingers curved, open arc)
+      const handScale = Math.max(0.06, dist3D(h.wrist, h.palmCenter));
       const dThumbIndex = dist3D(h.points[4], h.points[8]);
-      const indexPip = h.points[6];
-      const indexTip = h.points[8];
-      const thumbTip = h.points[4];
-      const isArched = indexPip && indexTip && thumbTip &&
-        Math.abs(indexTip.x - thumbTip.x) < 0.16 &&
-        dThumbIndex > 0.08 && dThumbIndex < 0.22;
-      if (isArched && !h.isOpenPalm && !h.isFist && h.curledCount >= 1 && h.extendedCount <= 3 && h.wrist.y < 0.80) {
-        score('C', 0.91);
+      const dThumbMiddle = dist3D(h.points[4], h.points[12]);
+      const normGap = dThumbIndex / handScale;
+
+      // Curvature: MCP to Tip direct distance vs joint path along finger
+      const getJointCurvature = (mcpIdx) => {
+        const mcp = h.points[mcpIdx];
+        const pip = h.points[mcpIdx + 1];
+        const dip = h.points[mcpIdx + 2];
+        const tip = h.points[mcpIdx + 3];
+        if (!mcp || !pip || !tip) return 1.0;
+        const direct = dist3D(mcp, tip);
+        const path = dist3D(mcp, pip) + (dip ? dist3D(pip, dip) + dist3D(dip, tip) : dist3D(pip, tip));
+        return path > 0.001 ? direct / path : 1.0;
+      };
+
+      const cIndex = getJointCurvature(5);
+      const cMiddle = getJointCurvature(9);
+
+      // Open C opening between thumb tip and index/middle
+      const hasCOpening = (normGap >= 0.35 && normGap <= 2.5) || (dThumbIndex >= 0.05 && dThumbIndex <= 0.30);
+
+      // Fingers must be arched in a C curve (not flat straight >0.91, not tight closed fist <0.38)
+      const isCurvedC = (cIndex <= 0.91 && cIndex >= 0.36 && cMiddle <= 0.91 && cMiddle >= 0.36) ||
+                        (!h.isFist && !h.isOpenPalm && dThumbIndex > 0.06 && dThumbIndex < 0.28);
+
+      // Not an 'O': thumb tip not touching index and middle fingertips simultaneously
+      const notO = dThumbIndex > 0.045 && (dThumbMiddle > 0.045 || dThumbIndex > 0.065);
+
+      // Middle finger is not tucked into a tight fist against the palm/wrist
+      const notFist = !h.isFist && dist3D(h.points[12], h.wrist) > handScale * 0.50;
+
+      // Not 'L': middle finger curled into palm while index finger is straight
+      const notL = !(cIndex > 0.88 && cMiddle < 0.42);
+
+      // Not 'B': flat open hand with index and middle completely straight
+      const notB = !(cIndex > 0.91 && cMiddle > 0.91 && !h.thumb.isExtended);
+
+      // Fingers move in harmony/arc (index and middle tips not split wide like scissors/V)
+      const fingersGrouped = dist3D(h.points[8], h.points[12]) / handScale < 1.05;
+
+      if (hasCOpening && isCurvedC && notFist && notO && notL && notB && fingersGrouped && h.wrist.y < 0.85) {
+        const conf = Math.max(0.92, Math.min(0.96, 0.98 - Math.abs(normGap - 1.0) * 0.08));
+        score('C', conf);
       }
 
       // Letter 'D' (Single-Handed): Index extended upright; thumb and other fingers meet in loop

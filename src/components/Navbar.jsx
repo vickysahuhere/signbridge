@@ -15,7 +15,8 @@ import {
   Sparkles,
   HelpCircle,
   Hand,
-  Info
+  Info,
+  Bug
 } from 'lucide-react';
 
 export function Navbar({
@@ -31,6 +32,7 @@ export function Navbar({
   onOpenDictionary,
   onOpenGuide,
   onOpenAbout,
+  onOpenFeedback,
   roomId = '',
   connectionMode = 'p2p',
   rttMs = 18,
@@ -223,6 +225,17 @@ export function Navbar({
             >
               <HelpCircle className="w-3.5 h-3.5 text-zinc-900 stroke-[2.2]" />
               <span className="hidden sm:inline">Guide</span>
+            </button>
+          )}
+
+          {onOpenFeedback && (
+            <button
+              onClick={onOpenFeedback}
+              className="cartoon-btn !py-1 !px-2 text-xs bg-[#FFF1F2] hover:bg-[#FFE4E6] text-zinc-900"
+              title="Report an issue with automatic window screenshot"
+            >
+              <Bug className="w-3.5 h-3.5 text-red-600 stroke-[2.2]" />
+              <span className="hidden sm:inline">Feedback</span>
             </button>
           )}
 
