@@ -100,6 +100,39 @@ test('islGestureEngine - Alphabet Letter L recognized accurately', () => {
   assert.ok(letters[0].confidence >= 0.90);
 });
 
+test('islGestureEngine - Single-Handed Alphabet Letter C recognized accurately', () => {
+  // Hand curved into an open C shape
+  const cHand = [
+    { x: 0.5, y: 0.6, z: 0 }, // wrist (0)
+    { x: 0.52, y: 0.58, z: 0 },
+    { x: 0.53, y: 0.55, z: -0.01 },
+    { x: 0.52, y: 0.52, z: -0.02 },
+    { x: 0.48, y: 0.50, z: -0.03 }, // thumb tip (4)
+    { x: 0.48, y: 0.48, z: 0 }, // index MCP (5)
+    { x: 0.46, y: 0.43, z: -0.02 }, // index PIP (6)
+    { x: 0.43, y: 0.41, z: -0.04 }, // index DIP (7)
+    { x: 0.41, y: 0.44, z: -0.03 }, // index Tip (8)
+    { x: 0.50, y: 0.48, z: 0 }, // middle MCP (9)
+    { x: 0.48, y: 0.43, z: -0.02 },
+    { x: 0.45, y: 0.41, z: -0.04 },
+    { x: 0.43, y: 0.44, z: -0.03 }, // middle Tip (12)
+    { x: 0.52, y: 0.49, z: 0 }, // ring MCP (13)
+    { x: 0.50, y: 0.44, z: -0.02 },
+    { x: 0.47, y: 0.42, z: -0.04 },
+    { x: 0.45, y: 0.45, z: -0.03 }, // ring Tip (16)
+    { x: 0.54, y: 0.50, z: 0 }, // pinky MCP (17)
+    { x: 0.52, y: 0.46, z: -0.02 },
+    { x: 0.49, y: 0.44, z: -0.04 },
+    { x: 0.47, y: 0.47, z: -0.03 }  // pinky Tip (20)
+  ];
+
+  const letters = classifyIslAlphabet(null, cHand, []);
+  assert.ok(letters.length > 0, 'Should return alphabet candidates');
+  assert.strictEqual(letters[0].label, 'C');
+  assert.ok(letters[0].confidence >= 0.90, 'Confidence should be >= 0.90');
+  assert.strictEqual(letters[0].isConfident, true);
+});
+
 test('islGestureEngine - Authentic Two-Handed ISL Vowel A recognized accurately', () => {
   // Non-dominant hand: open palm with thumb pointing out
   const baseHand = [

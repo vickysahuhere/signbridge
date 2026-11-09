@@ -92,6 +92,45 @@ test('islTargetLandmarks - contains all 26 letters of the ISL alphabet with vali
   }
 });
 
+test('islTargetLandmarks - Letter C evaluation correctly confirms authentic cupped C shape', () => {
+  const letterC = getLearnItemByLabel('C');
+  assert.strictEqual(letterC != null, true);
+
+  const cHand = [
+    { x: 0.54, y: 0.54, z: 0 }, // wrist (0)
+    { x: 0.56, y: 0.52, z: 0 },
+    { x: 0.57, y: 0.49, z: -0.01 },
+    { x: 0.56, y: 0.46, z: -0.02 },
+    { x: 0.52, y: 0.44, z: -0.03 }, // thumb tip (4)
+    { x: 0.52, y: 0.42, z: 0 }, // index MCP (5)
+    { x: 0.50, y: 0.37, z: -0.02 }, // index PIP (6)
+    { x: 0.47, y: 0.35, z: -0.04 }, // index DIP (7)
+    { x: 0.45, y: 0.38, z: -0.03 }, // index Tip (8)
+    { x: 0.54, y: 0.42, z: 0 }, // middle MCP (9)
+    { x: 0.52, y: 0.37, z: -0.02 },
+    { x: 0.49, y: 0.35, z: -0.04 },
+    { x: 0.47, y: 0.38, z: -0.03 }, // middle Tip (12)
+    { x: 0.56, y: 0.43, z: 0 }, // ring MCP (13)
+    { x: 0.54, y: 0.38, z: -0.02 },
+    { x: 0.51, y: 0.36, z: -0.04 },
+    { x: 0.49, y: 0.39, z: -0.03 }, // ring Tip (16)
+    { x: 0.58, y: 0.44, z: 0 }, // pinky MCP (17)
+    { x: 0.56, y: 0.40, z: -0.02 },
+    { x: 0.53, y: 0.38, z: -0.04 },
+    { x: 0.51, y: 0.41, z: -0.03 }  // pinky Tip (20)
+  ];
+
+  const evalRes = letterC.evaluate({
+    rightHandLandmarks: cHand,
+    leftHandLandmarks: null,
+    poseLandmarks: []
+  });
+
+  assert.strictEqual(evalRes.isMatched, true);
+  assert.ok(evalRes.matchScore >= 75);
+  assert.strictEqual(evalRes.primaryGuidance, 'Letter C confirmed!');
+});
+
 test('islTargetLandmarks - time sign uses authentic human gesture image instead of watch', () => {
   const time = getLearnItemByLabel('TIME');
   assert.strictEqual(time != null, true);

@@ -40,7 +40,7 @@ function createHandSkeleton({ wristX, wristY, wristZ = 0, isRight = true, finger
   pts[0] = { x: wristX, y: wristY, z: wristZ };
 
   // Helper to add finger points: [mcp, pip, dip, tip]
-  const addFinger = (baseX, baseY, angleRad, lengths, isCurled = false) => {
+  const addFinger = (baseX, baseY, angleRad, lengths, isCurled = false, isCuppedFinger = false) => {
     let curX = wristX + baseX;
     let curY = wristY + baseY;
     const res = [];
@@ -49,10 +49,12 @@ function createHandSkeleton({ wristX, wristY, wristZ = 0, isRight = true, finger
     for (let i = 0; i < lengths.length; i++) {
       if (isCurled && i >= 1) {
         curAngle += (isRight ? 0.7 : -0.7); // curl inward
+      } else if (isCuppedFinger && i >= 1) {
+        curAngle += (isRight ? 0.38 : -0.38); // cupped C arc
       }
       curX += Math.cos(curAngle) * lengths[i] * scale;
       curY += Math.sin(curAngle) * lengths[i] * scale;
-      res.push({ x: curX, y: curY, z: wristZ + (isCurled ? 0.02 * i : 0) });
+      res.push({ x: curX, y: curY, z: wristZ + (isCurled ? 0.02 * i : (isCuppedFinger ? 0.015 * i : 0)) });
     }
     return res;
   };
@@ -71,11 +73,11 @@ function createHandSkeleton({ wristX, wristY, wristZ = 0, isRight = true, finger
   let thumbCurl = isFist && !isThumbsUp && !isThumbsDown && !isPhone;
   let thumbAngle = isThumbsUp ? -Math.PI / 2 : (isThumbsDown ? Math.PI / 2 : (isRight ? -Math.PI / 3 : -2 * Math.PI / 3));
   if (isRight) {
-    thumbAngle = isThumbsUp ? -Math.PI / 2 : (isThumbsDown ? Math.PI / 2 : -Math.PI * 0.4);
+    thumbAngle = isThumbsUp ? -Math.PI / 2 : (isThumbsDown ? Math.PI / 2 : (isCupped ? -Math.PI * 0.25 : -Math.PI * 0.4));
   } else {
-    thumbAngle = isThumbsUp ? -Math.PI / 2 : (isThumbsDown ? Math.PI / 2 : -Math.PI * 0.6);
+    thumbAngle = isThumbsUp ? -Math.PI / 2 : (isThumbsDown ? Math.PI / 2 : (isCupped ? -Math.PI * 0.75 : -Math.PI * 0.6));
   }
-  const thumbPts = addFinger(dir * 0.015, -0.01, thumbAngle, [0.35, 0.30, 0.30, 0.35], thumbCurl);
+  const thumbPts = addFinger(dir * 0.015, -0.01, thumbAngle, [0.35, 0.30, 0.30, 0.35], thumbCurl, isCupped);
   pts[1] = thumbPts[0];
   pts[2] = thumbPts[1];
   pts[3] = thumbPts[2];
@@ -84,7 +86,7 @@ function createHandSkeleton({ wristX, wristY, wristZ = 0, isRight = true, finger
   // 5-8: Index
   const indexCurl = isFist || isThumbsUp || isThumbsDown || (isPhone);
   const indexAngle = -Math.PI / 2 + dir * 0.05;
-  const indexPts = addFinger(dir * 0.01, -0.035, indexAngle, [0.45, 0.35, 0.28, 0.28], indexCurl);
+  const indexPts = addFinger(dir * 0.01, -0.035, indexAngle, [0.45, 0.35, 0.28, 0.28], indexCurl, isCupped);
   pts[5] = indexPts[0];
   pts[6] = indexPts[1];
   pts[7] = indexPts[2];
@@ -93,7 +95,7 @@ function createHandSkeleton({ wristX, wristY, wristZ = 0, isRight = true, finger
   // 9-12: Middle
   const middleCurl = isFist || isThumbsUp || isThumbsDown || isPointing || isPhone;
   const middleAngle = -Math.PI / 2;
-  const middlePts = addFinger(0, -0.04, middleAngle, [0.48, 0.38, 0.30, 0.30], middleCurl);
+  const middlePts = addFinger(0, -0.04, middleAngle, [0.48, 0.38, 0.30, 0.30], middleCurl, isCupped);
   pts[9] = middlePts[0];
   pts[10] = middlePts[1];
   pts[11] = middlePts[2];
@@ -102,7 +104,7 @@ function createHandSkeleton({ wristX, wristY, wristZ = 0, isRight = true, finger
   // 13-16: Ring
   const ringCurl = isFist || isThumbsUp || isThumbsDown || isPointing || isPeace || isPhone || isPinched;
   const ringAngle = -Math.PI / 2 - dir * 0.05;
-  const ringPts = addFinger(-dir * 0.01, -0.035, ringAngle, [0.42, 0.34, 0.28, 0.28], ringCurl);
+  const ringPts = addFinger(-dir * 0.01, -0.035, ringAngle, [0.42, 0.34, 0.28, 0.28], ringCurl, isCupped);
   pts[13] = ringPts[0];
   pts[14] = ringPts[1];
   pts[15] = ringPts[2];
@@ -111,7 +113,7 @@ function createHandSkeleton({ wristX, wristY, wristZ = 0, isRight = true, finger
   // 17-20: Pinky
   const pinkyCurl = isFist || isThumbsUp || isThumbsDown || isPointing || isPeace || isPinched;
   const pinkyAngle = -Math.PI / 2 - dir * 0.12;
-  const pinkyPts = addFinger(-dir * 0.02, -0.028, pinkyAngle, [0.36, 0.28, 0.24, 0.24], pinkyCurl);
+  const pinkyPts = addFinger(-dir * 0.02, -0.028, pinkyAngle, [0.36, 0.28, 0.24, 0.24], pinkyCurl, isCupped);
   pts[17] = pinkyPts[0];
   pts[18] = pinkyPts[1];
   pts[19] = pinkyPts[2];
@@ -1936,8 +1938,10 @@ export const ISL_LEARN_ITEMS = Object.freeze([
         checklist.push({ id: 'hand', label: 'Hand active', status: 'pass', current: '1 hand (✔)', target: '1 hand', hint: '' });
         score += 25;
         const d = dist3D(h.points[4], h.points[8]);
-        const ok = d > 0.06 && d < 0.22;
-        checklist.push({ id: 'c_shape', label: 'Curved "C" opening', status: ok ? 'pass' : 'fail', current: Math.round(d * 100) + ' cm opening', target: '6-22 cm', hint: 'Curve fingers and thumb into a C.' });
+        const handScale = Math.max(0.06, dist3D(h.wrist, h.palmCenter));
+        const normD = d / handScale;
+        const ok = (normD >= 0.35 && normD <= 2.5) || (d >= 0.05 && d <= 0.30);
+        checklist.push({ id: 'c_shape', label: 'Curved "C" opening', status: ok ? 'pass' : 'fail', current: Math.round(d * 100) + ' cm opening', target: '5-30 cm', hint: 'Curve fingers and thumb into a C.' });
         if (ok) score += 35;
       }
     

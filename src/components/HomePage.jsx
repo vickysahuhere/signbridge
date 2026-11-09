@@ -302,7 +302,8 @@ export function HomePage({
   onJoinCustomRoom,
   onOpenDictionary,
   onOpenAbout,
-  onOpenGuide
+  onOpenGuide,
+  onOpenFeedback
 }) {
   const [customRoomInput, setCustomRoomInput] = useState('');
   const [showRoomInput, setShowRoomInput] = useState(false);
@@ -588,6 +589,14 @@ export function HomePage({
               className="hover:text-zinc-900 underline underline-offset-2 transition-colors"
             >
               About
+            </button>
+          )}
+          {onOpenFeedback && (
+            <button
+              onClick={onOpenFeedback}
+              className="hover:text-zinc-900 underline underline-offset-2 transition-colors font-bold text-zinc-700"
+            >
+              Report Issue
             </button>
           )}
         </div>

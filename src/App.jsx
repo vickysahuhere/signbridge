@@ -11,13 +11,15 @@ import { KeypointRecorderDrawer } from './components/KeypointRecorderDrawer.jsx'
 import { WordDictionaryModal } from './components/WordDictionaryModal.jsx';
 import { AboutModal } from './components/AboutModal.jsx';
 import { HowItWorksModal } from './components/HowItWorksModal.jsx';
+import { FeedbackModal } from './components/FeedbackModal.jsx';
+import { captureDOMScreenshot } from './utils/screenshotCapture.js';
 import { useVisionWorker } from './hooks/useVisionWorker.js';
 import { useRoomConnection } from './hooks/useRoomConnection.js';
 import { useWebRTC } from './hooks/useWebRTC.js';
 import { GlossBufferManager } from './nlp/glossBufferManager.js';
 import { formatIslSentence, formatRawGlosses } from './nlp/islSentenceFormatter.js';
 import { ISL_LEARN_ITEMS } from './ai/islTargetLandmarks.js';
-import { AlertCircle, ShieldCheck, Video, MessageSquare, BookOpen, Compass } from 'lucide-react';
+import { AlertCircle, ShieldCheck, Video, MessageSquare, BookOpen, Compass, Bug } from 'lucide-react';
 
 export function App() {
   const [fps, setFps] = useState(0);
@@ -36,6 +38,9 @@ export function App() {
   const [isRecorderOpen, setIsRecorderOpen] = useState(false);
   const [isDictionaryOpen, setIsDictionaryOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [feedbackScreenshot, setFeedbackScreenshot] = useState(null);
+  const [isCapturingScreenshot, setIsCapturingScreenshot] = useState(false);
   const [mobileTab, setMobileTab] = useState('stage'); // 'stage' | 'chat'
   const [mobileLearnTab, setMobileLearnTab] = useState('stage'); // 'stage' | 'guide'
 
@@ -350,6 +355,48 @@ export function App() {
     return acc;
   }, []);
 
+  // Diagnostic context bundle for issue reporting
+  const feedbackContextData = useMemo(() => ({
+    currentPage,
+    recognitionMode,
+    fps,
+    workerStatus,
+    workerLatencyMs,
+    motionState,
+    roomId,
+    connectionMode,
+    rttMs,
+    recentGlosses: glosses,
+    committedSentencesCount: localCommittedSentences.length
+  }), [
+    currentPage,
+    recognitionMode,
+    fps,
+    workerStatus,
+    workerLatencyMs,
+    motionState,
+    roomId,
+    connectionMode,
+    rttMs,
+    glosses,
+    localCommittedSentences.length
+  ]);
+
+  // Open feedback modal with an automatic instant snapshot of the active window
+  const handleOpenFeedback = useCallback(async () => {
+    setIsCapturingScreenshot(true);
+    try {
+      const dataUrl = await captureDOMScreenshot();
+      setFeedbackScreenshot(dataUrl);
+    } catch (err) {
+      console.warn('[Feedback] Window screenshot capture skipped:', err);
+      setFeedbackScreenshot(null);
+    } finally {
+      setIsCapturingScreenshot(false);
+      setIsFeedbackOpen(true);
+    }
+  }, []);
+
   return (
     <div className="h-screen max-h-screen w-full flex flex-col bg-[#FAF8F5] text-zinc-900 font-sans overflow-hidden select-none">
       {/* 1. Playful Minimal Navbar */}
@@ -366,6 +413,7 @@ export function App() {
         onOpenDictionary={() => setIsDictionaryOpen(true)}
         onOpenGuide={() => setIsGuideOpen(true)}
         onOpenAbout={() => setIsAboutOpen(true)}
+        onOpenFeedback={handleOpenFeedback}
         roomId={roomId}
         connectionMode={connectionMode}
         rttMs={rttMs}
@@ -403,6 +451,7 @@ export function App() {
             onOpenDictionary={() => setIsDictionaryOpen(true)}
             onOpenGuide={() => setIsGuideOpen(true)}
             onOpenAbout={() => setIsAboutOpen(true)}
+            onOpenFeedback={handleOpenFeedback}
           />
         )}
 
@@ -627,6 +676,14 @@ export function App() {
             Tip: Rest hands 1.2s to auto-send
           </span>
           <button
+            onClick={handleOpenFeedback}
+            className="hover:text-zinc-900 font-bold flex items-center gap-1 text-[11px] text-zinc-700"
+            title="Report an issue or give feedback with automatic window screenshot"
+          >
+            <Bug className="w-3.5 h-3.5 stroke-[2.2] text-red-600" />
+            <span>Report Issue</span>
+          </button>
+          <button
             onClick={() => setIsAboutOpen(true)}
             className="hover:text-zinc-900 font-bold flex items-center gap-1 text-[11px]"
           >
@@ -661,6 +718,14 @@ export function App() {
         isOpen={isGuideOpen}
         onClose={() => setIsGuideOpen(false)}
         onOpenDictionary={() => setIsDictionaryOpen(true)}
+      />
+
+      {/* In-Browser Issue Reporter & Feedback Modal */}
+      <FeedbackModal
+        isOpen={isFeedbackOpen}
+        onClose={() => setIsFeedbackOpen(false)}
+        initialScreenshot={feedbackScreenshot}
+        contextData={feedbackContextData}
       />
     </div>
   );
