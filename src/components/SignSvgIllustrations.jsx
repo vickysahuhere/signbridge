@@ -396,6 +396,217 @@ export function SignSvgIllustration({ signId, className = 'w-full h-full' }) {
         </svg>
       );
 
+    case 'yes':
+      return (
+        <svg viewBox="0 0 240 200" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+          <circle cx="120" cy="100" r="75" fill="#22C55E" fillOpacity="0.16" />
+          {/* Closed fist nodding vertically */}
+          <g transform="translate(90, 45)">
+            <rect x="10" y="32" width="50" height="48" rx="12" fill="#FFD15C" stroke="#18181B" strokeWidth="2.5" />
+            {/* Thumb wrapped across fingers */}
+            <path d="M10 50 C2 50 -2 60 4 68 C8 74 16 72 26 68" fill="#FFD15C" stroke="#18181B" strokeWidth="2.5" />
+            {/* Finger curls */}
+            <line x1="22" y1="32" x2="22" y2="56" stroke="#18181B" strokeWidth="2" strokeLinecap="round" />
+            <line x1="34" y1="32" x2="34" y2="56" stroke="#18181B" strokeWidth="2" strokeLinecap="round" />
+            <line x1="46" y1="32" x2="46" y2="54" stroke="#18181B" strokeWidth="2" strokeLinecap="round" />
+          </g>
+          {/* Vertical oscillating nod arrows */}
+          <path d="M168 55 L168 115" stroke="#22C55E" strokeWidth="3.5" strokeLinecap="round" />
+          <path d="M162 65 L168 55 L174 65" stroke="#22C55E" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M162 105 L168 115 L174 105" stroke="#22C55E" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+          <text x="120" y="168" textAnchor="middle" fill="#18181B" fontSize="13" fontWeight="bold">Nod Fist Vertically (Up-Down)</text>
+        </svg>
+      );
+
+    case 'no':
+      return (
+        <svg viewBox="0 0 240 200" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+          <circle cx="120" cy="100" r="75" fill="#EF4444" fillOpacity="0.14" />
+          {/* Hand waving side to side */}
+          <g transform="translate(85, 42)">
+            <rect x="15" y="38" width="45" height="48" rx="10" fill="#FFFFFF" stroke="#18181B" strokeWidth="2.5" />
+            {/* Fingers extended upward */}
+            <rect x="18" y="10" width="9" height="32" rx="4" fill="#FFD15C" stroke="#18181B" strokeWidth="2" />
+            <rect x="29" y="8" width="9" height="34" rx="4" fill="#FFD15C" stroke="#18181B" strokeWidth="2" />
+            <rect x="40" y="11" width="9" height="31" rx="4" fill="#FFD15C" stroke="#18181B" strokeWidth="2" />
+          </g>
+          {/* Horizontal side-to-side oscillation arrow */}
+          <path d="M60 135 L180 135" stroke="#38BDF8" strokeWidth="3.5" strokeLinecap="round" />
+          <path d="M72 129 L60 135 L72 141" stroke="#38BDF8" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M168 129 L180 135 L168 141" stroke="#38BDF8" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+          <text x="120" y="168" textAnchor="middle" fill="#18181B" fontSize="13" fontWeight="bold">Wave Hand Side-to-Side</text>
+        </svg>
+      );
+
+    case 'eat':
+      return (
+        <svg viewBox="0 0 240 200" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+          <circle cx="120" cy="100" r="75" fill="#FFD15C" fillOpacity="0.18" />
+          {/* Profile face outline with lips */}
+          <path d="M165 45 C155 45 145 52 145 65 C145 74 150 82 150 90 C150 98 142 105 142 115" stroke="#94A3B8" strokeWidth="3.5" strokeLinecap="round" fill="none" />
+          <path d="M145 78 C136 78 132 82 130 82" stroke="#EF4444" strokeWidth="4" strokeLinecap="round" />
+          {/* Pinched fingertips hand pointing toward mouth */}
+          <g transform="translate(60, 65)">
+            <rect x="10" y="25" width="45" height="40" rx="8" fill="#FFFFFF" stroke="#18181B" strokeWidth="2.5" />
+            <path d="M45 35 C58 35 68 30 72 25 C68 20 58 18 45 22 Z" fill="#FFD15C" stroke="#18181B" strokeWidth="2.5" strokeLinejoin="round" />
+          </g>
+          {/* Approach arrow to lips */}
+          <path d="M110 88 L128 82" stroke="#22C55E" strokeWidth="3.5" strokeLinecap="round" />
+          <path d="M120 76 L128 82 L120 88" stroke="#22C55E" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+          <text x="120" y="168" textAnchor="middle" fill="#18181B" fontSize="13" fontWeight="bold">Bring Pinched Tips to Lips</text>
+        </svg>
+      );
+
+    case 'drink':
+      return (
+        <svg viewBox="0 0 240 200" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+          <circle cx="120" cy="100" r="75" fill="#38BDF8" fillOpacity="0.18" />
+          {/* Cupped C hand holding imaginary glass */}
+          <g transform="translate(80, 45)">
+            <path
+              d="M45 15 C20 15 8 35 8 58 C8 80 20 100 45 100 C54 100 62 94 64 85 C65 77 58 74 50 74 C34 74 28 65 28 58 C28 50 34 40 50 40 C58 40 65 37 64 29 C62 21 54 15 45 15 Z"
+              fill="#FFD15C"
+              stroke="#18181B"
+              strokeWidth="2.5"
+            />
+            {/* Cup outline held inside hand */}
+            <path d="M38 32 L38 82 C38 88 52 88 52 82 L52 32 Z" stroke="#38BDF8" strokeWidth="2" strokeDasharray="3 3" fill="none" />
+          </g>
+          {/* Tilt curved arrow */}
+          <path d="M155 70 C158 55 148 42 135 40" stroke="#38BDF8" strokeWidth="3" strokeLinecap="round" fill="none" />
+          <path d="M142 36 L135 40 L144 46" stroke="#38BDF8" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+          <text x="120" y="168" textAnchor="middle" fill="#18181B" fontSize="13" fontWeight="bold">Tilt Cupped Hand at Mouth</text>
+        </svg>
+      );
+
+    case 'please':
+      return (
+        <svg viewBox="0 0 240 200" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+          <circle cx="120" cy="100" r="75" fill="#22C55E" fillOpacity="0.16" />
+          {/* Open flat palm on chest */}
+          <g transform="translate(85, 45)">
+            <rect x="15" y="32" width="45" height="48" rx="10" fill="#FFFFFF" stroke="#18181B" strokeWidth="2.5" />
+            <rect x="18" y="8" width="9" height="30" rx="4" fill="#FFD15C" stroke="#18181B" strokeWidth="2" />
+            <rect x="29" y="5" width="9" height="34" rx="4" fill="#FFD15C" stroke="#18181B" strokeWidth="2" />
+            <rect x="40" y="8" width="9" height="31" rx="4" fill="#FFD15C" stroke="#18181B" strokeWidth="2" />
+          </g>
+          {/* Circular clockwise rubbing arrow */}
+          <path d="M148 85 A 38 38 0 1 1 125 55" stroke="#22C55E" strokeWidth="3" strokeLinecap="round" fill="none" />
+          <path d="M132 50 L125 55 L133 62" stroke="#22C55E" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+          <text x="120" y="168" textAnchor="middle" fill="#18181B" fontSize="13" fontWeight="bold">Circular Rub on Chest</text>
+        </svg>
+      );
+
+    case 'sorry':
+      return (
+        <svg viewBox="0 0 240 200" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+          <circle cx="120" cy="100" r="75" fill="#FFD15C" fillOpacity="0.18" />
+          {/* Closed fist rubbed in circle on chest */}
+          <g transform="translate(90, 48)">
+            <rect x="10" y="25" width="48" height="45" rx="10" fill="#FFD15C" stroke="#18181B" strokeWidth="2.5" />
+            <path d="M10 40 C4 40 0 50 4 58 C8 62 14 62 22 58" fill="#FFD15C" stroke="#18181B" strokeWidth="2.5" />
+            <line x1="22" y1="25" x2="22" y2="48" stroke="#18181B" strokeWidth="2" strokeLinecap="round" />
+            <line x1="33" y1="25" x2="33" y2="48" stroke="#18181B" strokeWidth="2" strokeLinecap="round" />
+            <line x1="44" y1="25" x2="44" y2="46" stroke="#18181B" strokeWidth="2" strokeLinecap="round" />
+          </g>
+          {/* Circular rubbing arrow */}
+          <path d="M148 85 A 36 36 0 1 1 125 55" stroke="#EAB308" strokeWidth="3" strokeLinecap="round" fill="none" />
+          <path d="M132 50 L125 55 L133 62" stroke="#EAB308" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+          <text x="120" y="168" textAnchor="middle" fill="#18181B" fontSize="13" fontWeight="bold">Circular Fist on Heart</text>
+        </svg>
+      );
+
+    case 'welcome':
+      return (
+        <svg viewBox="0 0 240 200" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+          <circle cx="120" cy="100" r="75" fill="#22C55E" fillOpacity="0.15" />
+          {/* Left welcoming open palm */}
+          <g transform="translate(50, 50)">
+            <path d="M25 70 C15 45 22 20 36 12 C44 16 40 40 36 70 Z" fill="#FFFFFF" stroke="#18181B" strokeWidth="2.5" strokeLinejoin="round" />
+            <path d="M42 32 C58 40 68 55 68 55" stroke="#22C55E" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+          </g>
+          {/* Right welcoming open palm */}
+          <g transform="translate(130, 50)">
+            <path d="M40 70 C50 45 42 20 28 12 C20 16 24 40 28 70 Z" fill="#FFD15C" stroke="#18181B" strokeWidth="2.5" strokeLinejoin="round" />
+            <path d="M22 32 C6 40 -4 55 -4 55" stroke="#22C55E" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+          </g>
+          <text x="120" y="168" textAnchor="middle" fill="#18181B" fontSize="13" fontWeight="bold">Both Palms Sweep Inward</text>
+        </svg>
+      );
+
+    case 'me':
+    case 'i':
+      return (
+        <svg viewBox="0 0 240 200" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+          <circle cx="120" cy="100" r="75" fill="#FFD15C" fillOpacity="0.18" />
+          {/* Chest center target circle */}
+          <circle cx="120" cy="120" r="14" fill="#EF4444" stroke="#18181B" strokeWidth="2.5" />
+          <circle cx="120" cy="120" r="6" fill="#FFFFFF" />
+          {/* Hand with index pointing back to chest */}
+          <g transform="translate(95, 30)">
+            <rect x="15" y="20" width="40" height="40" rx="8" fill="#FFFFFF" stroke="#18181B" strokeWidth="2.5" />
+            {/* Index extended straight down */}
+            <path d="M30 55 L30 82 C30 87 40 87 40 82 L40 55 Z" fill="#FFD15C" stroke="#18181B" strokeWidth="2.5" />
+          </g>
+          <text x="120" y="168" textAnchor="middle" fill="#18181B" fontSize="13" fontWeight="bold">Point Index to Chest</text>
+        </svg>
+      );
+
+    case 'you':
+      return (
+        <svg viewBox="0 0 240 200" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+          <circle cx="120" cy="100" r="75" fill="#38BDF8" fillOpacity="0.18" />
+          {/* Hand pointing directly forward towards viewer */}
+          <g transform="translate(85, 45)">
+            <rect x="20" y="40" width="48" height="42" rx="10" fill="#FFD15C" stroke="#18181B" strokeWidth="2.5" />
+            {/* Index finger pointing straight forward */}
+            <circle cx="44" cy="22" r="12" fill="#FFFFFF" stroke="#18181B" strokeWidth="2.5" />
+            <circle cx="44" cy="22" r="5" fill="#38BDF8" />
+          </g>
+          {/* Target forward crosshair */}
+          <path d="M120 5 L120 20 M112 12 L128 12" stroke="#38BDF8" strokeWidth="3" strokeLinecap="round" />
+          <text x="120" y="168" textAnchor="middle" fill="#18181B" fontSize="13" fontWeight="bold">Point Index Forward</text>
+        </svg>
+      );
+
+    case 'bad':
+      return (
+        <svg viewBox="0 0 240 200" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+          <circle cx="120" cy="100" r="75" fill="#EF4444" fillOpacity="0.15" />
+          {/* Thumbs down hand */}
+          <g transform="translate(88, 38)">
+            <rect x="18" y="15" width="45" height="45" rx="8" fill="#FFFFFF" stroke="#18181B" strokeWidth="2.5" />
+            {/* Thumb pointing straight DOWN */}
+            <path d="M48 55 L48 98 C48 104 36 104 36 98 L36 55 Z" fill="#FFD15C" stroke="#18181B" strokeWidth="2.5" />
+          </g>
+          {/* Downward red arrow */}
+          <path d="M165 65 L165 110" stroke="#EF4444" strokeWidth="3.5" strokeLinecap="round" />
+          <path d="M158 100 L165 110 L172 100" stroke="#EF4444" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+          <text x="120" y="168" textAnchor="middle" fill="#18181B" fontSize="13" fontWeight="bold">Thumbs Down</text>
+        </svg>
+      );
+
+    case 'good_morning':
+      return (
+        <svg viewBox="0 0 240 200" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+          <circle cx="120" cy="100" r="75" fill="#FFD15C" fillOpacity="0.22" />
+          {/* Step 1: Good (Thumbs up) */}
+          <g transform="translate(50, 48)">
+            <rect x="15" y="32" width="35" height="35" rx="6" fill="#FFFFFF" stroke="#18181B" strokeWidth="2" />
+            <path d="M22 32 L22 10 C22 5 32 5 32 10 L32 32 Z" fill="#FFD15C" stroke="#18181B" strokeWidth="2" />
+          </g>
+          {/* Step 2: Rising Sun arc */}
+          <g transform="translate(125, 40)">
+            <circle cx="35" cy="50" r="18" fill="#FFD15C" stroke="#18181B" strokeWidth="2.5" />
+            <path d="M35 22 L35 12 M18 35 L10 30 M52 35 L60 30" stroke="#EAB308" strokeWidth="2.5" strokeLinecap="round" />
+            {/* Upward arc */}
+            <path d="M15 70 C25 60 45 60 55 70" stroke="#22C55E" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+            <path d="M50 63 L56 70 L48 72" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </g>
+          <text x="120" y="168" textAnchor="middle" fill="#18181B" fontSize="13" fontWeight="bold">1. Good + 2. Rising Sun Arc</text>
+        </svg>
+      );
+
     default:
       // Generic high-contrast Hand Sign Badge
       return (
@@ -412,4 +623,18 @@ export function SignSvgIllustration({ signId, className = 'w-full h-full' }) {
         </svg>
       );
   }
+}
+
+/**
+ * Check whether a sign has a dedicated high-contrast SVG vector teaching illustration.
+ */
+export function hasSvgIllustration(signId) {
+  const normalizedId = (signId || '').toLowerCase().replace(/[\s_-]+/g, '_');
+  const supported = new Set([
+    'namaste', 'hello', 'good', 'thank_you', 'help', 'stop', 'time', 'call', 'love',
+    'yes', 'no', 'eat', 'drink', 'please', 'sorry', 'welcome', 'me', 'i', 'you', 'bad',
+    'good_morning', 'a', 'b', 'c', 'l', 'v',
+    'alphabet_a', 'alphabet_b', 'alphabet_c', 'alphabet_l', 'alphabet_v'
+  ]);
+  return supported.has(normalizedId);
 }

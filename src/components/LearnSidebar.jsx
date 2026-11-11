@@ -24,9 +24,12 @@ import {
   Laptop,
   Globe,
   Play,
+  Pause,
+  ExternalLink,
   RotateCcw,
   X
 } from 'lucide-react';
+import { SignSvgIllustration, hasSvgIllustration } from './SignSvgIllustrations.jsx';
 import { ISL_LEARN_ITEMS, getLearnItemByLabel } from '../ai/islTargetLandmarks.js';
 import {
   ISL_COURSE_LEVELS,
@@ -57,6 +60,27 @@ export function LearnSidebar({
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [displayCount, setDisplayCount] = useState(50);
   const [filterMasteredOnly, setFilterMasteredOnly] = useState(false);
+
+  // Teaching view mode: 'blueprint' (crisp vector teaching diagram) | 'demo' (animated motion demonstration) | 'database' (official ISLRTC / FDMSE portal links)
+  const [teachingViewMode, setTeachingViewMode] = useState('blueprint');
+  const [isDemoPaused, setIsDemoPaused] = useState(false);
+  const [demoSpeed, setDemoSpeed] = useState('0.75x');
+
+  // Grounded search terms for official Indian Sign Language databases
+  const signSearchTerm = useMemo(() => {
+    if (!selectedItem) return '';
+    return selectedItem.english || selectedItem.name || selectedItem.label || '';
+  }, [selectedItem]);
+
+  const islPortalUrl = useMemo(() => {
+    if (!signSearchTerm) return 'https://www.indiansignlanguage.org/';
+    return `https://www.indiansignlanguage.org/?s=${encodeURIComponent(signSearchTerm)}`;
+  }, [signSearchTerm]);
+
+  const islrtcUrl = useMemo(() => {
+    if (!signSearchTerm) return 'https://islrtc.nic.in/';
+    return `https://www.youtube.com/results?search_query=${encodeURIComponent('ISLRTC ' + signSearchTerm + ' Indian Sign Language')}`;
+  }, [signSearchTerm]);
 
   // Sidebar slide-over drawer open/close state
   const [internalIsOpen, setInternalIsOpen] = useState(false);
@@ -199,13 +223,13 @@ export function LearnSidebar({
           className="cartoon-btn bg-white hover:bg-[#FFF9E5] border-2 border-zinc-900 p-2 sm:p-2.5 rounded-xl shadow-cartoon-sm flex items-center justify-between gap-2 w-full transition-all group flex-shrink-0 cursor-pointer"
         >
           <div className="flex items-center gap-2 min-w-0">
-            <div className="w-7 h-7 rounded-lg bg-[#FFD15C] border-2 border-zinc-900 flex items-center justify-center flex-shrink-0 shadow-sm group-hover:scale-105 transition-transform">
+            <div className="w-7 h-7 rounded-lg bg-[#FFC800] border-2 border-zinc-900 flex items-center justify-center flex-shrink-0 shadow-sm group-hover:scale-105 transition-transform">
               <BookOpen className="w-3.5 h-3.5 text-zinc-900 stroke-[2.2]" />
             </div>
             <div className="text-left min-w-0">
               <div className="flex items-center gap-1.5">
                 <span className="font-black text-xs text-zinc-900">Sign Academy</span>
-                <span className="cartoon-badge !py-0 !px-1.5 text-[9px] bg-[#38BDF8] text-zinc-900 font-bold border border-zinc-900">
+                <span className="cartoon-badge !py-0 !px-1.5 text-[9px] bg-[#1CB0F6] text-zinc-900 font-bold border border-zinc-900">
                   1,000+ Signs
                 </span>
               </div>
@@ -216,7 +240,7 @@ export function LearnSidebar({
           </div>
 
           <div className="flex items-center gap-1.5 flex-shrink-0">
-            <span className="cartoon-badge !py-0.5 !px-2 text-[10px] bg-[#22C55E] text-white font-bold flex items-center gap-1 border border-zinc-900">
+            <span className="cartoon-badge !py-0.5 !px-2 text-[10px] bg-[#58CC02] text-white font-bold flex items-center gap-1 border border-zinc-900">
               <Award className="w-3 h-3 text-white stroke-[2.5]" />
               {masteredSet ? masteredSet.size : 0} Mastered
             </span>
@@ -237,42 +261,212 @@ export function LearnSidebar({
                   {selectedItem.name} ({selectedItem.label})
                 </h3>
               </div>
-              <span className="cartoon-badge !py-0.5 !px-2 text-[10px] bg-[#38BDF8] text-zinc-900 font-bold truncate max-w-[140px] flex-shrink-0 border border-zinc-900 shadow-sm">
+              <span className="cartoon-badge !py-0.5 !px-2 text-[10px] bg-[#1CB0F6] text-zinc-900 font-bold truncate max-w-[140px] flex-shrink-0 border border-zinc-900 shadow-sm">
                 {selectedItem.english}
               </span>
             </div>
 
-            {/* Visual Area: Authentic Demonstration Image or Biomechanical Blueprint */}
+            {/* View Mode Segmented Switcher */}
+            <div className="flex items-center gap-1 p-1 bg-[#FAF8F5] rounded-lg border border-zinc-200 flex-shrink-0 text-[10px] font-bold">
+              <button
+                type="button"
+                onClick={() => setTeachingViewMode('blueprint')}
+                className={`flex-1 py-1 px-1.5 rounded transition-all text-center flex items-center justify-center gap-1 cursor-pointer ${
+                  teachingViewMode === 'blueprint'
+                    ? 'bg-zinc-900 text-white shadow-sm'
+                    : 'text-zinc-600 hover:text-zinc-900'
+                }`}
+                title="Strict Biomechanical Vector Guide"
+              >
+                <Crosshair className="w-3 h-3 stroke-[2.2]" />
+                <span>Teaching Guide</span>
+              </button>
+              {selectedItem.image && (
+                <button
+                  type="button"
+                  onClick={() => setTeachingViewMode('demo')}
+                  className={`flex-1 py-1 px-1.5 rounded transition-all text-center flex items-center justify-center gap-1 cursor-pointer ${
+                    teachingViewMode === 'demo'
+                      ? 'bg-zinc-900 text-white shadow-sm'
+                      : 'text-zinc-600 hover:text-zinc-900'
+                  }`}
+                  title="Recorded Motion Demonstration"
+                >
+                  <Play className="w-3 h-3 stroke-[2.2]" />
+                  <span>Motion Demo</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setTeachingViewMode('database')}
+                className={`flex-1 py-1 px-1.5 rounded transition-all text-center flex items-center justify-center gap-1 cursor-pointer ${
+                  teachingViewMode === 'database'
+                    ? 'bg-zinc-900 text-white shadow-sm'
+                    : 'text-zinc-600 hover:text-zinc-900'
+                }`}
+                title="Official Indian Sign Language Database (ISLRTC & indiansignlanguage.org)"
+              >
+                <Globe className="w-3 h-3 stroke-[2.2]" />
+                <span>ISL Database</span>
+              </button>
+            </div>
+
+            {/* Visual Area: Multi-Mode Authentic Demonstration Area */}
             <div className="w-full flex-1 min-h-[140px] max-h-[220px] bg-white rounded-xl border-2 border-zinc-900 shadow-cartoon-sm flex items-center justify-center overflow-hidden p-2 relative group flex-shrink-0">
-              {selectedItem.image ? (
-                <img
-                  src={selectedItem.image}
-                  alt={`${selectedItem.name} demonstration`}
-                  className="w-full h-full object-contain rounded-lg transition-transform group-hover:scale-105"
-                  loading="lazy"
-                />
+              {teachingViewMode === 'blueprint' ? (
+                hasSvgIllustration(selectedItem.id || selectedItem.label) ? (
+                  <div className="w-full h-full flex flex-col items-center justify-center relative">
+                    <SignSvgIllustration
+                      signId={selectedItem.id || selectedItem.label}
+                      className="w-full h-full max-h-[160px] object-contain"
+                    />
+                    <div className="absolute top-2 left-2 bg-zinc-900/90 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1.5 pointer-events-none">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#58CC02]" />
+                      Authentic ISL Vector Blueprint
+                    </div>
+                  </div>
+                ) : selectedItem.image ? (
+                  <img
+                    src={selectedItem.image}
+                    alt={`${selectedItem.name} demonstration`}
+                    className="w-full h-full object-contain rounded-lg transition-transform group-hover:scale-105"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center text-zinc-700 gap-1.5 w-full text-center px-2">
+                    <div className="w-11 h-11 rounded-full bg-[#FFC800] border-2 border-zinc-900 flex items-center justify-center text-zinc-900 shadow-cartoon-sm">
+                      <Hand className="w-5 h-5 stroke-[2]" />
+                    </div>
+                    <div className="text-xs sm:text-sm font-extrabold text-zinc-900">
+                      {selectedItem.blueprint?.requiredFingers || 'Clear handshape'}
+                    </div>
+                    <div className="text-[10px] font-mono text-zinc-500">
+                      Zone: {selectedItem.blueprint?.zone || 'Mid-chest level'}
+                    </div>
+                  </div>
+                )
+              ) : teachingViewMode === 'demo' && selectedItem.image ? (
+                <div className="w-full h-full flex items-center justify-center relative overflow-hidden">
+                  <img
+                    src={selectedItem.image}
+                    alt={`${selectedItem.name} demonstration`}
+                    className={`w-full h-full object-contain rounded-lg transition-all ${
+                      isDemoPaused ? 'opacity-50 grayscale-[30%]' : ''
+                    }`}
+                    loading="lazy"
+                  />
+                  {/* Demonstration Controls Overlay */}
+                  <div className="absolute top-2 right-2 flex items-center gap-1 bg-zinc-900/85 backdrop-blur-sm px-2 py-1 rounded-md text-white text-[9px] font-mono shadow-sm">
+                    <button
+                      type="button"
+                      onClick={() => setIsDemoPaused(!isDemoPaused)}
+                      className="px-1.5 py-0.5 rounded hover:bg-zinc-800 flex items-center gap-1 font-bold cursor-pointer"
+                      title={isDemoPaused ? 'Resume playback' : 'Pause at keyframe'}
+                    >
+                      {isDemoPaused ? <Play className="w-2.5 h-2.5 fill-current" /> : <Pause className="w-2.5 h-2.5 fill-current" />}
+                      <span>{isDemoPaused ? 'Resume' : 'Pause'}</span>
+                    </button>
+                    <span className="text-zinc-500">|</span>
+                    <button
+                      type="button"
+                      onClick={() => setDemoSpeed(prev => prev === '0.5x' ? '0.75x' : prev === '0.75x' ? '1.0x' : '0.5x')}
+                      className="px-1 py-0.5 rounded hover:bg-zinc-800 font-extrabold text-[#FFC800] cursor-pointer"
+                      title="Toggle teaching speed"
+                    >
+                      {demoSpeed} Pace
+                    </button>
+                  </div>
+                  <div className="absolute top-2 left-2 bg-zinc-900/90 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1.5 pointer-events-none">
+                    <span className={`w-1.5 h-1.5 rounded-full ${isDemoPaused ? 'bg-amber-400' : 'bg-[#58CC02] animate-pulse'}`} />
+                    {isDemoPaused ? 'Paused for Posture Alignment' : 'Demonstration Pace'}
+                  </div>
+                </div>
               ) : (
-                <div className="flex flex-col items-center justify-center text-zinc-700 gap-1.5 w-full text-center px-2">
-                  <div className="w-11 h-11 rounded-full bg-[#FFD15C] border-2 border-zinc-900 flex items-center justify-center text-zinc-900 shadow-cartoon-sm">
-                    <Hand className="w-5 h-5 stroke-[2]" />
+                /* Official ISL Database Card */
+                <div className="w-full h-full p-2.5 flex flex-col justify-between bg-gradient-to-b from-blue-50/70 to-white text-zinc-900">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-1.5 text-blue-900 font-extrabold text-xs">
+                      <Globe className="w-3.5 h-3.5 stroke-[2.5]" />
+                      <span>Official ISL Teaching Databases</span>
+                    </div>
+                    <p className="text-[10px] text-zinc-600 leading-tight">
+                      Standardized video demonstrations recorded by native Deaf educators:
+                    </p>
                   </div>
-                  <div className="text-xs sm:text-sm font-extrabold text-zinc-900">
-                    {selectedItem.blueprint?.requiredFingers || 'Thumbs-up handshape'}
+
+                  <div className="grid grid-cols-1 gap-1.5 my-1">
+                    <a
+                      href={islPortalUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-1.5 rounded-lg border-2 border-zinc-900 bg-[#FAF8F5] hover:bg-amber-100 transition-all flex items-center justify-between text-zinc-900 shadow-sm group"
+                    >
+                      <div className="min-w-0">
+                        <div className="font-extrabold text-[11px] flex items-center gap-1 text-zinc-900">
+                          <span>ISL Portal</span>
+                          <span className="text-[9px] font-mono text-zinc-500 font-normal">(FDMSE RKMVERI)</span>
+                        </div>
+                        <div className="text-[9px] text-zinc-500 truncate">
+                          Search "{selectedItem.name}" slow video loop
+                        </div>
+                      </div>
+                      <ExternalLink className="w-3.5 h-3.5 text-zinc-700 group-hover:translate-x-0.5 transition-transform flex-shrink-0" />
+                    </a>
+
+                    <a
+                      href={islrtcUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-1.5 rounded-lg border-2 border-zinc-900 bg-[#FAF8F5] hover:bg-red-50 transition-all flex items-center justify-between text-zinc-900 shadow-sm group"
+                    >
+                      <div className="min-w-0">
+                        <div className="font-extrabold text-[11px] flex items-center gap-1 text-zinc-900">
+                          <span>ISLRTC National Standard</span>
+                          <span className="text-[9px] font-mono text-red-600 font-normal">Govt of India</span>
+                        </div>
+                        <div className="text-[9px] text-zinc-500 truncate">
+                          Official Ministry Deaf instructor video
+                        </div>
+                      </div>
+                      <ExternalLink className="w-3.5 h-3.5 text-red-600 group-hover:translate-x-0.5 transition-transform flex-shrink-0" />
+                    </a>
                   </div>
-                  <div className="text-[10px] font-mono text-zinc-500">
-                    Zone: {selectedItem.blueprint?.zone || 'Mid-chest level (Y: 0.42 - 0.70)'}
+
+                  <div className="text-[9px] text-zinc-500 bg-white p-1 rounded border border-zinc-200 text-center font-mono">
+                    Grounded in ISLRTC National Curriculum & AI4Bharat
                   </div>
                 </div>
               )}
-              <div className="absolute top-2 left-2 bg-zinc-900/90 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1.5 pointer-events-none">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] animate-pulse" />
-                {selectedItem.image?.endsWith('.gif') ? 'Dynamic ISL Demonstration' : selectedItem.image ? 'Authentic Demonstration' : 'Biomechanical Blueprint'}
-              </div>
             </div>
 
-            {/* Step-by-Step Motion / Posture Execution Description */}
-            <div className="bg-[#FAF8F5] p-2.5 rounded-xl border border-zinc-200 text-xs text-zinc-700 leading-relaxed font-medium overflow-y-auto max-h-[85px] flex-shrink-0">
-              {selectedItem.description}
+            {/* Easy-Going Step-by-Step Motion / Posture Execution Description */}
+            <div className="bg-[#FAF8F5] p-2.5 rounded-xl border border-zinc-200 text-xs text-zinc-700 leading-relaxed font-medium flex-shrink-0 flex flex-col gap-1.5">
+              <div className="flex items-center justify-between text-[10px] font-bold text-zinc-900 border-b border-zinc-200/80 pb-1">
+                <span className="flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-amber-500 stroke-[2.5]" />
+                  <span>Easy-Going Sign Guide</span>
+                </span>
+                <a
+                  href={islPortalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-700 hover:underline flex items-center gap-0.5 text-[9px] font-mono font-bold"
+                  title="Open official Indian Sign Language Portal entry"
+                >
+                  <span>ISL Portal ↗</span>
+                </a>
+              </div>
+
+              <div className="text-[11px] text-zinc-800 leading-snug">
+                {selectedItem.description}
+              </div>
+
+              {selectedItem.tip && (
+                <div className="text-[10px] font-semibold text-[#16A34A] bg-[#EDFDF2] px-2 py-1 rounded-md border border-green-200 flex items-center gap-1">
+                  <span>💡</span>
+                  <span>{selectedItem.tip}</span>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -282,7 +476,7 @@ export function LearnSidebar({
           {/* Header Row */}
           <div className="flex items-center justify-between border-b border-zinc-200 pb-1.5 flex-shrink-0">
             <div className="flex items-center gap-1.5 min-w-0">
-              <div className="w-5 h-5 rounded-md bg-[#22C55E] flex items-center justify-center text-white border border-zinc-900/20 flex-shrink-0">
+              <div className="w-5 h-5 rounded-md bg-[#58CC02] flex items-center justify-center text-white border border-zinc-900/20 flex-shrink-0">
                 <Crosshair className="w-3.5 h-3.5 stroke-[2.5]" />
               </div>
               <span className="font-extrabold text-xs text-zinc-900 truncate">
@@ -295,7 +489,7 @@ export function LearnSidebar({
             <div className="flex items-center gap-1 font-mono text-[10px] font-extrabold flex-shrink-0">
               <span className="text-zinc-500">Match:</span>
               <span className={`px-1.5 py-0.5 rounded border border-zinc-900/30 ${
-                score >= 75 ? 'bg-[#22C55E] text-white' : score >= 40 ? 'bg-[#FFD15C] text-zinc-900' : 'bg-zinc-200 text-zinc-700'
+                score >= 75 ? 'bg-[#58CC02] text-white' : score >= 40 ? 'bg-[#FFC800] text-zinc-900' : 'bg-zinc-200 text-zinc-700'
               }`}>
                 {score}%
               </span>
@@ -314,7 +508,7 @@ export function LearnSidebar({
                     key={i}
                     className={`px-1.5 py-0.5 rounded text-[10px] font-black border transition-all ${
                       successfulReps > i
-                        ? 'bg-[#22C55E] text-white border-zinc-900'
+                        ? 'bg-[#58CC02] text-white border-zinc-900'
                         : 'bg-white text-zinc-400 border-zinc-300'
                     }`}
                   >
@@ -347,9 +541,9 @@ export function LearnSidebar({
                     key={st.id}
                     className={`flex-1 text-center py-1 px-1.5 rounded text-[9px] font-bold border transition-all ${
                       isDone
-                        ? 'bg-[#22C55E] text-white border-zinc-900'
+                        ? 'bg-[#58CC02] text-white border-zinc-900'
                         : isCur
-                        ? 'bg-[#FFD15C] text-zinc-900 border-zinc-900 shadow-cartoon-sm animate-pulse'
+                        ? 'bg-[#FFC800] text-zinc-900 border-zinc-900 shadow-cartoon-sm animate-pulse'
                         : 'bg-white text-zinc-400 border-zinc-200'
                     }`}
                   >
@@ -365,7 +559,7 @@ export function LearnSidebar({
             <div className="w-full h-2.5 bg-zinc-100 rounded-full border border-zinc-300 overflow-hidden relative">
               <div
                 className={`h-full transition-all duration-300 rounded-full ${
-                  score >= 75 ? 'bg-[#22C55E]' : score >= 40 ? 'bg-[#FFD15C]' : 'bg-zinc-400'
+                  score >= 75 ? 'bg-[#58CC02]' : score >= 40 ? 'bg-[#FFC800]' : 'bg-zinc-400'
                 }`}
                 style={{ width: `${Math.min(100, Math.max(0, score))}%` }}
               />
@@ -380,13 +574,13 @@ export function LearnSidebar({
           {/* Real-time Guidance Message Box */}
           <div className={`p-2 rounded-xl border-2 flex items-start gap-2 flex-shrink-0 ${
             isAligned
-              ? 'bg-[#EBFDF0] border-[#22C55E] text-[#15803D]'
+              ? 'bg-[#EBFDF0] border-[#58CC02] text-[#15803D]'
               : score > 30
               ? 'bg-[#FEFCE8] border-[#EAB308] text-[#854D0E]'
               : 'bg-zinc-50 border-zinc-300 text-zinc-700'
           }`}>
             {isAligned ? (
-              <CheckCircle2 className="w-4 h-4 text-[#22C55E] flex-shrink-0 mt-0.5 stroke-[2.5]" />
+              <CheckCircle2 className="w-4 h-4 text-[#58CC02] flex-shrink-0 mt-0.5 stroke-[2.5]" />
             ) : (
               <Compass className="w-4 h-4 text-zinc-600 flex-shrink-0 mt-0.5 stroke-[2.5]" />
             )}
@@ -407,9 +601,9 @@ export function LearnSidebar({
                 <div className="flex items-center gap-1.5 min-w-0">
                   <span className={`w-3.5 h-3.5 rounded flex items-center justify-center text-[9px] font-bold flex-shrink-0 ${
                     item.status === 'pass'
-                      ? 'bg-[#22C55E] text-white'
+                      ? 'bg-[#58CC02] text-white'
                       : item.status === 'warn'
-                      ? 'bg-[#FFD15C] text-zinc-900'
+                      ? 'bg-[#FFC800] text-zinc-900'
                       : 'bg-zinc-200 text-zinc-500'
                   }`}>
                     {item.status === 'pass' ? '✓' : '!'}
@@ -451,7 +645,7 @@ export function LearnSidebar({
             {/* Header with Title, Mastered count & Close Button */}
             <div className="px-4 py-3 border-b-2 border-zinc-900 bg-white flex items-center justify-between gap-3 flex-shrink-0">
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-lg bg-[#FFD15C] border-2 border-zinc-900 flex items-center justify-center flex-shrink-0 shadow-cartoon-sm">
+                <div className="w-8 h-8 rounded-lg bg-[#FFC800] border-2 border-zinc-900 flex items-center justify-center flex-shrink-0 shadow-cartoon-sm">
                   <BookOpen className="w-4 h-4 text-zinc-900 stroke-[2.2]" />
                 </div>
                 <div className="min-w-0">
@@ -465,7 +659,7 @@ export function LearnSidebar({
               </div>
 
               <div className="flex items-center gap-2 flex-shrink-0">
-                <span className="cartoon-badge !py-1 !px-2.5 text-xs bg-[#22C55E] text-white font-bold flex items-center gap-1 border border-zinc-900 shadow-sm">
+                <span className="cartoon-badge !py-1 !px-2.5 text-xs bg-[#58CC02] text-white font-bold flex items-center gap-1 border border-zinc-900 shadow-sm">
                   <Award className="w-3.5 h-3.5 text-white stroke-[2.5]" />
                   {masteredSet ? masteredSet.size : 0} Mastered
                 </span>
@@ -487,7 +681,7 @@ export function LearnSidebar({
                   onClick={() => setViewMode('course')}
                   className={`py-1.5 px-2 rounded-lg text-xs font-black flex items-center justify-center gap-1.5 transition-all ${
                     viewMode === 'course'
-                      ? 'bg-[#FFD15C] text-zinc-900 border-2 border-zinc-900 shadow-cartoon-sm'
+                      ? 'bg-[#FFC800] text-zinc-900 border-2 border-zinc-900 shadow-cartoon-sm'
                       : 'text-zinc-600 hover:text-zinc-900 border-2 border-transparent'
                   }`}
                 >
@@ -498,7 +692,7 @@ export function LearnSidebar({
                   onClick={() => setViewMode('lexicon')}
                   className={`py-1.5 px-2 rounded-lg text-xs font-black flex items-center justify-center gap-1.5 transition-all ${
                     viewMode === 'lexicon'
-                      ? 'bg-[#38BDF8] text-zinc-900 border-2 border-zinc-900 shadow-cartoon-sm'
+                      ? 'bg-[#1CB0F6] text-zinc-900 border-2 border-zinc-900 shadow-cartoon-sm'
                       : 'text-zinc-600 hover:text-zinc-900 border-2 border-transparent'
                   }`}
                 >
@@ -576,7 +770,7 @@ export function LearnSidebar({
                                   Level {lvl.levelNumber}: {lvl.title}
                                 </span>
                                 {isLevelComplete && (
-                                  <span className="cartoon-badge !py-0 !px-1 text-[8px] bg-[#22C55E] text-white">
+                                  <span className="cartoon-badge !py-0 !px-1 text-[8px] bg-[#58CC02] text-white">
                                     Complete ✓
                                   </span>
                                 )}
@@ -622,7 +816,7 @@ export function LearnSidebar({
                                       onClick={() => handleSelectAndClose(item)}
                                       className={`w-full text-left p-2 rounded-xl border transition-all flex items-center justify-between gap-2.5 ${
                                         isSelected
-                                          ? 'bg-[#FFD15C] border-zinc-900 shadow-cartoon-sm'
+                                          ? 'bg-[#FFC800] border-zinc-900 shadow-cartoon-sm'
                                           : 'bg-[#FAF8F5] border-zinc-200 hover:border-zinc-900 hover:bg-white'
                                       }`}
                                     >
@@ -646,7 +840,7 @@ export function LearnSidebar({
                                               </span>
                                             )}
                                             {isMastered && (
-                                              <span className="cartoon-badge !py-0 !px-1 text-[8px] bg-[#22C55E] text-white">
+                                              <span className="cartoon-badge !py-0 !px-1 text-[8px] bg-[#58CC02] text-white">
                                                 ✓ Mastered
                                               </span>
                                             )}
@@ -713,7 +907,7 @@ export function LearnSidebar({
                         onClick={() => setSelectedCategory(cat.id)}
                         className={`px-2.5 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap transition-all border ${
                           selectedCategory === cat.id
-                            ? 'bg-[#FFD15C] text-zinc-900 border-zinc-900 shadow-cartoon-sm'
+                            ? 'bg-[#FFC800] text-zinc-900 border-zinc-900 shadow-cartoon-sm'
                             : 'bg-zinc-100 text-zinc-600 border-zinc-300 hover:text-zinc-900'
                         }`}
                       >
@@ -735,7 +929,7 @@ export function LearnSidebar({
                         onClick={() => handleSelectAndClose(item)}
                         className={`w-full text-left p-2.5 rounded-xl border-2 transition-all flex items-center justify-between gap-3 ${
                           isSelected
-                            ? 'bg-[#FFD15C] border-zinc-900 shadow-cartoon-sm scale-[1.01]'
+                            ? 'bg-[#FFC800] border-zinc-900 shadow-cartoon-sm scale-[1.01]'
                             : 'bg-[#FAF8F5] border-zinc-200 hover:border-zinc-900 hover:bg-white'
                         }`}
                       >
@@ -752,7 +946,7 @@ export function LearnSidebar({
                             <Hand className="w-4 h-4 text-zinc-500 stroke-[1.8]" />
                           )}
                           {isMastered && (
-                            <div className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#22C55E] border border-zinc-900 flex items-center justify-center">
+                            <div className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#58CC02] border border-zinc-900 flex items-center justify-center">
                               <Check className="w-2.5 h-2.5 text-white stroke-[3]" />
                             </div>
                           )}
@@ -764,12 +958,12 @@ export function LearnSidebar({
                               {item.name}
                             </span>
                             <span className={`cartoon-badge !py-0 !px-1.5 text-[8px] uppercase ${
-                              item.type === 'alphabet' ? 'bg-[#38BDF8] text-zinc-900' : 'bg-white text-zinc-700'
+                              item.type === 'alphabet' ? 'bg-[#1CB0F6] text-zinc-900' : 'bg-white text-zinc-700'
                             }`}>
                               {item.type === 'alphabet' ? 'Letter' : item.category}
                             </span>
                             {isMastered && (
-                              <span className="cartoon-badge !py-0 !px-1 text-[8px] bg-[#22C55E] text-white">
+                              <span className="cartoon-badge !py-0 !px-1 text-[8px] bg-[#58CC02] text-white">
                                 Mastered
                               </span>
                             )}

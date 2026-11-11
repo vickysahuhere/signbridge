@@ -1033,8 +1033,8 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
     type: 'word',
     english: 'Love / I Love You',
     image: '/signs/love.gif',
-    description: 'Extend your thumb, index finger, and pinky finger simultaneously while keeping middle and ring fingers folded flat.',
-    tip: 'Iconic "I Love You" handshape in front of chest.',
+    description: 'Form the recognized "I Love You" handshape (thumb, index, and pinky extended, middle and ring folded flat) held calmly in front of center chest. (In traditional ISL, also commonly signed by crossing arms over the chest).',
+    tip: 'Iconic "I Love You" handshape held steadily in front of chest.',
     targetSkeleton: {
       leftHand: null,
       rightHand: createHandSkeleton({ wristX: 0.52, wristY: 0.54, isRight: true, fingerPose: 'phone' }),

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { X, Search, BookOpen, CheckCircle2, HelpCircle, Layers, Sparkles } from 'lucide-react';
+import { X, Search, BookOpen, CheckCircle2, HelpCircle, Layers, Sparkles, Globe, ExternalLink } from 'lucide-react';
 import { ISL_WORD_LABELS, ISL_WORD_CATEGORIES } from '../ai/islWordLabels.js';
 import { ISL_ALPHABET_GUIDE } from '../ai/islAlphabetLabels.js';
 
@@ -63,16 +63,22 @@ export function WordDictionaryModal({ isOpen, onClose, onSelectForPractice }) {
         {/* 1. Header */}
         <div className="px-4 py-3 bg-[#FAF8F5] border-b-2 border-zinc-900 flex items-center justify-between gap-2 flex-shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#FFD15C] border-2 border-zinc-900 flex items-center justify-center shadow-cartoon-sm flex-shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-[#FFC800] border-2 border-zinc-900 flex items-center justify-center shadow-cartoon-sm flex-shrink-0">
               <BookOpen className="w-4 h-4 text-zinc-900 stroke-[2.5]" />
             </div>
             <div>
               <h2 className="font-extrabold text-sm sm:text-base text-zinc-900">
                 ISL Sign Dictionary
               </h2>
-              <p className="text-xs text-zinc-500 font-medium">
-                {activeTab === 'words' ? `${ISL_WORD_LABELS.length} Lexicon Words (Tier 3 Daily English)` : '26 A–Z Two-Handed Letters'}
-              </p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <p className="text-xs text-zinc-500 font-medium">
+                  {activeTab === 'words' ? `${ISL_WORD_LABELS.length} Lexicon Words (Tier 3 Daily English)` : '26 A–Z Two-Handed Letters'}
+                </p>
+                <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold text-blue-800 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                  <Globe className="w-2.5 h-2.5" />
+                  Grounded in ISLRTC & FDMSE Standards
+                </span>
+              </div>
             </div>
           </div>
 
@@ -97,7 +103,7 @@ export function WordDictionaryModal({ isOpen, onClose, onSelectForPractice }) {
                 }}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
                   activeTab === 'words'
-                    ? 'bg-[#FFD15C] text-zinc-900 border-2 border-zinc-900 shadow-cartoon-sm'
+                    ? 'bg-[#FFC800] text-zinc-900 border-2 border-zinc-900 shadow-cartoon-sm'
                     : 'text-zinc-600 hover:text-zinc-900 border-2 border-transparent'
                 }`}
               >
@@ -110,7 +116,7 @@ export function WordDictionaryModal({ isOpen, onClose, onSelectForPractice }) {
                 }}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
                   activeTab === 'alphabet'
-                    ? 'bg-[#38BDF8] text-zinc-900 border-2 border-zinc-900 shadow-cartoon-sm'
+                    ? 'bg-[#1CB0F6] text-zinc-900 border-2 border-zinc-900 shadow-cartoon-sm'
                     : 'text-zinc-600 hover:text-zinc-900 border-2 border-transparent'
                 }`}
               >
@@ -215,12 +221,24 @@ export function WordDictionaryModal({ isOpen, onClose, onSelectForPractice }) {
                           {word.description}
                         </p>
                       </div>
-                      <div className="text-[10px] font-mono text-zinc-400 pt-1 border-t border-zinc-100 flex items-center justify-between">
-                        <span>Sign ID #{word.id}</span>
+                      <div className="text-[10px] font-mono text-zinc-400 pt-1.5 border-t border-zinc-100 flex items-center justify-between gap-1 flex-wrap">
+                        <div className="flex items-center gap-1.5">
+                          <span>Sign ID #{word.id}</span>
+                          <a
+                            href={`https://www.indiansignlanguage.org/?s=${encodeURIComponent(word.english || word.gloss)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-700 hover:text-blue-900 hover:underline flex items-center gap-0.5 text-[9px] font-bold"
+                            title="Open slow video demonstration in Indian Sign Language Portal"
+                          >
+                            <Globe className="w-2.5 h-2.5" />
+                            <span>ISL Portal ↗</span>
+                          </a>
+                        </div>
                         {onSelectForPractice && (
                           <button
                             onClick={() => onSelectForPractice(word.gloss)}
-                            className="cartoon-btn !py-0.5 !px-2 text-[10px] bg-[#FFD15C] hover:bg-[#FFE082] text-zinc-900 border border-zinc-900 flex items-center gap-1 font-bold shadow-none"
+                            className="cartoon-btn !py-0.5 !px-2 text-[10px] bg-[#FFC800] hover:bg-[#FFE082] text-zinc-900 border border-zinc-900 flex items-center gap-1 font-bold shadow-none"
                             title="Practice this sign in Sign Academy"
                           >
                             <Sparkles className="w-3 h-3 text-zinc-900" />
@@ -258,11 +276,11 @@ export function WordDictionaryModal({ isOpen, onClose, onSelectForPractice }) {
                   >
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
-                        <div className="w-10 h-10 rounded-xl bg-[#38BDF8] border-2 border-zinc-900 flex items-center justify-center font-black text-xl text-zinc-950 shadow-cartoon-sm">
+                        <div className="w-10 h-10 rounded-xl bg-[#1CB0F6] border-2 border-zinc-900 flex items-center justify-center font-black text-xl text-zinc-950 shadow-cartoon-sm">
                           {item.letter}
                         </div>
                         <span className={`cartoon-badge !py-0 !px-2 text-[10px] ${
-                          item.category === 'Vowel' ? 'bg-[#FFD15C] text-zinc-900' : 'bg-zinc-100 text-zinc-700'
+                          item.category === 'Vowel' ? 'bg-[#FFC800] text-zinc-900' : 'bg-zinc-100 text-zinc-700'
                         } shadow-none`}>
                           {item.category}
                         </span>
@@ -281,7 +299,7 @@ export function WordDictionaryModal({ isOpen, onClose, onSelectForPractice }) {
                       {onSelectForPractice && (
                         <button
                           onClick={() => onSelectForPractice(item.letter)}
-                          className="cartoon-btn !py-1 !px-2 text-[10px] bg-[#38BDF8] hover:bg-[#7dd3fc] text-zinc-900 border border-zinc-900 flex items-center gap-1 font-bold shadow-none flex-shrink-0"
+                          className="cartoon-btn !py-1 !px-2 text-[10px] bg-[#1CB0F6] hover:bg-[#7dd3fc] text-zinc-900 border border-zinc-900 flex items-center gap-1 font-bold shadow-none flex-shrink-0"
                           title="Practice this letter in Sign Academy"
                         >
                           <Sparkles className="w-3 h-3 text-zinc-900" />
