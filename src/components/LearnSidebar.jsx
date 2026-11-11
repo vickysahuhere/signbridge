@@ -61,26 +61,6 @@ export function LearnSidebar({
   const [displayCount, setDisplayCount] = useState(50);
   const [filterMasteredOnly, setFilterMasteredOnly] = useState(false);
 
-  // Teaching view mode: 'blueprint' (crisp vector teaching diagram) | 'demo' (animated motion demonstration) | 'database' (official ISLRTC / FDMSE portal links)
-  const [teachingViewMode, setTeachingViewMode] = useState('blueprint');
-  const [isDemoPaused, setIsDemoPaused] = useState(false);
-  const [demoSpeed, setDemoSpeed] = useState('0.75x');
-
-  // Grounded search terms for official Indian Sign Language databases
-  const signSearchTerm = useMemo(() => {
-    if (!selectedItem) return '';
-    return selectedItem.english || selectedItem.name || selectedItem.label || '';
-  }, [selectedItem]);
-
-  const islPortalUrl = useMemo(() => {
-    if (!signSearchTerm) return 'https://www.indiansignlanguage.org/';
-    return `https://www.indiansignlanguage.org/?s=${encodeURIComponent(signSearchTerm)}`;
-  }, [signSearchTerm]);
-
-  const islrtcUrl = useMemo(() => {
-    if (!signSearchTerm) return 'https://islrtc.nic.in/';
-    return `https://www.youtube.com/results?search_query=${encodeURIComponent('ISLRTC ' + signSearchTerm + ' Indian Sign Language')}`;
-  }, [signSearchTerm]);
 
   // Sidebar slide-over drawer open/close state
   const [internalIsOpen, setInternalIsOpen] = useState(false);
@@ -266,198 +246,37 @@ export function LearnSidebar({
               </span>
             </div>
 
-            {/* View Mode Segmented Switcher */}
-            <div className="flex items-center gap-1 p-1 bg-[#FAF8F5] rounded-lg border border-zinc-200 flex-shrink-0 text-[10px] font-bold">
-              <button
-                type="button"
-                onClick={() => setTeachingViewMode('blueprint')}
-                className={`flex-1 py-1 px-1.5 rounded transition-all text-center flex items-center justify-center gap-1 cursor-pointer ${
-                  teachingViewMode === 'blueprint'
-                    ? 'bg-zinc-900 text-white shadow-sm'
-                    : 'text-zinc-600 hover:text-zinc-900'
-                }`}
-                title="Strict Biomechanical Vector Guide"
-              >
-                <Crosshair className="w-3 h-3 stroke-[2.2]" />
-                <span>Teaching Guide</span>
-              </button>
-              {selectedItem.image && (
-                <button
-                  type="button"
-                  onClick={() => setTeachingViewMode('demo')}
-                  className={`flex-1 py-1 px-1.5 rounded transition-all text-center flex items-center justify-center gap-1 cursor-pointer ${
-                    teachingViewMode === 'demo'
-                      ? 'bg-zinc-900 text-white shadow-sm'
-                      : 'text-zinc-600 hover:text-zinc-900'
-                  }`}
-                  title="Recorded Motion Demonstration"
-                >
-                  <Play className="w-3 h-3 stroke-[2.2]" />
-                  <span>Motion Demo</span>
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={() => setTeachingViewMode('database')}
-                className={`flex-1 py-1 px-1.5 rounded transition-all text-center flex items-center justify-center gap-1 cursor-pointer ${
-                  teachingViewMode === 'database'
-                    ? 'bg-zinc-900 text-white shadow-sm'
-                    : 'text-zinc-600 hover:text-zinc-900'
-                }`}
-                title="Official Indian Sign Language Database (ISLRTC & indiansignlanguage.org)"
-              >
-                <Globe className="w-3 h-3 stroke-[2.2]" />
-                <span>ISL Database</span>
-              </button>
-            </div>
-
-            {/* Visual Area: Multi-Mode Authentic Demonstration Area */}
-            <div className="w-full flex-1 min-h-[140px] max-h-[220px] bg-white rounded-xl border-2 border-zinc-900 shadow-cartoon-sm flex items-center justify-center overflow-hidden p-2 relative group flex-shrink-0">
-              {teachingViewMode === 'blueprint' ? (
-                hasSvgIllustration(selectedItem.id || selectedItem.label) ? (
-                  <div className="w-full h-full flex flex-col items-center justify-center relative">
-                    <SignSvgIllustration
-                      signId={selectedItem.id || selectedItem.label}
-                      className="w-full h-full max-h-[160px] object-contain"
-                    />
-                    <div className="absolute top-2 left-2 bg-zinc-900/90 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1.5 pointer-events-none">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#58CC02]" />
-                      Authentic ISL Vector Blueprint
-                    </div>
-                  </div>
-                ) : selectedItem.image ? (
-                  <img
-                    src={selectedItem.image}
-                    alt={`${selectedItem.name} demonstration`}
-                    className="w-full h-full object-contain rounded-lg transition-transform group-hover:scale-105"
-                    loading="lazy"
-                  />
-                ) : (
-                  <div className="flex flex-col items-center justify-center text-zinc-700 gap-1.5 w-full text-center px-2">
-                    <div className="w-11 h-11 rounded-full bg-[#FFC800] border-2 border-zinc-900 flex items-center justify-center text-zinc-900 shadow-cartoon-sm">
-                      <Hand className="w-5 h-5 stroke-[2]" />
-                    </div>
-                    <div className="text-xs sm:text-sm font-extrabold text-zinc-900">
-                      {selectedItem.blueprint?.requiredFingers || 'Clear handshape'}
-                    </div>
-                    <div className="text-[10px] font-mono text-zinc-500">
-                      Zone: {selectedItem.blueprint?.zone || 'Mid-chest level'}
-                    </div>
-                  </div>
-                )
-              ) : teachingViewMode === 'demo' && selectedItem.image ? (
-                <div className="w-full h-full flex items-center justify-center relative overflow-hidden">
-                  <img
-                    src={selectedItem.image}
-                    alt={`${selectedItem.name} demonstration`}
-                    className={`w-full h-full object-contain rounded-lg transition-all ${
-                      isDemoPaused ? 'opacity-50 grayscale-[30%]' : ''
-                    }`}
-                    loading="lazy"
-                  />
-                  {/* Demonstration Controls Overlay */}
-                  <div className="absolute top-2 right-2 flex items-center gap-1 bg-zinc-900/85 backdrop-blur-sm px-2 py-1 rounded-md text-white text-[9px] font-mono shadow-sm">
-                    <button
-                      type="button"
-                      onClick={() => setIsDemoPaused(!isDemoPaused)}
-                      className="px-1.5 py-0.5 rounded hover:bg-zinc-800 flex items-center gap-1 font-bold cursor-pointer"
-                      title={isDemoPaused ? 'Resume playback' : 'Pause at keyframe'}
-                    >
-                      {isDemoPaused ? <Play className="w-2.5 h-2.5 fill-current" /> : <Pause className="w-2.5 h-2.5 fill-current" />}
-                      <span>{isDemoPaused ? 'Resume' : 'Pause'}</span>
-                    </button>
-                    <span className="text-zinc-500">|</span>
-                    <button
-                      type="button"
-                      onClick={() => setDemoSpeed(prev => prev === '0.5x' ? '0.75x' : prev === '0.75x' ? '1.0x' : '0.5x')}
-                      className="px-1 py-0.5 rounded hover:bg-zinc-800 font-extrabold text-[#FFC800] cursor-pointer"
-                      title="Toggle teaching speed"
-                    >
-                      {demoSpeed} Pace
-                    </button>
-                  </div>
-                  <div className="absolute top-2 left-2 bg-zinc-900/90 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1.5 pointer-events-none">
-                    <span className={`w-1.5 h-1.5 rounded-full ${isDemoPaused ? 'bg-amber-400' : 'bg-[#58CC02] animate-pulse'}`} />
-                    {isDemoPaused ? 'Paused for Posture Alignment' : 'Demonstration Pace'}
-                  </div>
-                </div>
+            {/* Visual Area: Directly Attached Teaching Demonstration GIF / Image */}
+            <div className="w-full flex-1 min-h-[150px] max-h-[230px] bg-white rounded-xl border-2 border-zinc-900 shadow-cartoon-sm flex items-center justify-center overflow-hidden p-1.5 relative group flex-shrink-0">
+              {selectedItem.image ? (
+                <img
+                  src={selectedItem.image}
+                  alt={`${selectedItem.name} demonstration`}
+                  className="w-full h-full object-contain rounded-lg transition-transform group-hover:scale-[1.02]"
+                  loading="eager"
+                />
               ) : (
-                /* Official ISL Database Card */
-                <div className="w-full h-full p-2.5 flex flex-col justify-between bg-gradient-to-b from-blue-50/70 to-white text-zinc-900">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-1.5 text-blue-900 font-extrabold text-xs">
-                      <Globe className="w-3.5 h-3.5 stroke-[2.5]" />
-                      <span>Official ISL Teaching Databases</span>
-                    </div>
-                    <p className="text-[10px] text-zinc-600 leading-tight">
-                      Standardized video demonstrations recorded by native Deaf educators:
-                    </p>
+                <div className="flex flex-col items-center justify-center text-zinc-700 gap-1.5 w-full text-center px-2">
+                  <div className="w-11 h-11 rounded-full bg-[#FFC800] border-2 border-zinc-900 flex items-center justify-center text-zinc-900 shadow-cartoon-sm">
+                    <Hand className="w-5 h-5 stroke-[2]" />
                   </div>
-
-                  <div className="grid grid-cols-1 gap-1.5 my-1">
-                    <a
-                      href={islPortalUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-1.5 rounded-lg border-2 border-zinc-900 bg-[#FAF8F5] hover:bg-amber-100 transition-all flex items-center justify-between text-zinc-900 shadow-sm group"
-                    >
-                      <div className="min-w-0">
-                        <div className="font-extrabold text-[11px] flex items-center gap-1 text-zinc-900">
-                          <span>ISL Portal</span>
-                          <span className="text-[9px] font-mono text-zinc-500 font-normal">(FDMSE RKMVERI)</span>
-                        </div>
-                        <div className="text-[9px] text-zinc-500 truncate">
-                          Search "{selectedItem.name}" slow video loop
-                        </div>
-                      </div>
-                      <ExternalLink className="w-3.5 h-3.5 text-zinc-700 group-hover:translate-x-0.5 transition-transform flex-shrink-0" />
-                    </a>
-
-                    <a
-                      href={islrtcUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-1.5 rounded-lg border-2 border-zinc-900 bg-[#FAF8F5] hover:bg-red-50 transition-all flex items-center justify-between text-zinc-900 shadow-sm group"
-                    >
-                      <div className="min-w-0">
-                        <div className="font-extrabold text-[11px] flex items-center gap-1 text-zinc-900">
-                          <span>ISLRTC National Standard</span>
-                          <span className="text-[9px] font-mono text-red-600 font-normal">Govt of India</span>
-                        </div>
-                        <div className="text-[9px] text-zinc-500 truncate">
-                          Official Ministry Deaf instructor video
-                        </div>
-                      </div>
-                      <ExternalLink className="w-3.5 h-3.5 text-red-600 group-hover:translate-x-0.5 transition-transform flex-shrink-0" />
-                    </a>
+                  <div className="text-xs sm:text-sm font-extrabold text-zinc-900">
+                    {selectedItem.blueprint?.requiredFingers || 'Clear handshape'}
                   </div>
-
-                  <div className="text-[9px] text-zinc-500 bg-white p-1 rounded border border-zinc-200 text-center font-mono">
-                    Grounded in ISLRTC National Curriculum & AI4Bharat
+                  <div className="text-[10px] font-mono text-zinc-500">
+                    Zone: {selectedItem.blueprint?.zone || 'Mid-chest level'}
                   </div>
                 </div>
               )}
+              <div className="absolute top-2 left-2 bg-zinc-900/90 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1.5 pointer-events-none">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#58CC02] animate-pulse" />
+                Authentic Demonstration
+              </div>
             </div>
 
-            {/* Easy-Going Step-by-Step Motion / Posture Execution Description */}
+            {/* Easy-Going Step-by-Step Motion & Pacing Guidance */}
             <div className="bg-[#FAF8F5] p-2.5 rounded-xl border border-zinc-200 text-xs text-zinc-700 leading-relaxed font-medium flex-shrink-0 flex flex-col gap-1.5">
-              <div className="flex items-center justify-between text-[10px] font-bold text-zinc-900 border-b border-zinc-200/80 pb-1">
-                <span className="flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 text-amber-500 stroke-[2.5]" />
-                  <span>Easy-Going Sign Guide</span>
-                </span>
-                <a
-                  href={islPortalUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-700 hover:underline flex items-center gap-0.5 text-[9px] font-mono font-bold"
-                  title="Open official Indian Sign Language Portal entry"
-                >
-                  <span>ISL Portal ↗</span>
-                </a>
-              </div>
-
-              <div className="text-[11px] text-zinc-800 leading-snug">
+              <div className="text-[11px] text-zinc-800 leading-snug font-medium">
                 {selectedItem.description}
               </div>
 
