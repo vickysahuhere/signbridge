@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { extractRoomId, generateRoomId, getRoomChannel } from '../network/supabaseClient.js';
+import { extractRoomId, generateRoomId, normalizeRoomCode, getRoomChannel } from '../network/supabaseClient.js';
 
 /**
  * useRoomConnection
@@ -7,13 +7,20 @@ import { extractRoomId, generateRoomId, getRoomChannel } from '../network/supaba
  * Manages instant room creation, URL parameters, role selection, and Realtime signaling (NETW-01, NETW-03).
  */
 export function useRoomConnection() {
-  const [roomId, setRoomId] = useState(() => {
+  const [roomId, setRoomIdState] = useState(() => {
     if (typeof window !== 'undefined') {
       const parsed = extractRoomId(window.location.search);
       return parsed || generateRoomId();
     }
     return generateRoomId();
   });
+
+  const setRoomId = useCallback((newId) => {
+    const clean = normalizeRoomCode(newId);
+    if (clean) {
+      setRoomIdState(clean);
+    }
+  }, []);
 
   const userIdRef = useRef(`user_${Math.random().toString(36).slice(2, 9)}`);
 
@@ -109,7 +116,7 @@ export function useRoomConnection() {
     };
   }, [roomId, role, userName]);
 
-  // Broadcast message sender (WebSocket fallback NETW-03)
+  // Broadcast message sender (WebSocket / P2P fallback NETW-03)
   const sendBroadcastMessage = useCallback(async (event, payload) => {
     if (channelInstance) {
       await channelInstance.sendBroadcast(event, {
@@ -122,11 +129,12 @@ export function useRoomConnection() {
     }
   }, [channelInstance, role, userName]);
 
-  // Copy shareable invitation link (both peers share the exact same room interface)
+  // Copy shareable invitation link (guarantees direct navigation into chat room)
   const getRoomShareUrl = useCallback(() => {
     if (typeof window === 'undefined') return '';
     const url = new URL(window.location.origin + window.location.pathname);
     url.searchParams.set('room', roomId);
+    url.searchParams.set('page', 'chat');
     url.searchParams.delete('role');
     return url.toString();
   }, [roomId]);

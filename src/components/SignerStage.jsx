@@ -20,7 +20,8 @@ import {
   Check,
   ExternalLink,
   Users,
-  Radio
+  Radio,
+  Hash
 } from 'lucide-react';
 import { startCameraLoop } from '../vision/cameraLoop.js';
 import { drawSkeleton, checkBoundaryAlert } from '../vision/drawSkeleton.js';
@@ -43,6 +44,7 @@ export function SignerStage({
   latestReply = null,
   recognitionMode = 'word',
   onToggleMode = null,
+  localStream = null,
   onStreamChange = null,
   remoteStream = null,
   peerPresence = { isOnline: false, name: '' },
@@ -56,9 +58,11 @@ export function SignerStage({
   onUndo = null,
   onClear = null,
   roomId = '',
+  onSwitchRoom = null,
   onCopyLink = null
 }) {
   const videoRef = useRef(null);
+  const localStreamRef = useRef(null);
   const canvasRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
@@ -69,6 +73,9 @@ export function SignerStage({
   const [layoutMode, setLayoutMode] = useState('grid'); // 'grid' | 'local-focus' | 'remote-focus'
   const [showProfiler, setShowProfiler] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
+  const [isSwitchingRoom, setIsSwitchingRoom] = useState(false);
+  const [switchRoomInput, setSwitchRoomInput] = useState('');
   const lastProfileLogRef = useRef(0);
 
   // Periodic profiling console log
@@ -101,6 +108,21 @@ export function SignerStage({
       setLayoutMode('grid');
     }
   }, [remoteStream]);
+
+    // Keep local video element in sync with the active MediaStream
+  useEffect(() => {
+    const activeStream = localStream || localStreamRef.current;
+    if (videoRef.current && activeStream) {
+      if (videoRef.current.srcObject !== activeStream) {
+        videoRef.current.srcObject = activeStream;
+      }
+      if (videoRef.current.paused) {
+        videoRef.current.play().catch((err) => {
+          console.warn('[SignerStage] Local video play error:', err);
+        });
+      }
+    }
+  }, [localStream, isCameraActive, layoutMode]);
 
   // Attach remote video stream when received (Strictly presentation sink: no worker processing!)
   useEffect(() => {
@@ -148,6 +170,7 @@ export function SignerStage({
         audio: false
       });
 
+      localStreamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         try {
@@ -181,6 +204,7 @@ export function SignerStage({
       tracks.forEach(track => track.stop());
       videoRef.current.srcObject = null;
     }
+    localStreamRef.current = null;
     if (onStreamChange) {
       onStreamChange(null);
     }
@@ -275,6 +299,23 @@ export function SignerStage({
     setTimeout(() => setCopiedLink(false), 2200);
   };
 
+  const handleCopyCode = () => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard && roomId) {
+      navigator.clipboard.writeText(roomId);
+    }
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 2000);
+  };
+
+  const handleSwitchRoomSubmit = (e) => {
+    e.preventDefault();
+    if (switchRoomInput.trim() && onSwitchRoom) {
+      onSwitchRoom(switchRoomInput.trim());
+      setIsSwitchingRoom(false);
+      setSwitchRoomInput('');
+    }
+  };
+
   return (
     <div className="cartoon-card w-full flex-1 min-h-0 flex flex-col overflow-hidden bg-white">
       {/* 1. Header Bar: Stage Identity & Layout Controls */}
@@ -359,169 +400,248 @@ export function SignerStage({
           <IncomingSubtitleOverlay latestReply={latestReply} />
 
           {/* ======================================================== */}
-          {/* DUAL CAMERA GRID VIEW (DEFAULT)                          */}
+          {/* UNIFIED PERSISTENT STAGE: ZERO UNMOUNTING, ZERO BLACKOUT */}
           {/* ======================================================== */}
-          {layoutMode === 'grid' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-2.5 w-full h-full min-h-0">
-              
-              {/* PANE 1: LOCAL SIGNER CAMERA (WITH SKELETON AI) */}
-              <div className="relative w-full h-full min-h-0 rounded-2xl border-2 border-zinc-900 bg-zinc-950 overflow-hidden flex items-center justify-center shadow-inner">
-                {/* Local Signer Header Badge */}
-                <div className="absolute top-2.5 left-2.5 z-20 cartoon-badge bg-white/95 backdrop-blur-sm text-zinc-900 text-[10px] font-extrabold flex items-center gap-1.5 shadow-sm border border-zinc-300">
-                  <span className={`w-2 h-2 rounded-full ${isCameraActive ? 'bg-[#58CC02] animate-pulse' : 'bg-zinc-400'}`} />
-                  <span>You (Signer)</span>
-                  {isCameraActive && (
-                    <span className="text-[9px] font-mono text-zinc-500 font-bold">• {fps || 30} FPS</span>
-                  )}
-                </div>
-
-                {/* Local Video Stream */}
-                <video
-                  ref={videoRef}
-                  playsInline
-                  autoPlay
-                  muted
-                  disablePictureInPicture
-                  onLoadedMetadata={syncCanvasDimensions}
-                  className="absolute inset-0 w-full h-full object-contain -scale-x-100"
-                />
-
-                {/* Skeleton Canvas (Local user only) */}
-                <canvas
-                  ref={canvasRef}
-                  width={1280}
-                  height={720}
-                  className={`absolute inset-0 w-full h-full object-contain -scale-x-100 pointer-events-none z-10 ${
-                    isCameraActive && showSkeleton ? 'block' : 'hidden'
-                  }`}
-                />
-
-                {/* Camera Off Placeholder Screen */}
-                {!isCameraActive && !cameraError && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center bg-zinc-950 text-white z-10">
-                    <div className="w-12 h-12 rounded-2xl bg-zinc-900 border-2 border-zinc-700 flex items-center justify-center mb-2.5 shadow-cartoon">
-                      <Camera className="w-6 h-6 text-[#58CC02] stroke-[2.2]" />
-                    </div>
-                    <h4 className="font-extrabold text-sm text-white mb-1">
-                      Your Camera is Inactive
-                    </h4>
-                    <p className="text-xs text-zinc-400 max-w-xs mb-3 font-medium">
-                      Start your camera to enable real-time ISL gesture tracking and video calling.
-                    </p>
-                    <button
-                      onClick={startCamera}
-                      disabled={isLoadingCamera}
-                      className="cartoon-btn cartoon-btn-mint py-1.5 px-4 text-xs font-black shadow-cartoon-sm"
-                    >
-                      <Camera className="w-3.5 h-3.5 stroke-[2.5]" />
-                      <span>{isLoadingCamera ? 'Starting Camera...' : 'Start Camera'}</span>
-                    </button>
-                  </div>
-                )}
-
-                {/* Out of Frame Alert Notice */}
-                {boundaryAlert.isOutOfFrame && isCameraActive && (
-                  <div className="absolute top-2 inset-x-2 z-20 flex justify-center pointer-events-none">
-                    <div className="cartoon-badge bg-[#FFC800] text-zinc-900 border border-zinc-900 px-2.5 py-0.5 font-bold text-[10px] flex items-center gap-1 shadow-sm">
-                      <AlertCircle className="w-3 h-3 text-zinc-900 stroke-[2.5]" />
-                      <span>Keep both hands centered inside camera</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Floating Candidate Suggestions Card */}
-                {isCameraActive && displayList && displayList.length > 0 && (
-                  <div
-                    onMouseEnter={() => onSetInteracting && onSetInteracting(true)}
-                    onMouseLeave={() => onSetInteracting && onSetInteracting(false)}
-                    className="absolute top-2.5 right-2.5 z-20 cartoon-card bg-white p-2.5 border-2 border-zinc-900 shadow-cartoon w-[210px] max-w-[85%] select-none animate-in fade-in duration-150"
-                  >
-                    <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-zinc-200">
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-[#58CC02] animate-pulse" />
-                        <span className="text-xs font-black uppercase tracking-wider text-zinc-700 font-mono">
-                          {displayList[0]?.isAlphabetHint ? 'Letter Match' : 'Detected Sign'}
-                        </span>
-                      </div>
-                      {onDismissCandidates && (
-                        <button
-                          onClick={onDismissCandidates}
-                          className="w-4 h-4 rounded text-zinc-400 hover:text-zinc-900 flex items-center justify-center text-xs font-bold"
-                          title="Dismiss"
-                        >
-                          <X className="w-3 h-3 stroke-[2.5]" />
-                        </button>
-                      )}
-                    </div>
-
-                    {displayList[0] && (
-                      <div className="p-2 rounded-xl bg-[#FFF9E5] border border-amber-200 mb-1.5">
-                        <div className="flex items-start justify-between gap-1.5 mb-1">
-                          <div className="min-w-0">
-                            <div className="font-black text-sm sm:text-base text-zinc-950 truncate">
-                              {displayList[0].label}
-                            </div>
-                          </div>
-                          <span className="font-mono text-xs font-black text-[#16A34A] bg-white px-1.5 py-0.5 rounded border border-zinc-200">
-                            {Math.round(displayList[0].confidence * 100)}%
-                          </span>
-                        </div>
-
-                        {onSelectCandidate && (
-                          <button
-                            onClick={() => onSelectCandidate(displayList[0].label, 'smart')}
-                            className="cartoon-btn !py-1 !px-2.5 text-xs sm:text-sm w-full bg-white hover:bg-zinc-100 text-zinc-900 font-black"
-                          >
-                            + Use Sign
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
+          <div
+            className={
+              layoutMode === 'grid'
+                ? "grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-2.5 w-full h-full min-h-0 relative"
+                : "relative w-full h-full min-h-0"
+            }
+          >
+            {/* PANE 1: LOCAL SIGNER CAMERA (WITH SKELETON AI) */}
+            <div
+              className={
+                layoutMode === 'grid'
+                  ? "relative w-full h-full min-h-0 rounded-2xl border-2 border-zinc-900 bg-zinc-950 overflow-hidden flex items-center justify-center shadow-inner"
+                  : layoutMode === 'local-focus'
+                  ? "absolute inset-0 w-full h-full min-h-0 rounded-2xl border-2 border-zinc-900 bg-zinc-950 overflow-hidden flex items-center justify-center shadow-inner z-10"
+                  : "absolute bottom-3 right-3 z-30 cartoon-card bg-zinc-950 p-1 border-2 border-zinc-900 shadow-cartoon-md max-w-[220px] w-[35%] sm:w-[180px] aspect-[4/3] overflow-hidden cursor-pointer rounded-2xl transition-all hover:scale-105"
+              }
+              onClick={layoutMode === 'remote-focus' ? () => setLayoutMode('local-focus') : undefined}
+              title={layoutMode === 'remote-focus' ? "Click to focus your camera" : undefined}
+            >
+              {/* Local Signer Header Badge */}
+              <div className="absolute top-2.5 left-2.5 z-20 cartoon-badge bg-white/95 backdrop-blur-sm text-zinc-900 text-[10px] font-extrabold flex items-center gap-1.5 shadow-sm border border-zinc-300">
+                <span className={`w-2 h-2 rounded-full ${isCameraActive ? 'bg-[#58CC02] animate-pulse' : 'bg-zinc-400'}`} />
+                <span>{layoutMode === 'local-focus' ? 'You (Signer Focus)' : 'You (Signer)'}</span>
+                {isCameraActive && (
+                  <span className="text-[9px] font-mono text-zinc-500 font-bold">• {fps || 30} FPS</span>
                 )}
               </div>
 
-              {/* PANE 2: REMOTE PARTNER VIDEO (OR WAITING CARD) */}
-              <div className="relative w-full h-full min-h-0 rounded-2xl border-2 border-zinc-900 bg-zinc-950 overflow-hidden flex items-center justify-center shadow-inner">
-                {hasRemote ? (
-                  <>
-                    {/* Partner Header Badge */}
-                    <div className="absolute top-2.5 left-2.5 z-20 cartoon-badge bg-white/95 backdrop-blur-sm text-zinc-900 text-[10px] font-extrabold flex items-center gap-1.5 shadow-sm border border-zinc-300">
-                      <span className="w-2 h-2 rounded-full bg-[#58CC02] animate-pulse" />
-                      <span>{peerPresence?.name || 'Partner'}</span>
-                      <span className="text-[9px] font-mono text-[#0284C7] font-bold">• P2P Live</span>
+              {/* Local Video Stream - object-cover ensures edge-to-edge camera feed without black bars */}
+              <video
+                ref={videoRef}
+                playsInline
+                autoPlay
+                muted
+                disablePictureInPicture
+                onLoadedMetadata={syncCanvasDimensions}
+                className="absolute inset-0 w-full h-full object-cover -scale-x-100"
+              />
+
+              {/* Skeleton Canvas (Local user only) */}
+              <canvas
+                ref={canvasRef}
+                width={1280}
+                height={720}
+                className={`absolute inset-0 w-full h-full object-cover -scale-x-100 pointer-events-none z-10 ${
+                  isCameraActive && showSkeleton ? 'block' : 'hidden'
+                }`}
+              />
+
+              {/* Camera Off Placeholder Screen */}
+              {!isCameraActive && !cameraError && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center bg-zinc-950 text-white z-10">
+                  <div className="w-12 h-12 rounded-2xl bg-zinc-900 border-2 border-zinc-700 flex items-center justify-center mb-2.5 shadow-cartoon">
+                    <Camera className="w-6 h-6 text-[#58CC02] stroke-[2.2]" />
+                  </div>
+                  <h4 className="font-extrabold text-sm text-white mb-1">
+                    Your Camera is Inactive
+                  </h4>
+                  <p className="text-xs text-zinc-400 max-w-xs mb-3 font-medium">
+                    Start your camera to enable real-time ISL gesture tracking and video calling.
+                  </p>
+                  <button
+                    onClick={startCamera}
+                    disabled={isLoadingCamera}
+                    className="cartoon-btn cartoon-btn-mint py-1.5 px-4 text-xs font-black shadow-cartoon-sm"
+                  >
+                    <Camera className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span>{isLoadingCamera ? 'Starting Camera...' : 'Start Camera'}</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Out of Frame Alert Notice */}
+              {boundaryAlert.isOutOfFrame && isCameraActive && layoutMode !== 'remote-focus' && (
+                <div className="absolute top-2 inset-x-2 z-20 flex justify-center pointer-events-none">
+                  <div className="cartoon-badge bg-[#FFC800] text-zinc-900 border border-zinc-900 px-2.5 py-0.5 font-bold text-[10px] flex items-center gap-1 shadow-sm">
+                    <AlertCircle className="w-3 h-3 text-zinc-900 stroke-[2.5]" />
+                    <span>Keep both hands centered inside camera</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Floating Candidate Suggestions Card */}
+              {isCameraActive && displayList && displayList.length > 0 && layoutMode !== 'remote-focus' && (
+                <div
+                  onMouseEnter={() => onSetInteracting && onSetInteracting(true)}
+                  onMouseLeave={() => onSetInteracting && onSetInteracting(false)}
+                  className="absolute top-2.5 right-2.5 z-20 cartoon-card bg-white p-2.5 border-2 border-zinc-900 shadow-cartoon w-[210px] max-w-[85%] select-none animate-in fade-in duration-150"
+                >
+                  <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-zinc-200">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-[#58CC02] animate-ping" />
+                      <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-zinc-900 text-white leading-none">
+                        Detected Sign
+                      </span>
+                    </div>
+                    {onDismissCandidates && (
+                      <button
+                        onClick={onDismissCandidates}
+                        className="text-zinc-400 hover:text-zinc-900 p-0.5 rounded"
+                        title="Dismiss"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+
+                  {displayList[0] && (
+                    <div className="flex items-center justify-between gap-1 mb-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="font-extrabold text-sm text-zinc-900 truncate">
+                            {displayList[0].label}
+                          </span>
+                          <span className="font-mono text-[10px] text-zinc-500 font-bold">
+                            {Math.round(displayList[0].confidence * 100)}%
+                          </span>
+                        </div>
+                      </div>
+                      {onSelectCandidate && (
+                        <button
+                          onClick={() => onSelectCandidate(displayList[0].label, 'smart')}
+                          className="cartoon-btn cartoon-btn-mint !py-0.5 !px-2 text-[10px] font-black flex-shrink-0"
+                          title="Select top prediction"
+                        >
+                          Select
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {displayList.length > 1 && (
+                    <div className="space-y-1 pt-1.5 border-t border-zinc-100">
+                      <span className="text-[9px] font-bold text-zinc-400 block uppercase">Other Options</span>
+                      <div className="flex flex-wrap gap-1">
+                        {displayList.slice(1, 4).map((cand) => (
+                          <button
+                            key={cand.label}
+                            onClick={() => onSelectCandidate && onSelectCandidate(cand.label, 'smart')}
+                            className="text-[10px] font-bold px-1.5 py-0.5 bg-zinc-100 hover:bg-[#FFD15C] text-zinc-700 hover:text-zinc-900 rounded border border-zinc-300 transition-colors"
+                          >
+                            {cand.label} ({Math.round(cand.confidence * 100)}%)
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {currentGlosses.length > 0 && (
+                    <div className="mt-2 pt-1.5 border-t border-zinc-100 flex items-center justify-between text-[10px]">
+                      <button
+                        onClick={onUndo}
+                        className="text-zinc-500 hover:text-zinc-900 font-bold flex items-center gap-0.5"
+                      >
+                        <Undo2 className="w-3 h-3" />
+                        <span>Undo</span>
+                      </button>
+                      <button
+                        onClick={onClear}
+                        className="text-rose-500 hover:text-rose-700 font-bold flex items-center gap-0.5"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        <span>Clear</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* PANE 2: REMOTE PARTNER VIDEO (OR WAITING CARD) */}
+            <div
+              className={
+                layoutMode === 'grid'
+                  ? "relative w-full h-full min-h-0 rounded-2xl border-2 border-zinc-900 bg-zinc-950 overflow-hidden flex items-center justify-center shadow-inner"
+                  : layoutMode === 'remote-focus'
+                  ? "absolute inset-0 w-full h-full min-h-0 rounded-2xl border-2 border-zinc-900 bg-zinc-950 overflow-hidden flex items-center justify-center shadow-inner z-10"
+                  : "absolute bottom-3 right-3 z-30 cartoon-card bg-zinc-950 p-1 border-2 border-zinc-900 shadow-cartoon-md max-w-[220px] w-[35%] sm:w-[180px] aspect-[4/3] overflow-hidden cursor-pointer rounded-2xl transition-all hover:scale-105"
+              }
+              onClick={layoutMode === 'local-focus' ? () => setLayoutMode('remote-focus') : undefined}
+              title={layoutMode === 'local-focus' ? "Click to focus partner camera" : undefined}
+            >
+              {hasRemote ? (
+                <>
+                  {/* Partner Header Badge */}
+                  <div className="absolute top-2.5 left-2.5 z-20 cartoon-badge bg-white/95 backdrop-blur-sm text-zinc-900 text-[10px] font-extrabold flex items-center gap-1.5 shadow-sm border border-zinc-300">
+                    <span className="w-2 h-2 rounded-full bg-[#58CC02] animate-pulse" />
+                    <span>{peerPresence?.name || 'Partner'}</span>
+                    <span className="text-[9px] font-mono text-[#0284C7] font-bold">• P2P Live</span>
+                  </div>
+
+                  {/* Remote Video Stream (Zero AI inference locally: presentation sink only) */}
+                  <video
+                    ref={remoteVideoRef}
+                    playsInline
+                    autoPlay
+                    className="w-full h-full object-cover"
+                  />
+                </>
+              ) : (
+                /* Waiting for Partner Join Card */
+                <div className="w-full h-full p-4 flex flex-col items-center justify-center text-center bg-[#18181B] text-zinc-200 select-none">
+                  <div className="w-12 h-12 rounded-2xl bg-zinc-800 border-2 border-zinc-700 flex items-center justify-center mb-2.5 shadow-cartoon">
+                    <Users className="w-6 h-6 text-sky-400 stroke-[2.2]" />
+                  </div>
+
+                  <h4 className="font-extrabold text-sm text-white mb-0.5">
+                    Waiting for Call Partner
+                  </h4>
+                  <p className="text-[11px] text-zinc-400 max-w-xs mb-3 font-medium">
+                    Share your room link. Both cameras will appear side-by-side with real-time sign auto-conversion.
+                  </p>
+
+                  {/* Room Info Pill with Copy Code */}
+                  <div className="flex items-center gap-1.5 mb-3 flex-wrap justify-center">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-700 text-xs font-mono text-zinc-300">
+                      <span className="text-zinc-500 font-sans text-[10px] font-bold">Room Code:</span>
+                      <span className="font-black text-amber-400 tracking-wider">{roomId || 'main'}</span>
+                      <button
+                        type="button"
+                        onClick={handleCopyCode}
+                        className="ml-1 p-1 hover:text-white text-zinc-400 rounded transition-colors"
+                        title="Copy Room Code"
+                      >
+                        {copiedCode ? (
+                          <Check className="w-3.5 h-3.5 text-emerald-400 stroke-[2.5]" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5 stroke-[2.2]" />
+                        )}
+                      </button>
                     </div>
 
-                    {/* Remote Video Stream (Zero AI inference locally: presentation sink only) */}
-                    <video
-                      ref={remoteVideoRef}
-                      playsInline
-                      autoPlay
-                      className="w-full h-full object-contain"
-                    />
-                  </>
-                ) : (
-                  /* Waiting for Partner Join Card */
-                  <div className="w-full h-full p-4 flex flex-col items-center justify-center text-center bg-[#18181B] text-zinc-200 select-none">
-                    <div className="w-12 h-12 rounded-2xl bg-zinc-800 border-2 border-zinc-700 flex items-center justify-center mb-2.5 shadow-cartoon">
-                      <Users className="w-6 h-6 text-sky-400 stroke-[2.2]" />
-                    </div>
+                    {copiedCode && (
+                      <span className="text-[10px] font-bold text-emerald-400">Code Copied!</span>
+                    )}
+                  </div>
 
-                    <h4 className="font-extrabold text-sm text-white mb-0.5">
-                      Waiting for Call Partner
-                    </h4>
-                    <p className="text-[11px] text-zinc-400 max-w-xs mb-3 font-medium">
-                      Share your room link. Both cameras will appear side-by-side with real-time sign auto-conversion.
-                    </p>
-
-                    {/* Room Info Pill */}
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-zinc-900 border border-zinc-700 text-xs font-mono text-zinc-300 mb-3">
-                      <span className="text-zinc-500 font-sans text-[10px] font-bold">Room:</span>
-                      <span className="font-black text-amber-400">{roomId || 'main'}</span>
-                    </div>
-
-                    {/* Copy Link Button */}
-                    <div className="flex items-center gap-2">
+                  {/* Primary Sharing & Switch Actions */}
+                  {!isSwitchingRoom ? (
+                    <div className="flex items-center gap-2 flex-wrap justify-center">
                       <button
                         onClick={handleCopyInvite}
                         className="cartoon-btn bg-[#38BDF8] hover:bg-[#0284C7] text-zinc-950 font-black py-1.5 px-3 text-xs flex items-center gap-1.5 shadow-cartoon-sm"
@@ -539,8 +659,20 @@ export function SignerStage({
                         )}
                       </button>
 
+                      {onSwitchRoom && (
+                        <button
+                          type="button"
+                          onClick={() => setIsSwitchingRoom(true)}
+                          className="cartoon-btn bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-bold py-1.5 px-2.5 text-xs flex items-center gap-1"
+                          title="Join another room code"
+                        >
+                          <Hash className="w-3.5 h-3.5" />
+                          <span>Join Code</span>
+                        </button>
+                      )}
+
                       <a
-                        href={`?room=${encodeURIComponent(roomId || 'main')}`}
+                        href={`?room=${encodeURIComponent(roomId || 'main')}&page=chat`}
                         target="_blank"
                         rel="noreferrer"
                         className="cartoon-btn bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-bold py-1.5 px-2 text-xs flex items-center gap-1"
@@ -550,76 +682,48 @@ export function SignerStage({
                         <span className="hidden sm:inline">Test Peer</span>
                       </a>
                     </div>
-                  </div>
-                )}
-              </div>
+                  ) : (
+                    <form
+                      onSubmit={handleSwitchRoomSubmit}
+                      className="flex items-center gap-1.5 max-w-xs w-full bg-zinc-900 p-1.5 rounded-xl border border-zinc-700"
+                    >
+                      <input
+                        type="text"
+                        value={switchRoomInput}
+                        onChange={(e) => setSwitchRoomInput(e.target.value)}
+                        placeholder="Enter room code to join..."
+                        autoFocus
+                        className="flex-1 px-2.5 py-1 text-xs font-mono font-bold bg-zinc-800 text-white rounded border border-zinc-700 focus:outline-none min-w-0"
+                      />
+                      <button
+                        type="submit"
+                        className="cartoon-btn bg-[#38BDF8] text-zinc-950 font-black py-1 px-2.5 text-xs"
+                      >
+                        Join
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsSwitchingRoom(false);
+                          setSwitchRoomInput('');
+                        }}
+                        className="text-xs text-zinc-400 hover:text-white px-1 font-bold"
+                      >
+                        ✕
+                      </button>
+                    </form>
+                  )}
 
-            </div>
-          )}
-
-          {/* ======================================================== */}
-          {/* FOCUS MODES (LOCAL FOCUS OR REMOTE FOCUS WITH PiP)       */}
-          {/* ======================================================== */}
-          {layoutMode !== 'grid' && (
-            <div className="relative w-full h-full min-h-0 rounded-2xl border-2 border-zinc-900 bg-zinc-950 overflow-hidden flex items-center justify-center shadow-inner">
-              
-              {/* PRIMARY FOCUSED VIDEO */}
-              {layoutMode === 'local-focus' ? (
-                <>
-                  <video
-                    ref={videoRef}
-                    playsInline
-                    autoPlay
-                    muted
-                    disablePictureInPicture
-                    onLoadedMetadata={syncCanvasDimensions}
-                    className="absolute inset-0 w-full h-full object-contain -scale-x-100"
-                  />
-                  <canvas
-                    ref={canvasRef}
-                    width={1280}
-                    height={720}
-                    className={`absolute inset-0 w-full h-full object-contain -scale-x-100 pointer-events-none z-10 ${
-                      isCameraActive && showSkeleton ? 'block' : 'hidden'
-                    }`}
-                  />
-                  <div className="absolute top-2.5 left-2.5 z-20 cartoon-badge bg-white/95 text-zinc-900 text-[10px] font-extrabold flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-[#58CC02] animate-pulse" />
-                    <span>You (Signer Focus)</span>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <video
-                    ref={remoteVideoRef}
-                    playsInline
-                    autoPlay
-                    className="w-full h-full object-contain"
-                  />
-                  <div className="absolute top-2.5 left-2.5 z-20 cartoon-badge bg-white/95 text-zinc-900 text-[10px] font-extrabold flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-[#58CC02] animate-pulse" />
-                    <span>{peerPresence?.name || 'Partner Focus'}</span>
-                  </div>
-                </>
+                  {peerPresence?.isOnline && !hasRemote && (
+                    <div className="mt-3 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/50 text-[11px] font-bold text-emerald-300 flex items-center gap-1.5 animate-pulse">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                      <span>Partner online ({peerPresence.name}) • Initializing video stream...</span>
+                    </div>
+                  )}
+                </div>
               )}
-
-              {/* INSET PiP WINDOW FOR SECONDARY STREAM */}
-              <div
-                onClick={() => setLayoutMode(layoutMode === 'local-focus' ? 'remote-focus' : 'local-focus')}
-                className="absolute bottom-3 right-3 z-30 cartoon-card bg-white p-1 border-2 border-zinc-900 shadow-cartoon-md max-w-[200px] w-[35%] sm:w-[170px] flex flex-col select-none cursor-pointer"
-                title="Click to swap focus"
-              >
-                <div className="px-1.5 py-0.5 text-[9px] font-bold text-zinc-800 flex items-center justify-between border-b border-zinc-200 mb-0.5">
-                  <span className="truncate">{layoutMode === 'local-focus' ? (peerPresence?.name || 'Partner') : 'You'}</span>
-                  <ArrowRightLeft className="w-2.5 h-2.5" />
-                </div>
-                <div className="aspect-[4/3] rounded bg-black overflow-hidden flex items-center justify-center">
-                  <span className="text-[10px] text-zinc-400 font-bold">PiP Active</span>
-                </div>
-              </div>
-
             </div>
-          )}
+          </div>
 
           {/* Camera Permission / Device Error Screen */}
           {cameraError && (

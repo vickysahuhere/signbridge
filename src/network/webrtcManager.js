@@ -3,6 +3,8 @@
  * 
  * Manages peer-to-peer WebRTC connection and RTCDataChannel messaging (NETW-02, NETW-04):
  * - STUN/TURN negotiation with Cloudflare & Google public STUN servers.
+ * - Perfect Negotiation pattern (W3C standard) to eliminate glare and race conditions.
+ * - Dynamic media track negotiation when local camera stream initializes.
  * - Opens RTCDataChannel("isl-chat") for <20ms direct UDP messaging.
  * - Streams live partial sign tokens in real time (NETW-04).
  * - Automatic fallback trigger to WebSocket broadcast if P2P is blocked (NETW-03).
@@ -10,7 +12,9 @@
 
 export const STUN_SERVERS = [
   { urls: 'stun:stun.cloudflare.com:3478' },
-  { urls: 'stun:stun.l.google.com:19302' }
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:stun2.l.google.com:19302' }
 ];
 
 export class WebRTCManager {
@@ -22,7 +26,7 @@ export class WebRTCManager {
     sendSignaling = () => {},
     onRemoteStream = () => {}
   } = {}) {
-    this.userId = userId;
+    this.userId = userId || `user_${Math.random().toString(36).slice(2, 8)}`;
     this.onMessage = onMessage;
     this.onStatusChange = onStatusChange;
     this.onFallbackTrigger = onFallbackTrigger;
@@ -36,6 +40,11 @@ export class WebRTCManager {
     this.candidateQueue = [];
     this.status = 'idle'; // 'idle' | 'connecting' | 'connected' | 'failed' | 'closed'
     this.isInitiator = false;
+
+    // Perfect Negotiation state
+    this.isMakingOffer = false;
+    this.ignoreOffer = false;
+    this.remoteUserId = null;
   }
 
   /**
@@ -71,6 +80,12 @@ export class WebRTCManager {
       if (event.streams && event.streams[0]) {
         this.remoteStream = event.streams[0];
         this.onRemoteStream(event.streams[0]);
+      } else if (event.track) {
+        if (!this.remoteStream) {
+          this.remoteStream = new MediaStream();
+        }
+        this.remoteStream.addTrack(event.track);
+        this.onRemoteStream(this.remoteStream);
       }
     };
 
@@ -89,9 +104,31 @@ export class WebRTCManager {
       if (state === 'connected') {
         this.status = 'connected';
         this.onStatusChange('connected');
-      } else if (state === 'failed' || state === 'disconnected') {
+      } else if (state === 'failed') {
         this.status = 'failed';
         this.onStatusChange('failed');
+      } else if (state === 'closed' || state === 'disconnected') {
+        this.status = 'closed';
+        this.onStatusChange('closed');
+      }
+    };
+
+    // W3C Perfect Negotiation onnegotiationneeded handler
+    pc.onnegotiationneeded = async () => {
+      try {
+        this.isMakingOffer = true;
+        const offer = await pc.createOffer();
+        if (pc.signalingState !== 'stable') return;
+        await pc.setLocalDescription(offer);
+        this.sendSignaling({
+          type: 'OFFER',
+          sdp: pc.localDescription,
+          senderId: this.userId
+        });
+      } catch (err) {
+        console.warn('[WebRTCManager] onnegotiationneeded error:', err);
+      } finally {
+        this.isMakingOffer = false;
       }
     };
 
@@ -100,6 +137,7 @@ export class WebRTCManager {
 
   /**
    * Attaches or updates local video/audio media stream tracks.
+   * If peerConnection exists, dynamically adds/replaces tracks and triggers negotiation.
    */
   setLocalStream(stream) {
     this.localStream = stream;
@@ -156,28 +194,36 @@ export class WebRTCManager {
     this.setupDataChannel(dc);
 
     try {
+      this.isMakingOffer = true;
       const offer = await pc.createOffer();
+      if (pc.signalingState !== 'stable') return;
       await pc.setLocalDescription(offer);
       this.sendSignaling({
         type: 'OFFER',
-        sdp: offer,
+        sdp: pc.localDescription,
         senderId: this.userId
       });
     } catch (err) {
       console.warn('[WebRTCManager] Offer generation failed, triggering fallback:', err);
       this.status = 'failed';
       this.onStatusChange('failed');
+    } finally {
+      this.isMakingOffer = false;
     }
   }
 
   /**
    * Listens as receiver when remote offer arrives.
+   * Implements Perfect Negotiation polite peer collision handling.
    */
-  async handleRemoteOffer(offerSdp, localStream = null) {
+  async handleRemoteOffer(offerSdp, localStream = null, remoteSenderId = null) {
     if (localStream) {
       this.localStream = localStream;
     }
-    this.isInitiator = false;
+    if (remoteSenderId) {
+      this.remoteUserId = remoteSenderId;
+    }
+
     let pc = this.peerConnection;
     if (!pc || pc.signalingState === 'closed') {
       pc = this.initPeerConnection();
@@ -189,6 +235,15 @@ export class WebRTCManager {
     };
 
     try {
+      const isPolite = Boolean(this.remoteUserId && this.userId < this.remoteUserId);
+      const offerCollision = this.isMakingOffer || pc.signalingState !== 'stable';
+
+      this.ignoreOffer = !isPolite && offerCollision;
+      if (this.ignoreOffer) {
+        console.warn('[WebRTCManager] Glare detected, impolite peer ignoring colliding offer');
+        return;
+      }
+
       await pc.setRemoteDescription(new RTCSessionDescription(offerSdp));
       await this.drainCandidateQueue();
 
@@ -196,7 +251,7 @@ export class WebRTCManager {
       await pc.setLocalDescription(answer);
       this.sendSignaling({
         type: 'ANSWER',
-        sdp: answer,
+        sdp: pc.localDescription,
         senderId: this.userId
       });
     } catch (err) {

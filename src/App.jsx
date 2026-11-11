@@ -30,11 +30,12 @@ export function App() {
   const [currentPage, setCurrentPage] = useState(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
+      const room = params.get('room') || params.get('code') || params.get('r');
       const p = params.get('page') || params.get('mode');
-      if (p === 'chat') return 'chat';
+      if (room || p === 'chat') return 'chat';
       if (p === 'learn') return 'learn';
     }
-    return 'home'; // Home page is always the default opening page across all links
+    return 'home'; // Home page is default when no room or mode param is given
   });
   const [recognitionMode, setRecognitionMode] = useState('word'); // 'alphabet' | 'word'
   const [isRecorderOpen, setIsRecorderOpen] = useState(false);
@@ -685,6 +686,7 @@ export function App() {
         onOpenFeedback={handleOpenFeedback}
         onOpenChatbot={() => setIsChatbotOpen(true)}
         roomId={roomId}
+        onSwitchRoom={setRoomId}
         connectionMode={connectionMode}
         rttMs={rttMs}
         userName={userName}
@@ -898,7 +900,8 @@ export function App() {
                     latestReply={latestIncomingReply}
                     recognitionMode={recognitionMode}
                     onToggleMode={setRecognitionMode}
-                    onStreamChange={setLocalStream}
+                    localStream={localStream}
+                  onStreamChange={setLocalStream}
                     remoteStream={remoteStream}
                     peerPresence={peerPresence}
                     onOpenGuide={() => setIsGuideOpen(true)}
@@ -921,6 +924,7 @@ export function App() {
                     onUndo={handleUndo}
                     onClear={handleClear}
                     roomId={roomId}
+                    onSwitchRoom={setRoomId}
                     onCopyLink={() => {
                       const shareUrl = getRoomShareUrl();
                       if (navigator.clipboard) {

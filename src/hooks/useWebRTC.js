@@ -4,7 +4,7 @@ import { WebRTCManager } from '../network/webrtcManager.js';
 /**
  * useWebRTC
  * 
- * React hook integrating WebRTC P2P DataChannel with Supabase fallback (NETW-02, NETW-03, NETW-04).
+ * React hook integrating WebRTC P2P DataChannel with Supabase and decentralized WebTorrent mesh fallback (NETW-02, NETW-03, NETW-04).
  */
 export function useWebRTC({
   userId = null,
@@ -39,7 +39,35 @@ export function useWebRTC({
     }
   }, []);
 
-  // Initialize WebRTCManager
+  // 1. Direct integration with decentralized WebTorrent mesh (channelInstance stream & track handlers)
+  useEffect(() => {
+    if (!channelInstance) return;
+
+    // Stream remote media when delivered by decentralized P2P mesh
+    if (channelInstance.onRemoteStream) {
+      channelInstance.onRemoteStream((stream) => {
+        if (stream) {
+          setRemoteStream(stream);
+          setConnectionMode('p2p');
+          setRttMs(18);
+        }
+      });
+    }
+  }, [channelInstance]);
+
+  // 2. Sync local media stream to decentralized mesh
+  useEffect(() => {
+    if (channelInstance && channelInstance.addStream && localStream) {
+      channelInstance.addStream(localStream);
+    }
+    return () => {
+      if (channelInstance && channelInstance.removeStream && localStream) {
+        channelInstance.removeStream(localStream);
+      }
+    };
+  }, [channelInstance, localStream]);
+
+  // 3. Initialize WebRTCManager (handles direct RTCPeerConnection fallback & Perfect Negotiation)
   useEffect(() => {
     const manager = new WebRTCManager({
       userId,
@@ -58,10 +86,14 @@ export function useWebRTC({
         }
       },
       onRemoteStream: (stream) => {
-        setRemoteStream(stream);
+        if (stream) {
+          setRemoteStream(stream);
+          setConnectionMode('p2p');
+          setRttMs(18);
+        }
       },
       onFallbackTrigger: (packet) => {
-        // Fallback over Supabase broadcast WebSocket (NETW-03)
+        // Fallback over broadcast WebSocket / data channel
         if (sendBroadcastMessage) {
           sendBroadcastMessage('chat-packet', packet);
         }
@@ -80,14 +112,14 @@ export function useWebRTC({
     };
   }, [userId, sendBroadcastMessage, handleIncomingPacket]);
 
-  // Synchronize local media stream with active peer connection
+  // Synchronize local media stream with active WebRTC manager
   useEffect(() => {
     if (rtcManagerRef.current) {
       rtcManagerRef.current.setLocalStream(localStream);
     }
   }, [localStream]);
 
-  // Handle incoming Supabase Realtime broadcast signals & fallback packets (Symmetric negotiation)
+  // Handle incoming broadcast signals & fallback packets
   useEffect(() => {
     if (!channelInstance) return;
 
@@ -97,7 +129,7 @@ export function useWebRTC({
       if (signal.senderId && signal.senderId === userId) return;
 
       if (signal.type === 'OFFER') {
-        await rtcManagerRef.current.handleRemoteOffer(signal.sdp, localStream);
+        await rtcManagerRef.current.handleRemoteOffer(signal.sdp, localStream, signal.senderId);
       } else if (signal.type === 'ANSWER') {
         await rtcManagerRef.current.handleRemoteAnswer(signal.sdp);
       } else if (signal.type === 'CANDIDATE') {
@@ -106,15 +138,12 @@ export function useWebRTC({
     });
 
     channelInstance.onBroadcast('chat-packet', (packet) => {
-      // Received packet via WebSocket broadcast fallback
-      setConnectionMode('websocket');
-      setRttMs(54);
+      setConnectionMode((prev) => (prev === 'p2p' ? 'p2p' : 'websocket'));
       handleIncomingPacket(packet);
     });
   }, [channelInstance, userId, localStream, handleIncomingPacket]);
 
-  // Deterministic call initiation: Peer with lexicographically higher userId initiates
-  // This guarantees zero glare/collision and symmetrical connection setup without roles
+  // Symmetric call trigger
   const isInitiator = Boolean(
     userId &&
     peerPresence?.userId &&
@@ -129,28 +158,40 @@ export function useWebRTC({
     }
   }, [isInitiator, peerPresence?.isOnline, localStream]);
 
-  // Public send helpers
+  // Public send helpers: sends through both WebRTC manager data channel and broadcast relay for 100% guarantee
   const sendPartialSigning = useCallback(({ glosses, previewText }) => {
+    const packet = {
+      type: 'PARTIAL_SIGNING',
+      glosses,
+      previewText,
+      sender: userName,
+      timestamp: Date.now()
+    };
     if (rtcManagerRef.current) {
-      rtcManagerRef.current.sendPartialSigning({
-        glosses,
-        previewText,
-        sender: userName
-      });
+      rtcManagerRef.current.sendPartialSigning({ glosses, previewText, sender: userName });
     }
-  }, [userName]);
+    if (sendBroadcastMessage) {
+      sendBroadcastMessage('chat-packet', packet);
+    }
+  }, [userName, sendBroadcastMessage]);
 
   const sendCommittedSentence = useCallback((sentence) => {
+    const packet = {
+      type: 'COMMITTED_MESSAGE',
+      id: sentence.id || Date.now(),
+      glosses: sentence.glosses || [],
+      text: sentence.text || '',
+      sender: userName,
+      senderRole: 'signer',
+      timestamp: sentence.timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
     if (rtcManagerRef.current) {
-      rtcManagerRef.current.sendCommittedSentence({
-        id: sentence.id || Date.now(),
-        glosses: sentence.glosses || [],
-        text: sentence.text || '',
-        sender: userName,
-        timestamp: sentence.timestamp
-      });
+      rtcManagerRef.current.sendCommittedSentence(packet);
     }
-  }, [userName]);
+    if (sendBroadcastMessage) {
+      sendBroadcastMessage('chat-packet', packet);
+    }
+  }, [userName, sendBroadcastMessage]);
 
   const sendTextReply = useCallback((text) => {
     if (!text || !text.trim()) return;
@@ -165,9 +206,12 @@ export function useWebRTC({
     if (rtcManagerRef.current) {
       rtcManagerRef.current.sendTextReply(packet);
     }
-    // Also add to local history
+    if (sendBroadcastMessage) {
+      sendBroadcastMessage('chat-packet', packet);
+    }
+    // Add to local history
     setIncomingMessages((prev) => [packet, ...prev]);
-  }, [userName]);
+  }, [userName, sendBroadcastMessage]);
 
   return {
     connectionMode,

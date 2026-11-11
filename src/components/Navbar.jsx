@@ -35,12 +35,15 @@ export function Navbar({
   onOpenFeedback,
   onOpenChatbot,
   roomId = '',
+  onSwitchRoom = null,
   connectionMode = 'p2p',
   rttMs = 18,
   userName = 'User',
   onCopyLink
 }) {
   const [copied, setCopied] = useState(false);
+  const [isEditingRoom, setIsEditingRoom] = useState(false);
+  const [roomInputValue, setRoomInputValue] = useState('');
 
   const handleCopy = () => {
     if (onCopyLink) {
@@ -153,31 +156,80 @@ export function Navbar({
           )}
         </div>
 
-        {/* Center: Share Room Link (Visible in Chat Mode on desktop) */}
+        {/* Center: Share Room Link / Switch Code (Visible in Chat Mode on desktop) */}
         {currentPage === 'chat' && roomId && (
-          <div className="hidden xl:flex items-center gap-1.5 bg-[#F7F7F7] border-2 border-[#E5E5E5] rounded-xl px-2 py-1 flex-shrink-0 max-w-[200px]">
-            <span className="text-[11px] font-mono font-bold text-zinc-500 truncate">
-              Room <span className="text-[#3C3C3C]">#{roomId}</span>
-            </span>
-            <button
-              onClick={handleCopy}
-              className={`duo-btn !py-0.5 !px-2 text-[10px] font-bold ${
-                copied ? 'duo-btn-green' : 'bg-white hover:bg-zinc-50'
-              }`}
-              title="Copy Shareable Room Link"
-            >
-              {copied ? (
-                <>
-                  <Check className="w-2.5 h-2.5 stroke-[2.5]" />
-                  <span>Copied</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-2.5 h-2.5 stroke-[2.2]" />
-                  <span>Share</span>
-                </>
-              )}
-            </button>
+          <div className="hidden xl:flex items-center gap-1.5 bg-[#F7F7F7] border-2 border-[#E5E5E5] rounded-xl px-2 py-1 flex-shrink-0">
+            {!isEditingRoom ? (
+              <>
+                <span className="text-[11px] font-mono font-bold text-zinc-500 truncate">
+                  Room <span className="text-[#3C3C3C]">#{roomId}</span>
+                </span>
+                <button
+                  onClick={handleCopy}
+                  className={`duo-btn !py-0.5 !px-2 text-[10px] font-bold ${
+                    copied ? 'duo-btn-green' : 'bg-white hover:bg-zinc-50'
+                  }`}
+                  title="Copy Shareable Room Link"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-2.5 h-2.5 stroke-[2.5]" />
+                      <span>Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-2.5 h-2.5 stroke-[2.2]" />
+                      <span>Share</span>
+                    </>
+                  )}
+                </button>
+                {onSwitchRoom && (
+                  <button
+                    onClick={() => {
+                      setRoomInputValue(roomId);
+                      setIsEditingRoom(true);
+                    }}
+                    className="duo-btn !py-0.5 !px-1.5 text-[10px] font-bold bg-zinc-100 hover:bg-zinc-200 text-zinc-700"
+                    title="Switch to another room code"
+                  >
+                    Switch
+                  </button>
+                )}
+              </>
+            ) : (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (roomInputValue.trim() && onSwitchRoom) {
+                    onSwitchRoom(roomInputValue.trim());
+                    setIsEditingRoom(false);
+                  }
+                }}
+                className="flex items-center gap-1"
+              >
+                <input
+                  type="text"
+                  value={roomInputValue}
+                  onChange={(e) => setRoomInputValue(e.target.value)}
+                  placeholder="Code..."
+                  className="px-1.5 py-0.5 text-[11px] font-mono font-bold bg-white border border-zinc-300 rounded w-24 focus:outline-none"
+                  autoFocus
+                />
+                <button
+                  type="submit"
+                  className="duo-btn duo-btn-blue !py-0.5 !px-1.5 text-[10px] font-bold"
+                >
+                  Go
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsEditingRoom(false)}
+                  className="text-[10px] text-zinc-400 hover:text-zinc-700 font-bold px-1"
+                >
+                  ✕
+                </button>
+              </form>
+            )}
           </div>
         )}
 
