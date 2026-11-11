@@ -241,7 +241,7 @@ export function SignerStage({
             </span>
           </div>
           {isCameraActive && (
-            <span className="cartoon-badge !py-0 !px-2 text-[10px] bg-[#22C55E] text-white hidden sm:inline-flex">
+            <span className="cartoon-badge !py-0 !px-2 text-[10px] bg-[#58CC02] text-white hidden sm:inline-flex">
               ● Active
             </span>
           )}
@@ -251,7 +251,7 @@ export function SignerStage({
           {hasRemote && (
             <button
               onClick={() => setIsSwapped(prev => !prev)}
-              className="cartoon-btn !py-0.5 !px-2 text-xs bg-[#FFD15C] text-zinc-900"
+              className="cartoon-btn !py-0.5 !px-2 text-xs bg-[#FFC800] text-zinc-900"
               title="Swap Big and Small video feeds"
             >
               <ArrowRightLeft className="w-3 h-3 stroke-[2.5]" />
@@ -261,9 +261,9 @@ export function SignerStage({
 
           <div className="flex items-center gap-1 text-[11px] font-mono font-bold text-zinc-600 bg-zinc-100 px-2 py-0.5 rounded-lg border border-zinc-300">
             <span>Hands:</span>
-            <span className={hasLeftHand ? 'text-[#22C55E]' : 'text-zinc-400'}>L</span>
+            <span className={hasLeftHand ? 'text-[#58CC02]' : 'text-zinc-400'}>L</span>
             <span>•</span>
-            <span className={hasRightHand ? 'text-[#22C55E]' : 'text-zinc-400'}>R</span>
+            <span className={hasRightHand ? 'text-[#58CC02]' : 'text-zinc-400'}>R</span>
           </div>
         </div>
       </div>
@@ -288,7 +288,7 @@ export function SignerStage({
             {isRemoteBig && (
               <div className="px-1.5 py-0.5 text-[10px] font-bold text-zinc-800 flex items-center justify-between border-b border-zinc-200 mb-0.5 flex-shrink-0">
                 <span className="flex items-center gap-1">
-                  <span className={`w-1.5 h-1.5 rounded-full ${isCameraActive ? 'bg-[#22C55E]' : 'bg-[#EF4444]'}`} />
+                  <span className={`w-1.5 h-1.5 rounded-full ${isCameraActive ? 'bg-[#58CC02]' : 'bg-[#EF4444]'}`} />
                   <span>You</span>
                 </span>
                 <button
@@ -334,10 +334,21 @@ export function SignerStage({
                 }`}
               />
 
+              {/* Live FPS Overlay Directly Over Camera Output */}
+              {isCameraActive && (
+                <div className="absolute top-2.5 left-2.5 z-20 pointer-events-none select-none">
+                  <div className="duo-badge bg-[#3C3C3C]/85 backdrop-blur-sm text-white px-2 py-0.5 font-mono text-[10px] border border-zinc-700/80 flex items-center gap-1.5 shadow-sm rounded-md">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#58CC02] animate-pulse" />
+                    <span className="text-zinc-400 font-bold">FPS:</span>
+                    <span className="text-[#58CC02] font-black">{fps || 30}</span>
+                  </div>
+                </div>
+              )}
+
               {/* PiP Out of frame indicator */}
               {isRemoteBig && boundaryAlert.isOutOfFrame && isCameraActive && (
                 <div className="absolute bottom-1 inset-x-1 z-20 flex justify-center pointer-events-none">
-                  <span className="cartoon-badge !py-0 !px-1.5 text-[8px] bg-[#FFD15C] text-zinc-900">
+                  <span className="cartoon-badge !py-0 !px-1.5 text-[8px] bg-[#FFC800] text-zinc-900">
                     Keep In View
                   </span>
                 </div>
@@ -359,7 +370,7 @@ export function SignerStage({
               {!isRemoteBig && (
                 <div className="px-1.5 py-0.5 text-[10px] font-bold text-zinc-800 flex items-center justify-between border-b border-zinc-200 mb-0.5 flex-shrink-0">
                   <span className="flex items-center gap-1 truncate">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] animate-pulse" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#58CC02] animate-pulse" />
                     <span className="truncate">{peerPresence?.name || 'Partner'}</span>
                   </span>
                   <button
@@ -393,7 +404,7 @@ export function SignerStage({
 
                 {isRemoteBig && (
                   <div className="absolute top-3 left-3 z-20 cartoon-badge bg-white text-zinc-900 flex items-center gap-1.5 shadow-cartoon-sm">
-                    <span className="w-2 h-2 rounded-full bg-[#22C55E] animate-pulse" />
+                    <span className="w-2 h-2 rounded-full bg-[#58CC02] animate-pulse" />
                     <span>{peerPresence?.name || 'Partner'}</span>
                     <span className="text-[10px] font-mono text-zinc-500">• Live</span>
                   </div>
@@ -405,7 +416,7 @@ export function SignerStage({
           {/* Out of Frame Alert Notice */}
           {!isRemoteBig && boundaryAlert.isOutOfFrame && isCameraActive && (
             <div className="absolute top-3 inset-x-3 z-20 flex justify-center pointer-events-none">
-              <div className="cartoon-badge bg-[#FFD15C] text-zinc-900 border-2 border-zinc-900 px-3 py-1 font-bold text-xs flex items-center gap-1.5 shadow-cartoon-sm">
+              <div className="cartoon-badge bg-[#FFC800] text-zinc-900 border-2 border-zinc-900 px-3 py-1 font-bold text-xs flex items-center gap-1.5 shadow-cartoon-sm">
                 <AlertCircle className="w-3.5 h-3.5 text-zinc-900 stroke-[2.5]" />
                 <span>Please keep both hands centered inside camera</span>
               </div>
@@ -422,7 +433,7 @@ export function SignerStage({
               {/* Header */}
               <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-zinc-200">
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-[#22C55E] animate-pulse" />
+                  <span className="w-2 h-2 rounded-full bg-[#58CC02] animate-pulse" />
                   <span className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-700">
                     {displayList[0]?.isAlphabetHint ? 'Letter Match' : 'Detected Sign'}
                   </span>
@@ -458,7 +469,7 @@ export function SignerStage({
                   {/* Confidence Progress */}
                   <div className="w-full bg-amber-200 h-1.5 rounded-full overflow-hidden mb-2">
                     <div
-                      className="bg-[#22C55E] h-full rounded-full transition-all duration-150"
+                      className="bg-[#58CC02] h-full rounded-full transition-all duration-150"
                       style={{ width: `${Math.min(100, Math.round(displayList[0].confidence * 100))}%` }}
                     />
                   </div>
@@ -552,7 +563,7 @@ export function SignerStage({
             <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center bg-zinc-950/95 z-20">
               <div className="cartoon-card max-w-sm w-full p-5 sm:p-6 bg-white text-center flex flex-col items-center shadow-cartoon-lg">
                 {/* Cheerful Animated Hand Mark */}
-                <div className="w-14 h-14 rounded-2xl bg-[#FFD15C] border-2 border-zinc-900 flex items-center justify-center shadow-cartoon mb-3 animate-subtle-bounce">
+                <div className="w-14 h-14 rounded-2xl bg-[#FFC800] border-2 border-zinc-900 flex items-center justify-center shadow-cartoon mb-3 animate-subtle-bounce">
                   <Hand className="w-8 h-8 text-zinc-900 stroke-[2.2]" />
                 </div>
 
@@ -598,7 +609,7 @@ export function SignerStage({
           {!hasRemote && cameraError && (
             <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center bg-zinc-950/95 z-20">
               <div className="cartoon-card max-w-sm w-full p-5 bg-white text-center flex flex-col items-center shadow-cartoon-lg">
-                <div className="w-12 h-12 rounded-2xl bg-[#FF6B6B] border-2 border-zinc-900 flex items-center justify-center shadow-cartoon mb-3">
+                <div className="w-12 h-12 rounded-2xl bg-[#FF4B4B] border-2 border-zinc-900 flex items-center justify-center shadow-cartoon mb-3">
                   <AlertCircle className="w-7 h-7 text-white stroke-[2.5]" />
                 </div>
                 <h3 className="font-extrabold text-base text-zinc-900 mb-1">
@@ -620,7 +631,7 @@ export function SignerStage({
 
           {/* Telemetry Profiler Panel (Conditional) */}
           {showProfiler && (
-            <div className="absolute top-3 left-3 z-30 cartoon-card bg-white p-3 border-2 border-zinc-900 shadow-cartoon-md w-[220px] text-xs font-mono select-none">
+            <div className="absolute top-10 left-3 z-30 cartoon-card bg-white p-3 border-2 border-zinc-900 shadow-cartoon-md w-[220px] text-xs font-mono select-none">
               <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-zinc-200">
                 <span className="font-bold text-zinc-900 text-[11px]">AI Profiler</span>
                 <button
@@ -698,7 +709,7 @@ export function SignerStage({
             <button
               onClick={() => setShowProfiler(prev => !prev)}
               className={`cartoon-btn !py-1 !px-2 text-xs font-bold ${
-                showProfiler ? 'bg-[#FFD15C] text-zinc-900' : 'bg-white text-zinc-600'
+                showProfiler ? 'bg-[#FFC800] text-zinc-900' : 'bg-white text-zinc-600'
               }`}
               title="Toggle Pipeline Latency HUD"
             >

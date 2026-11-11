@@ -210,7 +210,7 @@ export function LearnStage({
             {isBlackScreen ? 'Black Screen Motion Studio' : 'Camera Feed & Biometric HUD'}
           </span>
           {isCameraActive && (
-            <span className="cartoon-badge !py-0 !px-2 text-[10px] bg-[#22C55E] text-white hidden sm:inline-flex">
+            <span className="cartoon-badge !py-0 !px-2 text-[10px] bg-[#58CC02] text-white hidden sm:inline-flex">
               ● Live Tracking
             </span>
           )}
@@ -224,7 +224,7 @@ export function LearnStage({
             className={`cartoon-btn !py-0.5 !px-2.5 text-xs font-bold transition-all ${
               isBlackScreen
                 ? 'bg-zinc-900 text-white border-zinc-900 shadow-cartoon-sm'
-                : 'bg-[#FFD15C] text-zinc-900 border-zinc-900 shadow-cartoon-sm'
+                : 'bg-[#FFC800] text-zinc-900 border-zinc-900 shadow-cartoon-sm'
             }`}
             title="Toggle Black Screen Studio vs Webcam Feed"
           >
@@ -257,7 +257,7 @@ export function LearnStage({
           <button
             onClick={() => setShowGhostSkeleton(prev => !prev)}
             className={`cartoon-btn !py-0.5 !px-2 text-xs font-bold ${
-              showGhostSkeleton ? 'bg-[#FFD15C] text-zinc-900 border-zinc-900' : 'bg-zinc-100 text-zinc-600'
+              showGhostSkeleton ? 'bg-[#FFC800] text-zinc-900 border-zinc-900' : 'bg-zinc-100 text-zinc-600'
             }`}
             title="Toggle Target Blueprint Ghost"
           >
@@ -268,9 +268,9 @@ export function LearnStage({
           {/* Hands Status Indicator */}
           <div className="flex items-center gap-1 text-[11px] font-mono font-bold text-zinc-600 bg-zinc-100 px-2 py-0.5 rounded-lg border border-zinc-300">
             <span>Hands:</span>
-            <span className={hasLeftHand ? 'text-[#22C55E]' : 'text-zinc-400'}>L</span>
+            <span className={hasLeftHand ? 'text-[#58CC02]' : 'text-zinc-400'}>L</span>
             <span>•</span>
-            <span className={hasRightHand ? 'text-[#22C55E]' : 'text-zinc-400'}>R</span>
+            <span className={hasRightHand ? 'text-[#58CC02]' : 'text-zinc-400'}>R</span>
           </div>
         </div>
       </div>
@@ -311,7 +311,7 @@ export function LearnStage({
                 key={i}
                 className={`w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-black border transition-all ${
                   successfulReps > i
-                    ? 'bg-[#22C55E] text-white border-zinc-900 scale-105'
+                    ? 'bg-[#58CC02] text-white border-zinc-900 scale-105'
                     : 'bg-zinc-100 text-zinc-400 border-zinc-300'
                 }`}
               >
@@ -348,9 +348,9 @@ export function LearnStage({
                       key={st.id}
                       className={`cartoon-badge !py-0.5 !px-2 text-[10px] font-bold flex items-center gap-1 transition-all ${
                         isDone
-                          ? 'bg-[#22C55E] text-white border-2 border-zinc-900'
+                          ? 'bg-[#58CC02] text-white border-2 border-zinc-900'
                           : isCurrent
-                          ? 'bg-[#FFD15C] text-zinc-900 border-2 border-zinc-900 shadow-cartoon-sm animate-pulse'
+                          ? 'bg-[#FFC800] text-zinc-900 border-2 border-zinc-900 shadow-cartoon-sm animate-pulse'
                           : 'bg-zinc-100 text-zinc-400 border border-zinc-300'
                       }`}
                     >
@@ -377,8 +377,8 @@ export function LearnStage({
               stepSuccessFlash.isTimeout
                 ? 'bg-amber-100 text-amber-900 border-amber-800'
                 : stepSuccessFlash.isPass
-                ? 'bg-[#22C55E] text-white'
-                : 'bg-[#FFD15C] text-zinc-900'
+                ? 'bg-[#58CC02] text-white'
+                : 'bg-[#FFC800] text-zinc-900'
             }`}>
               <Sparkles className="w-4 h-4 fill-current stroke-[2.5]" />
               <span>
@@ -394,19 +394,19 @@ export function LearnStage({
 
         {/* Target Matched & Passed Overlay (Unlocked only when 3 reps completed!) */}
         {isMatched && (
-          <div className="absolute inset-0 z-30 bg-zinc-950/40 backdrop-blur-[2px] flex items-center justify-center p-4">
-            <div className="cartoon-card bg-white border-3 border-zinc-900 p-5 shadow-cartoon-lg flex flex-col items-center gap-3 text-center max-w-sm w-full animate-in fade-in zoom-in-95 duration-200">
-              <div className="w-14 h-14 rounded-2xl bg-[#22C55E] border-2 border-zinc-900 text-white flex items-center justify-center shadow-cartoon-sm">
-                <CheckCircle2 className="w-8 h-8 stroke-[3]" />
+          <div className="absolute inset-0 z-30 bg-black/40 backdrop-blur-[2px] flex items-center justify-center p-4">
+            <div className="duo-card bg-white p-6 flex flex-col items-center gap-3.5 text-center max-w-sm w-full animate-duo-pop">
+              <div className="w-16 h-16 rounded-3xl bg-[#58CC02] border-2 border-[#46A302] border-b-4 text-white flex items-center justify-center">
+                <CheckCircle2 className="w-9 h-9 stroke-[3]" />
               </div>
               <div>
-                <span className="text-[10px] uppercase font-mono font-bold text-zinc-400 block">
-                  Sign Mastery Complete
+                <span className="text-[11px] uppercase font-mono font-black text-[#58CC02] block tracking-wider">
+                  SIGN MASTERED!
                 </span>
-                <h3 className="font-black text-lg text-zinc-900 mt-0.5">
-                  {selectedItem?.name} Passed! (3/3)
+                <h3 className="font-black text-xl text-[#3C3C3C] mt-0.5">
+                  {selectedItem?.name} (3/3)
                 </h3>
-                <p className="text-xs text-zinc-600 font-medium mt-1 leading-relaxed">
+                <p className="text-xs text-zinc-500 font-bold mt-1 leading-relaxed">
                   You successfully performed the sign 3 times! Great muscle memory.
                 </p>
               </div>
@@ -416,22 +416,22 @@ export function LearnStage({
                   <button
                     type="button"
                     onClick={onResetPractice}
-                    className="cartoon-btn flex-1 !py-2 bg-white hover:bg-zinc-100 text-zinc-900 border-2 border-zinc-900 text-xs font-extrabold flex items-center justify-center gap-1.5 cursor-pointer shadow-cartoon-sm transition-all"
+                    className="duo-btn flex-1 !py-2.5 text-xs font-black flex items-center justify-center gap-1.5 cursor-pointer"
                     title="Practice this sign again from 0 reps"
                   >
                     <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
-                    <span>Try Again</span>
+                    <span>Practice Again</span>
                   </button>
                 )}
                 {onNextSign && (
                   <button
                     type="button"
                     onClick={onNextSign}
-                    className="cartoon-btn flex-1 !py-2 bg-[#22C55E] hover:bg-[#16A34A] text-white border-2 border-zinc-900 text-xs font-extrabold flex items-center justify-center gap-1.5 cursor-pointer shadow-cartoon-sm transition-all animate-pulse"
+                    className="duo-btn duo-btn-green flex-1 !py-2.5 text-xs font-black flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
                     title="Advance to the next sign on course path"
                   >
-                    <span>Next Sign</span>
-                    <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span>CONTINUE</span>
+                    <ArrowRight className="w-4 h-4 stroke-[3]" />
                   </button>
                 )}
               </div>
@@ -459,7 +459,7 @@ export function LearnStage({
               <button
                 onClick={startCamera}
                 disabled={isLoadingCamera}
-                className="cartoon-btn bg-[#FFD15C] text-zinc-900 w-full"
+                className="cartoon-btn bg-[#FFC800] text-zinc-900 w-full"
               >
                 <RefreshCw className={`w-3.5 h-3.5 stroke-[2.5] ${isLoadingCamera ? 'animate-spin' : ''}`} />
                 <span>Retry Camera</span>
@@ -472,7 +472,7 @@ export function LearnStage({
         <div className="absolute bottom-3 left-3 z-20 flex items-center gap-2 pointer-events-none select-none">
           <div className="cartoon-card-subtle bg-zinc-900/85 backdrop-blur-sm text-white px-2.5 py-1 text-[10px] font-mono border-zinc-700 flex items-center gap-2">
             <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-[#38BDF8]" />
+              <span className="w-2 h-2 rounded-full bg-[#1CB0F6]" />
               <span>Left Hand</span>
             </span>
             <span>•</span>
@@ -492,13 +492,16 @@ export function LearnStage({
           </div>
         </div>
 
-        {/* FPS Badge */}
-        <div className="absolute top-3 right-3 z-20 pointer-events-none select-none">
-          <div className="cartoon-card-subtle bg-zinc-900/80 backdrop-blur-sm text-white px-2 py-0.5 text-[10px] font-mono border-zinc-700 flex items-center gap-1">
-            <span className="text-zinc-400">FPS:</span>
-            <span className="text-[#22C55E] font-bold">{fps}</span>
+        {/* Live FPS Badge Directly Over Camera Output */}
+        {isCameraActive && (
+          <div className="absolute bottom-3 right-3 z-20 pointer-events-none select-none">
+            <div className="duo-badge bg-[#3C3C3C]/85 backdrop-blur-sm text-white px-2 py-0.5 text-[10px] font-mono border border-zinc-700/80 flex items-center gap-1.5 shadow-sm rounded-md">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#58CC02] animate-pulse" />
+              <span className="text-zinc-400 font-bold">FPS:</span>
+              <span className="text-[#58CC02] font-black">{fps || 30}</span>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
