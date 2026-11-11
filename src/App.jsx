@@ -20,10 +20,12 @@ import { GlossBufferManager } from './nlp/glossBufferManager.js';
 import { formatIslSentence, formatRawGlosses } from './nlp/islSentenceFormatter.js';
 import { ISL_LEARN_ITEMS, getLearnItemByLabel } from './ai/islTargetLandmarks.js';
 import { getNextRecommendedSign } from './ai/islCourseCurriculum.js';
-import { AlertCircle, ShieldCheck, Video, MessageSquare, BookOpen, Compass, Bug } from 'lucide-react';
+import { AlertCircle, ShieldCheck, Video, MessageSquare, BookOpen, Compass, Bug, Sparkles } from 'lucide-react';
+import { HomeChatbotPopup } from './components/HomeChatbotPopup.jsx';
 
 export function App() {
   const [fps, setFps] = useState(0);
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -163,21 +165,21 @@ export function App() {
   }, [configureGate]);
 
   const handleFrame = useCallback((videoElement, timestamp) => {
-    sendFrame(videoElement, timestamp);
-  }, [sendFrame]);
+    sendFrame(videoElement, timestamp, recognitionMode);
+  }, [sendFrame, recognitionMode]);
 
-  // Append confirmed word to active gloss buffer (LING-01)
+  // Append confirmed word to active gloss buffer (LING-01) - Strictly in word mode
   useEffect(() => {
-    if (latestConfirmedWord) {
+    if (recognitionMode === 'word' && latestConfirmedWord) {
       const word = typeof latestConfirmedWord === 'object' ? latestConfirmedWord.word : latestConfirmedWord;
-      if (word) {
+      if (word && !/^[A-Z]$/.test(word.trim())) {
         const added = glossBufferRef.current.push(word, 'word');
         if (added) {
           setGlosses([...glossBufferRef.current.getGlosses()]);
         }
       }
     }
-  }, [latestConfirmedWord]);
+  }, [recognitionMode, latestConfirmedWord]);
 
   // In alphabet mode, append confirmed letter predictions from the hysteresis gate
   useEffect(() => {
@@ -192,17 +194,22 @@ export function App() {
     }
   }, [recognitionMode, latestConfirmedLetter]);
 
-  // Stabilize candidate predictions (hold for 4.5s so words don't disappear immediately)
+  // Stabilize candidate predictions (hold for 3.5s so signs don't disappear immediately)
   useEffect(() => {
     let rawList = [];
     if (recognitionMode === 'word') {
-      if (wordPredictions?.topCandidates && wordPredictions.topCandidates.length > 0) {
-        rawList = wordPredictions.topCandidates;
-      } else if (alphabetPredictions && alphabetPredictions.length > 0 && alphabetPredictions[0].confidence >= 0.85) {
-        rawList = alphabetPredictions.map(a => ({ ...a, isAlphabetHint: true }));
+      // Strictly filter out any single letters or hints in word mode
+      const validCandidates = (wordPredictions?.topCandidates || []).filter(
+        c => !c.isAlphabetHint && !/^[A-Z]$/.test(c.label?.trim())
+      );
+      if (validCandidates.length > 0) {
+        rawList = validCandidates;
       }
     } else {
-      rawList = alphabetPredictions || [];
+      // In alphabet mode, strictly keep single letter predictions
+      rawList = (alphabetPredictions || []).filter(
+        c => /^[A-Z]$/.test(c.label?.trim())
+      );
     }
 
     if (rawList && rawList.length > 0) {
@@ -244,6 +251,7 @@ export function App() {
   const handleSelectCandidate = useCallback((candidateLabel, action = 'smart') => {
     if (!candidateLabel) return;
     const isSingleLetter = /^[A-Z]$/i.test(candidateLabel.trim());
+    if (recognitionMode === 'word' && isSingleLetter) return;
     const type = (recognitionMode === 'alphabet' || isSingleLetter) ? 'letter' : 'word';
 
     if (action === 'replace') {
@@ -313,12 +321,12 @@ export function App() {
     setPersistedCandidates([]);
   }, [userName, sendCommittedSentence]);
 
-  // Automatic commit on 1.2s pause completion (IDLE_COMMIT)
+  // Automatic commit on 1.2s pause completion (IDLE_COMMIT) - Hands-free for both word & alphabet modes
   useEffect(() => {
-    if (recognitionMode === 'word' && motionState.state === 'IDLE_COMMIT' && glossBufferRef.current.size() > 0) {
+    if (motionState.state === 'IDLE_COMMIT' && glossBufferRef.current.size() > 0) {
       handleCommit();
     }
-  }, [motionState.state, recognitionMode, handleCommit]);
+  }, [motionState.state, handleCommit]);
 
   // Manual editing actions (LING-02)
   const handleUndo = useCallback(() => {
@@ -658,7 +666,7 @@ export function App() {
   }, []);
 
   return (
-    <div className="h-screen max-h-screen w-full flex flex-col bg-[#FAF8F5] text-zinc-900 font-sans overflow-hidden select-none">
+    <div className="h-screen max-h-screen w-full flex flex-col bg-[#EDF7EC] text-zinc-900 font-sans overflow-hidden select-none">
       {/* 1. Playful Minimal Navbar */}
       <Navbar
         currentPage={currentPage}
@@ -674,6 +682,7 @@ export function App() {
         onOpenGuide={() => setIsGuideOpen(true)}
         onOpenAbout={() => setIsAboutOpen(true)}
         onOpenFeedback={handleOpenFeedback}
+        onOpenChatbot={() => setIsChatbotOpen(true)}
         roomId={roomId}
         connectionMode={connectionMode}
         rttMs={rttMs}
@@ -704,6 +713,7 @@ export function App() {
           <HomePage
             onSelectMode={(mode) => setCurrentPage(mode)}
             roomId={roomId}
+            extraState={{ masteredCount, roomId, recognitionMode }}
             onJoinCustomRoom={(newRoom) => {
               if (setRoomId) setRoomId(newRoom);
               setCurrentPage('chat');
@@ -712,6 +722,7 @@ export function App() {
             onOpenGuide={() => setIsGuideOpen(true)}
             onOpenAbout={() => setIsAboutOpen(true)}
             onOpenFeedback={handleOpenFeedback}
+            onOpenChatbot={() => setIsChatbotOpen(true)}
           />
         )}
 
@@ -722,7 +733,7 @@ export function App() {
           <div className="flex flex-col h-full min-h-0 overflow-hidden">
             {/* Mobile Tab Switcher in Learn Mode */}
             <div className="pb-2 md:hidden flex-shrink-0">
-              <div className="flex bg-[#F4EFEA] p-1 rounded-xl border-2 border-zinc-900 shadow-cartoon-sm">
+              <div className="flex bg-[#E5F3E4] p-1 rounded-xl border-2 border-zinc-900 shadow-cartoon-sm">
                 <button
                   onClick={() => setMobileLearnTab('stage')}
                   className={`flex-1 py-1 rounded-lg text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 ${
@@ -779,7 +790,7 @@ export function App() {
                   mobileLearnTab === 'stage' ? 'flex' : 'hidden md:flex'
                 }`}
               >
-                {/* Visual Skeleton Viewport (Black Screen Studio / Camera View) */}
+                {/* Visual Skeleton Viewport (Camera Feed HUD) */}
                 <LearnStage
                   onFrame={handleFrame}
                   latestLandmarks={latestLandmarks}
@@ -823,13 +834,13 @@ export function App() {
         )}
 
         {/* =========================================================================
-            PAGE 2: LIVE CHAT & CALL (Two-Way Communication Hub)
+            PAGE 2: LIVE CALL & AUTO-TRANSLATOR (Dual-Camera Hub)
             ========================================================================= */}
         {currentPage === 'chat' && (
           <div className="flex flex-col h-full min-h-0 overflow-hidden">
-            {/* Mobile Tab Switcher in Chat Mode */}
+            {/* Mobile Tab Switcher in Sign Call Mode */}
             <div className="pb-1.5 md:hidden flex-shrink-0">
-              <div className="flex bg-[#F4EFEA] p-1 rounded-xl border-2 border-zinc-900 shadow-cartoon-sm">
+              <div className="flex bg-[#E5F3E4] p-1 rounded-xl border-2 border-zinc-900 shadow-cartoon-sm">
                 <button
                   onClick={() => setMobileTab('stage')}
                   className={`flex-1 py-1 rounded-lg text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 ${
@@ -839,7 +850,7 @@ export function App() {
                   }`}
                 >
                   <Video className="w-3.5 h-3.5 stroke-[2.2]" />
-                  <span>Sign &amp; Compose</span>
+                  <span>Dual Video Stage</span>
                 </button>
                 <button
                   onClick={() => setMobileTab('chat')}
@@ -849,8 +860,8 @@ export function App() {
                       : 'text-zinc-600'
                   }`}
                 >
-                  <MessageSquare className="w-3.5 h-3.5 stroke-[2.2]" />
-                  <span>Live Chat</span>
+                  <Sparkles className="w-3.5 h-3.5 stroke-[2.2]" />
+                  <span>Auto-Conversion Feed</span>
                   {allMessages.length > 0 && (
                     <span className="cartoon-badge !py-0 !px-1.5 text-[9px] bg-white text-zinc-900 shadow-none">
                       {allMessages.length}
@@ -862,7 +873,7 @@ export function App() {
 
             {/* Side-by-side flex panes on tablet & desktop screens */}
             <div className="flex flex-col md:flex-row gap-3 sm:gap-4 h-full min-h-0 overflow-hidden items-stretch">
-              {/* Left Pane: Camera Viewport on top + Sentence Composer below */}
+              {/* Left Pane: Dual Camera Viewport on top + Sign Buffer below */}
               <div
                 className={`w-full md:w-[58%] lg:w-[60%] flex flex-col gap-3 sm:gap-4 h-full min-h-0 overflow-hidden flex-shrink-0 ${
                   mobileTab === 'stage' ? 'flex' : 'hidden md:flex'
@@ -907,6 +918,13 @@ export function App() {
                   currentGlosses={glosses}
                   onUndo={handleUndo}
                   onClear={handleClear}
+                  roomId={roomId}
+                  onCopyLink={() => {
+                    const shareUrl = getRoomShareUrl();
+                    if (navigator.clipboard) {
+                      navigator.clipboard.writeText(shareUrl);
+                    }
+                  }}
                 />
 
                 <LiveGlossBar
@@ -922,7 +940,7 @@ export function App() {
                 />
               </div>
 
-              {/* Right Pane: Live Conversation Hub */}
+              {/* Right Pane: Live Scrollable Auto-Conversion Feed */}
               <div
                 className={`w-full md:w-[42%] lg:w-[40%] h-full min-h-0 overflow-hidden flex flex-col flex-1 ${
                   mobileTab === 'chat' ? 'flex' : 'hidden md:flex'
@@ -931,12 +949,16 @@ export function App() {
                 <ChatPanel
                   messages={allMessages}
                   incomingPartialSigning={incomingPartialSigning}
+                  localGlosses={glosses}
+                  localPreviewText={previewText}
+                  motionState={motionState}
                   onSendMessage={sendTextReply}
                   currentUserRole="peer"
                   currentUserName={userName}
                   peerPresence={peerPresence}
                   connectionMode={connectionMode}
                   rttMs={rttMs}
+                  onClearMessages={() => setLocalCommittedSentences([])}
                 />
               </div>
             </div>
@@ -945,7 +967,7 @@ export function App() {
       </main>
 
       {/* 3. Clean Minimal Footer */}
-      <footer className="h-7 px-4 flex items-center justify-between text-[11px] font-medium text-zinc-500 bg-[#FAF8F5] border-t border-zinc-200/80 flex-shrink-0 select-none">
+      <footer className="h-7 px-4 flex items-center justify-between text-xs font-semibold text-zinc-600 bg-[#E3F2E1] border-t border-[#D5E7D2] flex-shrink-0 select-none">
         <div className="flex items-center gap-2">
           <span className="font-bold text-zinc-700">Sanket (संकेत)</span>
           <span>•</span>
@@ -1026,6 +1048,51 @@ export function App() {
         onClose={() => setIsFeedbackOpen(false)}
         initialScreenshot={feedbackScreenshot}
         contextData={feedbackContextData}
+      />
+
+      {/* Global Floating Chatbot Launcher Button (Accessible on all pages) */}
+      {!isChatbotOpen && (
+        <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40">
+          <button
+            type="button"
+            onClick={() => setIsChatbotOpen(true)}
+            className="cartoon-btn !py-2.5 !px-3.5 rounded-2xl bg-[#FFD15C] hover:bg-[#F5C240] border-2 border-zinc-900 shadow-cartoon text-xs sm:text-sm font-black text-zinc-900 flex items-center gap-2 group transition-all hover:scale-105 active:scale-95"
+            title="Open Sanket AI Chatbot (BYOK)"
+            aria-label="Open Sanket AI Chatbot"
+          >
+            <div className="relative">
+              <Sparkles className="w-4 h-4 text-zinc-900 fill-zinc-900 animate-subtle-bounce" />
+              <span className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-500 rounded-full border border-zinc-900" />
+            </div>
+            <span className="font-black">Ask Sanket AI</span>
+            <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-white text-zinc-900 border border-zinc-900 leading-none">
+              BYOK
+            </span>
+          </button>
+        </div>
+      )}
+
+      {/* Global Sanket AI Chatbot Popup (Real-time page context, BYOK, memory & sign tutorials) */}
+      <HomeChatbotPopup
+        isOpen={isChatbotOpen}
+        onClose={() => setIsChatbotOpen(false)}
+        currentPage={currentPage}
+        extraState={{
+          selectedLearnItem,
+          activeStepIndex,
+          successfulReps,
+          isSignMastered,
+          masteredCount,
+          roomId,
+          connectionMode,
+          glosses,
+          previewText,
+          callMessages: allMessages,
+          recognitionMode
+        }}
+        onNavigateToMode={(mode) => setCurrentPage(mode)}
+        onOpenDictionary={() => setIsDictionaryOpen(true)}
+        onOpenGuide={() => setIsGuideOpen(true)}
       />
     </div>
   );

@@ -14,8 +14,6 @@ import {
   CheckCircle2,
   AlertCircle,
   HelpCircle,
-  Moon,
-  Sun,
   Activity,
   Crosshair,
   Layers
@@ -47,13 +45,26 @@ export function LearnStage({
   const [cameraError, setCameraError] = useState(null);
 
   // Studio Display Modes (Default: Camera View ON, Live and Target overlays OFF)
-  const [isBlackScreen, setIsBlackScreen] = useState(false);
   const [showLiveSkeleton, setShowLiveSkeleton] = useState(false);
   const [showGhostSkeleton, setShowGhostSkeleton] = useState(false);
   const [boundaryAlert, setBoundaryAlert] = useState({ isOutOfFrame: false, message: '' });
 
   const frameCountRef = useRef(0);
   const lastFpsCalcTimeRef = useRef(performance.now());
+
+  // Synchronize canvas resolution with video sensor resolution
+  const syncCanvasDimensions = useCallback(() => {
+    if (videoRef.current && canvasRef.current) {
+      const vw = videoRef.current.videoWidth;
+      const vh = videoRef.current.videoHeight;
+      if (vw > 0 && vh > 0) {
+        if (canvasRef.current.width !== vw || canvasRef.current.height !== vh) {
+          canvasRef.current.width = vw;
+          canvasRef.current.height = vh;
+        }
+      }
+    }
+  }, []);
 
   // Start camera media stream
   const startCamera = useCallback(async () => {
@@ -63,8 +74,9 @@ export function LearnStage({
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          width: { ideal: 640 },
-          height: { ideal: 480 },
+          width: { ideal: 1280, min: 640 },
+          height: { ideal: 720, min: 480 },
+          aspectRatio: { ideal: 1.7777777778 },
           frameRate: { ideal: 30 },
           facingMode: 'user'
         },
@@ -75,6 +87,7 @@ export function LearnStage({
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
         setIsCameraActive(true);
+        syncCanvasDimensions();
       }
     } catch (err) {
       console.error('[LearnStage] Camera access denied or failed:', err);
@@ -87,7 +100,7 @@ export function LearnStage({
     } finally {
       setIsLoadingCamera(false);
     }
-  }, []);
+  }, [syncCanvasDimensions]);
 
   // Stop camera media stream
   const stopCamera = useCallback(() => {
@@ -102,7 +115,7 @@ export function LearnStage({
 
     if (canvasRef.current) {
       const ctx = canvasRef.current.getContext('2d');
-      ctx.clearRect(0, 0, 640, 480);
+      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
     }
   }, [onFpsUpdate]);
 
@@ -120,6 +133,7 @@ export function LearnStage({
     const videoEl = videoRef.current;
 
     const stopLoop = startCameraLoop(videoEl, (video, timestamp) => {
+      syncCanvasDimensions();
       frameCountRef.current += 1;
       const now = performance.now();
       const delta = now - lastFpsCalcTimeRef.current;
@@ -138,7 +152,7 @@ export function LearnStage({
     return () => {
       stopLoop();
     };
-  }, [isCameraActive, onFrame, onFpsUpdate]);
+  }, [isCameraActive, onFrame, onFpsUpdate, syncCanvasDimensions]);
 
   // Render Skeleton, Ghost Target & Boundary check on every landmark update
   useEffect(() => {
@@ -149,8 +163,7 @@ export function LearnStage({
     drawSkeleton(ctx, showLiveSkeleton ? latestLandmarks : null, {
       showGuide: true,
       showFace: true,
-      showPose: true,
-      isBlackScreen: isBlackScreen
+      showPose: true
     });
 
     // Draw Target Skeleton Ghost Blueprint when enabled
@@ -193,7 +206,7 @@ export function LearnStage({
       const alertState = checkBoundaryAlert(latestLandmarks);
       setBoundaryAlert(alertState);
     }
-  }, [latestLandmarks, showLiveSkeleton, showGhostSkeleton, targetSkeleton, isBlackScreen]);
+  }, [latestLandmarks, showLiveSkeleton, showGhostSkeleton, targetSkeleton]);
 
   const hasLeftHand = Boolean(latestLandmarks?.leftHandLandmarks?.length > 0);
   const hasRightHand = Boolean(latestLandmarks?.rightHandLandmarks?.length > 0);
@@ -201,16 +214,16 @@ export function LearnStage({
   return (
     <div className="cartoon-card w-full flex-1 min-h-0 flex flex-col overflow-hidden bg-white">
       {/* 1. Stage Header: Studio Controls */}
-      <div className="px-3.5 py-2 border-b-2 border-zinc-900 bg-[#FAF8F5] flex items-center justify-between gap-2 flex-shrink-0">
+      <div className="px-3.5 py-2.5 border-b-2 border-[#D6EBD3] bg-[#EAF6E8] flex items-center justify-between gap-2 flex-shrink-0">
         <div className="flex items-center gap-2 min-w-0">
           <div className="w-6 h-6 rounded-lg bg-zinc-900 text-white flex items-center justify-center flex-shrink-0">
             <Video className="w-3.5 h-3.5 stroke-[2.2]" />
           </div>
-          <span className="font-extrabold text-xs sm:text-sm text-zinc-900 truncate">
-            {isBlackScreen ? 'Black Screen Motion Studio' : 'Camera Feed & Biometric HUD'}
+          <span className="font-black text-sm sm:text-base text-zinc-900 truncate">
+            Camera Feed & Biometric HUD
           </span>
           {isCameraActive && (
-            <span className="cartoon-badge !py-0 !px-2 text-[10px] bg-[#58CC02] text-white hidden sm:inline-flex">
+            <span className="cartoon-badge !py-0.5 !px-2 text-xs bg-[#58CC02] text-white hidden sm:inline-flex font-bold">
               ● Live Tracking
             </span>
           )}
@@ -218,33 +231,11 @@ export function LearnStage({
 
         {/* Viewport Control Toggles */}
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          {/* Black Screen vs Camera Feed Toggle */}
-          <button
-            onClick={() => setIsBlackScreen(prev => !prev)}
-            className={`cartoon-btn !py-0.5 !px-2.5 text-xs font-bold transition-all ${
-              isBlackScreen
-                ? 'bg-zinc-900 text-white border-zinc-900 shadow-cartoon-sm'
-                : 'bg-[#FFC800] text-zinc-900 border-zinc-900 shadow-cartoon-sm'
-            }`}
-            title="Toggle Black Screen Studio vs Webcam Feed"
-          >
-            {isBlackScreen ? (
-              <>
-                <Moon className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span className="hidden sm:inline">Black Screen Studio</span>
-              </>
-            ) : (
-              <>
-                <Sun className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span className="hidden sm:inline">Camera View</span>
-              </>
-            )}
-          </button>
 
           {/* Skeleton Overlay Toggle */}
           <button
             onClick={() => setShowLiveSkeleton(prev => !prev)}
-            className={`cartoon-btn !py-0.5 !px-2 text-xs font-bold ${
+            className={`cartoon-btn !py-1 !px-2 text-xs sm:text-sm font-black ${
               showLiveSkeleton ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-zinc-100 text-zinc-600'
             }`}
             title="Toggle Skeleton Landmarks Overlay"
@@ -256,7 +247,7 @@ export function LearnStage({
           {/* Ghost Target Overlay Toggle */}
           <button
             onClick={() => setShowGhostSkeleton(prev => !prev)}
-            className={`cartoon-btn !py-0.5 !px-2 text-xs font-bold ${
+            className={`cartoon-btn !py-1 !px-2 text-xs sm:text-sm font-black ${
               showGhostSkeleton ? 'bg-[#FFC800] text-zinc-900 border-zinc-900' : 'bg-zinc-100 text-zinc-600'
             }`}
             title="Toggle Target Blueprint Ghost"
@@ -266,7 +257,7 @@ export function LearnStage({
           </button>
 
           {/* Hands Status Indicator */}
-          <div className="flex items-center gap-1 text-[11px] font-mono font-bold text-zinc-600 bg-zinc-100 px-2 py-0.5 rounded-lg border border-zinc-300">
+          <div className="flex items-center gap-1 text-xs font-mono font-bold text-zinc-600 bg-zinc-100 px-2 py-0.5 rounded-lg border border-zinc-300">
             <span>Hands:</span>
             <span className={hasLeftHand ? 'text-[#58CC02]' : 'text-zinc-400'}>L</span>
             <span>•</span>
@@ -281,18 +272,18 @@ export function LearnStage({
         <video
           ref={videoRef}
           playsInline
+          autoPlay
           muted
-          className={`absolute inset-0 w-full h-full object-cover transform -scale-x-100 ${
-            isBlackScreen ? 'opacity-0 pointer-events-none' : 'opacity-100'
-          }`}
+          onLoadedMetadata={syncCanvasDimensions}
+          className="absolute inset-0 w-full h-full object-contain transform -scale-x-100 opacity-100"
         />
 
         {/* 60fps Biometric Skeleton & Target Ghost Canvas */}
         <canvas
           ref={canvasRef}
-          width={640}
-          height={480}
-          className="absolute inset-0 w-full h-full object-cover transform -scale-x-100 pointer-events-none z-10"
+          width={1280}
+          height={720}
+          className="absolute inset-0 w-full h-full object-contain transform -scale-x-100 pointer-events-none z-10"
         />
 
         {/* 3-Repetition Pass Goal HUD */}

@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { X, Search, BookOpen, CheckCircle2, HelpCircle, Layers, Sparkles, Globe, ExternalLink } from 'lucide-react';
 import { ISL_WORD_LABELS, ISL_WORD_CATEGORIES } from '../ai/islWordLabels.js';
 import { ISL_ALPHABET_GUIDE } from '../ai/islAlphabetLabels.js';
+import { getLearnItemByLabel } from '../ai/islTargetLandmarks.js';
 
 export const LIVE_VISION_GLOSSES = new Set([
   'BAD', 'CALL', 'DRINK', 'EAT', 'FEVER', 'GOOD', 'HELLO', 'HELP',
@@ -61,7 +62,7 @@ export function WordDictionaryModal({ isOpen, onClose, onSelectForPractice }) {
     >
       <div className="cartoon-card w-full max-w-4xl max-h-[90vh] flex flex-col shadow-cartoon-lg bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* 1. Header */}
-        <div className="px-4 py-3 bg-[#FAF8F5] border-b-2 border-zinc-900 flex items-center justify-between gap-2 flex-shrink-0">
+        <div className="px-4 py-3 bg-[#EAF6E8] border-b-2 border-zinc-900 flex items-center justify-between gap-2 flex-shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-[#FFC800] border-2 border-zinc-900 flex items-center justify-center shadow-cartoon-sm flex-shrink-0">
               <BookOpen className="w-4 h-4 text-zinc-900 stroke-[2.5]" />
@@ -71,10 +72,10 @@ export function WordDictionaryModal({ isOpen, onClose, onSelectForPractice }) {
                 ISL Sign Dictionary
               </h2>
               <div className="flex items-center gap-2 mt-0.5">
-                <p className="text-xs text-zinc-500 font-medium">
+                <p className="text-xs sm:text-sm text-zinc-600 font-bold">
                   {activeTab === 'words' ? `${ISL_WORD_LABELS.length} Lexicon Words (Tier 3 Daily English)` : '26 A–Z Two-Handed Letters'}
                 </p>
-                <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold text-blue-800 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold text-blue-800 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
                   <Globe className="w-2.5 h-2.5" />
                   Grounded in ISLRTC & FDMSE Standards
                 </span>
@@ -95,13 +96,13 @@ export function WordDictionaryModal({ isOpen, onClose, onSelectForPractice }) {
         {/* 2. Mode Selector & Filters */}
         <div className="p-3.5 bg-white border-b border-zinc-200 space-y-3 flex-shrink-0">
           <div className="flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center bg-[#F4EFEA] p-1 rounded-xl border-2 border-zinc-900 shadow-cartoon-sm">
+            <div className="flex items-center bg-[#E5F3E4] p-1 rounded-xl border-2 border-zinc-900 shadow-cartoon-sm">
               <button
                 onClick={() => {
                   setActiveTab('words');
                   setSearchQuery('');
                 }}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-black transition-all ${
                   activeTab === 'words'
                     ? 'bg-[#FFC800] text-zinc-900 border-2 border-zinc-900 shadow-cartoon-sm'
                     : 'text-zinc-600 hover:text-zinc-900 border-2 border-transparent'
@@ -114,7 +115,7 @@ export function WordDictionaryModal({ isOpen, onClose, onSelectForPractice }) {
                   setActiveTab('alphabet');
                   setSearchQuery('');
                 }}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-black transition-all ${
                   activeTab === 'alphabet'
                     ? 'bg-[#1CB0F6] text-zinc-900 border-2 border-zinc-900 shadow-cartoon-sm'
                     : 'text-zinc-600 hover:text-zinc-900 border-2 border-transparent'
@@ -180,7 +181,7 @@ export function WordDictionaryModal({ isOpen, onClose, onSelectForPractice }) {
         </div>
 
         {/* 3. Table / Cards Content */}
-        <div className="flex-1 overflow-y-auto p-3 sm:p-4 bg-[#FAF8F5]">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-4 bg-[#EDF7EC]">
           {activeTab === 'words' ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
               {filteredWords.length === 0 ? (
@@ -189,65 +190,88 @@ export function WordDictionaryModal({ isOpen, onClose, onSelectForPractice }) {
                 </div>
               ) : (
                 <>
-                  {filteredWords.slice(0, displayLimit).map((word) => (
-                    <div
-                      key={word.id}
-                      className="cartoon-card p-3 bg-white border-2 border-zinc-900 hover:shadow-cartoon-md transition-all flex flex-col justify-between gap-2"
-                    >
-                      <div>
-                        <div className="flex items-center justify-between gap-1 mb-1">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="font-extrabold text-sm text-zinc-950 font-mono tracking-wide">
-                              {word.gloss}
-                            </span>
-                            {LIVE_VISION_GLOSSES.has(word.gloss) ? (
-                              <span className="cartoon-badge !py-0 !px-1.5 text-[9px] bg-[#EDFDF2] text-[#16A34A] border border-green-300 font-bold">
-                                🟢 Live 3D Vision
+                  {filteredWords.slice(0, displayLimit).map((word) => {
+                    const learnItem = getLearnItemByLabel(word.gloss);
+                    const imgUrl = learnItem?.image;
+                    const isGif = imgUrl?.endsWith('.gif');
+
+                    return (
+                      <div
+                        key={word.id}
+                        className="cartoon-card p-3.5 bg-white border-2 border-zinc-900 hover:shadow-cartoon-md transition-all flex flex-col justify-between gap-2.5"
+                      >
+                        <div className="flex gap-3 items-start">
+                          {imgUrl && (
+                            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-[#EAF6E8] rounded-xl border-2 border-zinc-900 overflow-hidden flex-shrink-0 relative group p-1 flex items-center justify-center">
+                              <img
+                                src={imgUrl}
+                                alt={word.gloss}
+                                className="w-full h-full object-contain rounded-lg"
+                                loading="lazy"
+                              />
+                              <span className={`absolute bottom-0.5 right-0.5 text-[9px] font-black px-1.5 py-0.5 rounded ${
+                                isGif ? 'bg-purple-600 text-white' : 'bg-zinc-900 text-white'
+                              }`}>
+                                {isGif ? 'GIF' : 'PHOTO'}
                               </span>
-                            ) : (
-                              <span className="cartoon-badge !py-0 !px-1.5 text-[9px] bg-[#FAF8F5] text-zinc-400 border border-zinc-200">
-                                Lexicon
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-1 mb-1">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="font-black text-base sm:text-lg text-zinc-950 font-mono tracking-wide">
+                                  {word.gloss}
+                                </span>
+                                {LIVE_VISION_GLOSSES.has(word.gloss) ? (
+                                  <span className="cartoon-badge !py-0.5 !px-2 text-[10px] sm:text-xs bg-[#EDFDF2] text-[#16A34A] border border-green-300 font-black">
+                                    🟢 Live 3D Vision
+                                  </span>
+                                ) : (
+                                  <span className="cartoon-badge !py-0.5 !px-2 text-[10px] sm:text-xs bg-[#FAF8F5] text-zinc-500 border border-zinc-200 font-bold">
+                                    Lexicon
+                                  </span>
+                                )}
+                              </div>
+                              <span className="cartoon-badge !py-0.5 !px-2 text-[10px] sm:text-xs bg-[#FAF8F5] text-zinc-600 shadow-none uppercase font-mono font-bold">
+                                {word.category}
                               </span>
-                            )}
+                            </div>
+                            <p className="font-extrabold text-sm text-amber-900 mb-1">
+                              English: "{word.english}"
+                            </p>
+                            <p className="text-xs sm:text-sm text-zinc-700 leading-relaxed line-clamp-3">
+                              {word.description}
+                            </p>
                           </div>
-                          <span className="cartoon-badge !py-0 !px-1.5 text-[9px] bg-[#FAF8F5] text-zinc-600 shadow-none uppercase font-mono">
-                            {word.category}
-                          </span>
                         </div>
-                        <p className="font-bold text-xs text-amber-800 mb-1.5">
-                          English: "{word.english}"
-                        </p>
-                        <p className="text-[11px] text-zinc-600 leading-relaxed">
-                          {word.description}
-                        </p>
-                      </div>
-                      <div className="text-[10px] font-mono text-zinc-400 pt-1.5 border-t border-zinc-100 flex items-center justify-between gap-1 flex-wrap">
-                        <div className="flex items-center gap-1.5">
+                        <div className="text-xs font-mono text-zinc-500 pt-2 border-t border-zinc-100 flex items-center justify-between gap-1.5 flex-wrap">
+                        <div className="flex items-center gap-2">
                           <span>Sign ID #{word.id}</span>
                           <a
                             href={`https://www.indiansignlanguage.org/?s=${encodeURIComponent(word.english || word.gloss)}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-700 hover:text-blue-900 hover:underline flex items-center gap-0.5 text-[9px] font-bold"
+                            className="text-blue-700 hover:text-blue-900 hover:underline flex items-center gap-0.5 text-xs font-bold"
                             title="Open slow video demonstration in Indian Sign Language Portal"
                           >
-                            <Globe className="w-2.5 h-2.5" />
+                            <Globe className="w-3 h-3" />
                             <span>ISL Portal ↗</span>
                           </a>
                         </div>
                         {onSelectForPractice && (
                           <button
                             onClick={() => onSelectForPractice(word.gloss)}
-                            className="cartoon-btn !py-0.5 !px-2 text-[10px] bg-[#FFC800] hover:bg-[#FFE082] text-zinc-900 border border-zinc-900 flex items-center gap-1 font-bold shadow-none"
+                            className="cartoon-btn !py-1 !px-2.5 text-xs bg-[#FFC800] hover:bg-[#FFE082] text-zinc-900 border border-zinc-900 flex items-center gap-1.5 font-bold shadow-none"
                             title="Practice this sign in Sign Academy"
                           >
-                            <Sparkles className="w-3 h-3 text-zinc-900" />
+                            <Sparkles className="w-3.5 h-3.5 text-zinc-900" />
                             Practice Sign
                           </button>
                         )}
                       </div>
                     </div>
-                  ))}
+                  );
+                })}
 
                   {filteredWords.length > displayLimit && (
                     <div className="col-span-full pt-2 pb-1 text-center">
@@ -269,56 +293,71 @@ export function WordDictionaryModal({ isOpen, onClose, onSelectForPractice }) {
                   No letters matching "{searchQuery}"
                 </div>
               ) : (
-                filteredAlphabet.map((item) => (
-                  <div
-                    key={item.letter}
-                    className="cartoon-card p-3 bg-white border-2 border-zinc-900 hover:shadow-cartoon-md transition-all flex flex-col justify-between gap-2"
-                  >
-                    <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <div className="w-10 h-10 rounded-xl bg-[#1CB0F6] border-2 border-zinc-900 flex items-center justify-center font-black text-xl text-zinc-950 shadow-cartoon-sm">
-                          {item.letter}
+                filteredAlphabet.map((item) => {
+                  const letterImg = `/signs/alphabet_${item.letter.toLowerCase()}.jpg`;
+                  return (
+                    <div
+                      key={item.letter}
+                      className="cartoon-card p-3 bg-white border-2 border-zinc-900 hover:shadow-cartoon-md transition-all flex flex-col justify-between gap-2"
+                    >
+                      <div>
+                        <div className="flex items-center gap-2.5 mb-2">
+                          <div className="w-14 h-14 bg-[#EAF6E8] rounded-xl border-2 border-zinc-900 overflow-hidden flex-shrink-0 p-1 flex items-center justify-center">
+                            <img
+                              src={letterImg}
+                              alt={`Letter ${item.letter}`}
+                              className="w-full h-full object-contain rounded-lg"
+                              loading="lazy"
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="font-black text-2xl text-zinc-950 font-mono">
+                                {item.letter}
+                              </span>
+                              <span className={`cartoon-badge !py-0.5 !px-2 text-xs font-bold ${
+                                item.category === 'Vowel' ? 'bg-[#FFC800] text-zinc-900' : 'bg-zinc-100 text-zinc-700'
+                              } shadow-none`}>
+                                {item.category}
+                              </span>
+                            </div>
+                            <div className="text-xs font-mono font-bold text-zinc-600 uppercase">
+                              {item.type}
+                            </div>
+                          </div>
                         </div>
-                        <span className={`cartoon-badge !py-0 !px-2 text-[10px] ${
-                          item.category === 'Vowel' ? 'bg-[#FFC800] text-zinc-900' : 'bg-zinc-100 text-zinc-700'
-                        } shadow-none`}>
-                          {item.category}
-                        </span>
+                        <p className="text-xs sm:text-sm text-zinc-800 font-bold leading-relaxed mb-2">
+                          {item.description}
+                        </p>
                       </div>
-                      <div className="text-[10px] font-mono font-bold text-zinc-500 uppercase mb-1">
-                        {item.type}
-                      </div>
-                      <p className="text-xs text-zinc-800 font-medium leading-relaxed mb-2">
-                        {item.description}
-                      </p>
-                    </div>
                     <div className="flex items-center justify-between gap-1 pt-1 border-t border-zinc-100">
-                      <div className="text-[11px] font-semibold text-[#16A34A] bg-[#EDFDF2] p-1.5 rounded-lg border border-green-200 flex-1">
+                      <div className="text-xs sm:text-sm font-bold text-[#16A34A] bg-[#EDFDF2] p-1.5 rounded-lg border border-green-200 flex-1">
                         💡 {item.tip}
                       </div>
                       {onSelectForPractice && (
                         <button
                           onClick={() => onSelectForPractice(item.letter)}
-                          className="cartoon-btn !py-1 !px-2 text-[10px] bg-[#1CB0F6] hover:bg-[#7dd3fc] text-zinc-900 border border-zinc-900 flex items-center gap-1 font-bold shadow-none flex-shrink-0"
+                          className="cartoon-btn !py-1 !px-2.5 text-xs bg-[#1CB0F6] hover:bg-[#7dd3fc] text-zinc-900 border border-zinc-900 flex items-center gap-1 font-bold shadow-none flex-shrink-0"
                           title="Practice this letter in Sign Academy"
                         >
-                          <Sparkles className="w-3 h-3 text-zinc-900" />
+                          <Sparkles className="w-3.5 h-3.5 text-zinc-900" />
                           Practice
                         </button>
                       )}
                     </div>
                   </div>
-                ))
-              )}
+                );
+              })
+            )}
             </div>
           )}
         </div>
 
         {/* 4. Footer */}
-        <div className="p-3 bg-[#FAF8F5] border-t-2 border-zinc-900 flex items-center justify-end flex-shrink-0">
+        <div className="p-3 bg-[#EAF6E8] border-t-2 border-zinc-900 flex items-center justify-end flex-shrink-0">
           <button
             onClick={onClose}
-            className="cartoon-btn cartoon-btn-primary !px-5 !py-1.5 text-xs font-bold"
+            className="cartoon-btn cartoon-btn-primary !px-5 !py-2 text-xs sm:text-sm font-black"
           >
             Close Dictionary
           </button>

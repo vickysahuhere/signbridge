@@ -610,7 +610,8 @@ export function classifyIslWord(leftHand, rightHand, pose, motion) {
       const chinY = nose.y + 0.08;
       const nearChin = Math.abs(h.points[12].y - chinY) < 0.12 && dist2D(h.points[12], { x: nose.x, y: chinY }) < 0.18;
       const wristBelowChin = h.wrist.y > chinY;
-      if (nearChin && wristBelowChin) {
+      const isMoving = motion?.state === 'SIGNING_ACTIVE' || (motion?.rollingVelocity || 0) >= 0.012;
+      if (nearChin && wristBelowChin && isMoving) {
         score('THANK YOU', 0.92);
       }
     }
@@ -628,10 +629,11 @@ export function classifyIslWord(leftHand, rightHand, pose, motion) {
   // 7. STOP (Open flat palm pushed forward with fingers straight up)
   for (const h of hands) {
     if (h.isOpenPalm && h.extendedCount === 5) {
-      const fingersUp = h.points[12].y < h.wrist.y - 0.12;
-      const inFront = dist2D(h.wrist, chestCenter) < 0.30;
-      const inChestZone = h.wrist.y > nose.y + 0.05 && h.wrist.y < 0.78;
-      if (fingersUp && inFront && inChestZone) {
+      const fingersUp = h.points[12].y < h.wrist.y - 0.14;
+      const inFront = dist2D(h.wrist, chestCenter) < 0.28;
+      const inChestZone = h.wrist.y > nose.y + 0.05 && h.wrist.y < 0.75;
+      const thumbOut = Math.abs(h.points[4].x - h.points[2].x) > 0.035;
+      if (fingersUp && inFront && inChestZone && thumbOut) {
         score('STOP', 0.92);
       }
     }
@@ -759,8 +761,8 @@ export function classifyIslWord(leftHand, rightHand, pose, motion) {
       );
       if (hasCircularMotion) {
         score('PLEASE', 0.96);
-      } else {
-        score('PLEASE', 0.91);
+      } else if (motion?.state === 'SIGNING_ACTIVE' && (motion?.rollingVelocity || 0) >= 0.015) {
+        score('PLEASE', 0.84);
       }
     }
   }
@@ -774,8 +776,8 @@ export function classifyIslWord(leftHand, rightHand, pose, motion) {
       );
       if (hasCircularMotion) {
         score('SORRY', 0.96);
-      } else {
-        score('SORRY', 0.92);
+      } else if (motion?.state === 'SIGNING_ACTIVE' && (motion?.rollingVelocity || 0) >= 0.015) {
+        score('SORRY', 0.84);
       }
     }
   }
@@ -783,7 +785,9 @@ export function classifyIslWord(leftHand, rightHand, pose, motion) {
   // 17. WELCOME (Both open palms held upward in front of torso)
   if (left && right && left.isOpenPalm && right.isOpenPalm) {
     const dHands = dist3D(left.wrist, right.wrist);
-    if (dHands > 0.18 && dHands < 0.48 && left.points[12].y > chestCenter.y && right.points[12].y > chestCenter.y) {
+    const handsLevel = Math.abs(left.wrist.y - right.wrist.y) < 0.10;
+    const aboveNavel = left.wrist.y < 0.75 && right.wrist.y < 0.75;
+    if (dHands > 0.18 && dHands < 0.45 && handsLevel && aboveNavel && left.points[12].y > chestCenter.y && right.points[12].y > chestCenter.y) {
       score('WELCOME', 0.92);
     }
   }
@@ -834,7 +838,8 @@ export function classifyIslWord(leftHand, rightHand, pose, motion) {
   // 23. WANT (Both clawed hands pulling inward in front of lower chest)
   if (left && right && !left.isOpenPalm && !right.isOpenPalm && left.curledCount >= 2 && right.curledCount >= 2) {
     const dHands = dist3D(left.wrist, right.wrist);
-    if (dHands < 0.38 && left.wrist.y > chestCenter.y - 0.05 && right.wrist.y > chestCenter.y - 0.05) {
+    const isMovingInward = motion?.state === 'SIGNING_ACTIVE' || (motion?.rollingVelocity || 0) >= 0.015;
+    if (dHands < 0.38 && left.wrist.y > chestCenter.y - 0.05 && right.wrist.y > chestCenter.y - 0.05 && isMovingInward) {
       score('WANT', 0.91);
     }
   }

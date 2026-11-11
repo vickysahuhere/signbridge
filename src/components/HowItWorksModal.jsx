@@ -76,15 +76,15 @@ export function HowItWorksModal({
   ];
 
   const FEATURED_PRACTICE_SIGNS = [
-    { id: 'namaste', label: 'NAMASTE', name: 'Namaste', category: 'Greetings', desc: 'Palms pressed together at chest level in front of sternum.' },
-    { id: 'hello', label: 'HELLO', name: 'Hello', category: 'Greetings', desc: 'Open palm raised near temple, waving gently outward.' },
-    { id: 'good', label: 'GOOD', name: 'Good', category: 'Descriptors', desc: 'Closed fist with thumb extended straight upward.' },
-    { id: 'thank_you', label: 'THANK_YOU', name: 'Thank You', category: 'Courtesies', desc: 'Fingertips touch the chin, then extend gracefully forward.' },
-    { id: 'water', label: 'WATER', name: 'Water', category: 'Needs', desc: 'Cupped hand tilted toward mouth simulating drinking water.' },
-    { id: 'help', label: 'HELP', name: 'Help', category: 'Urgent', desc: 'Closed fist resting on a flat upward-facing palm, lifted upward.' },
-    { id: 'doctor', label: 'DOCTOR', name: 'Doctor', category: 'Healthcare', desc: 'Index and middle fingers tap the inside wrist pulse.' },
-    { id: 'letter_a', label: 'A', name: 'Letter A', category: 'Fingerspelling', desc: 'Left index fingertip placed at the tip of the right thumb.' },
-    { id: 'letter_c', label: 'C', name: 'Letter C', category: 'Fingerspelling', desc: 'Dominant hand curved in a half-moon "C" profile.' }
+    { id: 'namaste', label: 'NAMASTE', name: 'Namaste', category: 'Greetings', image: '/signs/namaste.jpg', desc: 'Palms pressed together at chest level in front of sternum.' },
+    { id: 'hello', label: 'HELLO', name: 'Hello', category: 'Greetings', image: '/signs/hello.gif', desc: 'Open palm raised near temple, waving gently outward.' },
+    { id: 'good', label: 'GOOD', name: 'Good', category: 'Descriptors', image: '/signs/good.jpg', desc: 'Closed fist with thumb extended straight upward.' },
+    { id: 'thank_you', label: 'THANK_YOU', name: 'Thank You', category: 'Courtesies', image: '/signs/thank_you.gif', desc: 'Fingertips touch the chin, then extend gracefully forward.' },
+    { id: 'water', label: 'WATER', name: 'Water', category: 'Needs', image: '/signs/drink.gif', desc: 'Cupped hand tilted toward mouth simulating drinking water.' },
+    { id: 'help', label: 'HELP', name: 'Help', category: 'Urgent', image: '/signs/help.gif', desc: 'Closed fist resting on a flat upward-facing palm, lifted upward.' },
+    { id: 'doctor', label: 'DOCTOR', name: 'Doctor', category: 'Healthcare', image: '/signs/doctor.gif', desc: 'Index and middle fingers tap the inside wrist pulse.' },
+    { id: 'letter_a', label: 'A', name: 'Letter A', category: 'Fingerspelling', image: '/signs/alphabet_a.jpg', desc: 'Left index fingertip placed at the tip of the right thumb.' },
+    { id: 'letter_c', label: 'C', name: 'Letter C', category: 'Fingerspelling', image: '/signs/alphabet_c.jpg', desc: 'Dominant hand curved in a half-moon "C" profile.' }
   ];
 
   useEffect(() => {
@@ -149,9 +149,9 @@ export function HowItWorksModal({
     >
       <div className="cartoon-card w-full max-w-4xl max-h-[94vh] flex flex-col shadow-cartoon-lg bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Title Bar */}
-        <div className="px-4 py-3 bg-[#FAF8F5] border-b-2 border-zinc-900 flex items-center justify-between gap-3 flex-shrink-0">
+        <div className="px-4 py-3 bg-[#EAF6E8] border-b-2 border-zinc-900 flex items-center justify-between gap-3 flex-shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#FFD15C] border-2 border-zinc-900 flex items-center justify-center shadow-cartoon-sm flex-shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-[#FFC800] border-2 border-zinc-900 flex items-center justify-center shadow-cartoon-sm flex-shrink-0">
               <Sparkles className="w-4 h-4 text-zinc-900 stroke-[2.5]" />
             </div>
             <div>
@@ -159,7 +159,7 @@ export function HowItWorksModal({
                 <h2 className="font-extrabold text-sm sm:text-base text-zinc-900 leading-tight">
                   Sanket App Guide &amp; Master Manual
                 </h2>
-                <span className="cartoon-badge !py-0 !px-1.5 text-[9px] bg-[#22C55E] text-white hidden sm:inline-block">
+                <span className="cartoon-badge !py-0 !px-1.5 text-[9px] bg-[#58CC02] text-white hidden sm:inline-block">
                   संकेत 100% In-Browser
                 </span>
               </div>
@@ -229,7 +229,7 @@ export function HowItWorksModal({
                   </button>
                   <button
                     onClick={() => handleGoToMode('chat')}
-                    className="cartoon-btn !py-1 !px-2.5 text-xs font-black bg-[#38BDF8] hover:bg-[#0284C7] hover:text-white"
+                    className="cartoon-btn !py-1 !px-2.5 text-xs font-black bg-[#1CB0F6] hover:bg-[#0284C7] hover:text-white"
                   >
                     <Video className="w-3.5 h-3.5" />
                     <span>Try Video Call</span>
@@ -244,7 +244,7 @@ export function HowItWorksModal({
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="cartoon-badge !py-0.5 !px-2 text-[10px] bg-[#FFD15C] text-zinc-900 font-black">
+                        <span className="cartoon-badge !py-0.5 !px-2 text-[10px] bg-[#FFC800] text-zinc-900 font-black">
                           STEP 1
                         </span>
                         <h4 className="font-black text-xs text-zinc-900">Position &amp; Start Camera</h4>
@@ -266,7 +266,7 @@ export function HowItWorksModal({
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="cartoon-badge !py-0.5 !px-2 text-[10px] bg-[#38BDF8] text-zinc-900 font-black">
+                        <span className="cartoon-badge !py-0.5 !px-2 text-[10px] bg-[#1CB0F6] text-zinc-900 font-black">
                           STEP 2
                         </span>
                         <h4 className="font-black text-xs text-zinc-900">Sign Words or Spell Letters</h4>
@@ -278,7 +278,7 @@ export function HowItWorksModal({
                     </p>
                   </div>
                   <div className="mt-3 text-[11px] text-zinc-800 font-bold bg-[#F4EFEA] p-2 rounded-xl border border-zinc-200 flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#22C55E] flex-shrink-0" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#58CC02] flex-shrink-0" />
                     <span>Recognized tokens appear in the Live Composer automatically.</span>
                   </div>
                 </div>
@@ -288,7 +288,7 @@ export function HowItWorksModal({
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="cartoon-badge !py-0.5 !px-2 text-[10px] bg-[#FFD15C] text-zinc-900 font-black">
+                        <span className="cartoon-badge !py-0.5 !px-2 text-[10px] bg-[#FFC800] text-zinc-900 font-black">
                           STEP 3
                         </span>
                         <h4 className="font-black text-xs text-zinc-900">Deterministic English Grammar</h4>
@@ -310,7 +310,7 @@ export function HowItWorksModal({
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="cartoon-badge !py-0.5 !px-2 text-[10px] bg-[#22C55E] text-white font-black">
+                        <span className="cartoon-badge !py-0.5 !px-2 text-[10px] bg-[#58CC02] text-white font-black">
                           STEP 4
                         </span>
                         <h4 className="font-black text-xs text-zinc-900">Rest Hands to Auto-Send</h4>
@@ -332,7 +332,7 @@ export function HowItWorksModal({
               <div className="cartoon-card p-3.5 bg-white border-2 border-zinc-900">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-[#22C55E]" />
+                    <span className="w-2 h-2 rounded-full bg-[#58CC02]" />
                     <h4 className="font-black text-xs text-zinc-900">Interactive Grammar Simulator</h4>
                   </div>
                   <span className="text-[10px] font-bold text-zinc-500 font-mono">ISL SOV → English SVO</span>
@@ -348,7 +348,7 @@ export function HowItWorksModal({
                       onClick={() => setSimulatedGlosses(eg.tokens)}
                       className={`px-2.5 py-1 text-xs font-bold rounded-lg border-2 transition-all ${
                         JSON.stringify(simulatedGlosses) === JSON.stringify(eg.tokens)
-                          ? 'bg-[#FFD15C] border-zinc-900 text-zinc-900 shadow-cartoon-sm'
+                          ? 'bg-[#FFC800] border-zinc-900 text-zinc-900 shadow-cartoon-sm'
                           : 'bg-[#FAF8F5] border-zinc-200 text-zinc-600 hover:border-zinc-900 hover:text-zinc-900'
                       }`}
                     >
@@ -372,7 +372,7 @@ export function HowItWorksModal({
                         </div>
                       </div>
                       <div className="flex items-center gap-2 flex-wrap pt-1 border-t border-zinc-200">
-                        <span className="text-[10px] font-black uppercase text-[#22C55E]">English Output:</span>
+                        <span className="text-[10px] font-black uppercase text-[#58CC02]">English Output:</span>
                         <span className="text-sm font-black text-zinc-900 bg-white px-2.5 py-1 rounded-lg border border-zinc-900 shadow-cartoon-sm">
                           "{match.english}"
                         </span>
@@ -403,15 +403,15 @@ export function HowItWorksModal({
                     </p>
                     <ul className="mt-3 space-y-1 text-[11px] font-medium text-zinc-600">
                       <li className="flex items-center gap-1.5">
-                        <Check className="w-3.5 h-3.5 text-[#22C55E] stroke-[2.5]" />
+                        <Check className="w-3.5 h-3.5 text-[#58CC02] stroke-[2.5]" />
                         <span>Instant choice interface</span>
                       </li>
                       <li className="flex items-center gap-1.5">
-                        <Check className="w-3.5 h-3.5 text-[#22C55E] stroke-[2.5]" />
+                        <Check className="w-3.5 h-3.5 text-[#58CC02] stroke-[2.5]" />
                         <span>Join custom room codes</span>
                       </li>
                       <li className="flex items-center gap-1.5">
-                        <Check className="w-3.5 h-3.5 text-[#22C55E] stroke-[2.5]" />
+                        <Check className="w-3.5 h-3.5 text-[#58CC02] stroke-[2.5]" />
                         <span>AI status &amp; telemetry monitor</span>
                       </li>
                     </ul>
@@ -427,27 +427,27 @@ export function HowItWorksModal({
                 {/* Mode 2: Learn ISL Studio */}
                 <div className="cartoon-card p-4 bg-white flex flex-col justify-between border-2 border-zinc-900 shadow-cartoon-md">
                   <div>
-                    <div className="w-8 h-8 rounded-xl bg-[#FFD15C] border-2 border-zinc-900 flex items-center justify-center mb-2.5 shadow-cartoon-sm">
+                    <div className="w-8 h-8 rounded-xl bg-[#FFC800] border-2 border-zinc-900 flex items-center justify-center mb-2.5 shadow-cartoon-sm">
                       <BookOpen className="w-4 h-4 text-zinc-900 stroke-[2.5]" />
                     </div>
                     <div className="flex items-center gap-1.5">
                       <h4 className="font-black text-sm text-zinc-900">Learn ISL Studio</h4>
-                      <span className="cartoon-badge !py-0 !px-1.5 text-[8px] bg-[#FFD15C] text-zinc-900 font-black">7 Levels</span>
+                      <span className="cartoon-badge !py-0 !px-1.5 text-[8px] bg-[#FFC800] text-zinc-900 font-black">7 Levels</span>
                     </div>
                     <p className="text-xs text-zinc-600 font-medium leading-relaxed mt-1">
                       Guided practice studio. Align your hands with the 3D target skeleton ghosts. Hold valid posture to increment your <strong>3-Repetition Streak</strong> and unlock sequential signs!
                     </p>
                     <ul className="mt-3 space-y-1 text-[11px] font-medium text-zinc-600">
                       <li className="flex items-center gap-1.5">
-                        <Check className="w-3.5 h-3.5 text-[#22C55E] stroke-[2.5]" />
+                        <Check className="w-3.5 h-3.5 text-[#58CC02] stroke-[2.5]" />
                         <span>Teal target ghost skeleton guide</span>
                       </li>
                       <li className="flex items-center gap-1.5">
-                        <Check className="w-3.5 h-3.5 text-[#22C55E] stroke-[2.5]" />
+                        <Check className="w-3.5 h-3.5 text-[#58CC02] stroke-[2.5]" />
                         <span>3-Repetition mastery verification</span>
                       </li>
                       <li className="flex items-center gap-1.5">
-                        <Check className="w-3.5 h-3.5 text-[#22C55E] stroke-[2.5]" />
+                        <Check className="w-3.5 h-3.5 text-[#58CC02] stroke-[2.5]" />
                         <span>Compound sign multi-step sequences</span>
                       </li>
                     </ul>
@@ -463,7 +463,7 @@ export function HowItWorksModal({
                 {/* Mode 3: Video Call & Chat */}
                 <div className="cartoon-card p-4 bg-white flex flex-col justify-between">
                   <div>
-                    <div className="w-8 h-8 rounded-xl bg-[#38BDF8] border-2 border-zinc-900 flex items-center justify-center mb-2.5 shadow-cartoon-sm">
+                    <div className="w-8 h-8 rounded-xl bg-[#1CB0F6] border-2 border-zinc-900 flex items-center justify-center mb-2.5 shadow-cartoon-sm">
                       <Video className="w-4 h-4 text-zinc-900 stroke-[2.5]" />
                     </div>
                     <div className="flex items-center gap-1.5">
@@ -475,22 +475,22 @@ export function HowItWorksModal({
                     </p>
                     <ul className="mt-3 space-y-1 text-[11px] font-medium text-zinc-600">
                       <li className="flex items-center gap-1.5">
-                        <Check className="w-3.5 h-3.5 text-[#22C55E] stroke-[2.5]" />
+                        <Check className="w-3.5 h-3.5 text-[#58CC02] stroke-[2.5]" />
                         <span>Sub-20ms direct WebRTC P2P</span>
                       </li>
                       <li className="flex items-center gap-1.5">
-                        <Check className="w-3.5 h-3.5 text-[#22C55E] stroke-[2.5]" />
+                        <Check className="w-3.5 h-3.5 text-[#58CC02] stroke-[2.5]" />
                         <span>Heads-up subtitle overlay on camera</span>
                       </li>
                       <li className="flex items-center gap-1.5">
-                        <Check className="w-3.5 h-3.5 text-[#22C55E] stroke-[2.5]" />
+                        <Check className="w-3.5 h-3.5 text-[#58CC02] stroke-[2.5]" />
                         <span>Hands-free auto-commit motion gating</span>
                       </li>
                     </ul>
                   </div>
                   <button
                     onClick={() => handleGoToMode('chat')}
-                    className="mt-4 cartoon-btn bg-[#38BDF8] hover:bg-[#0284C7] hover:text-white w-full text-xs font-black"
+                    className="mt-4 cartoon-btn bg-[#1CB0F6] hover:bg-[#0284C7] hover:text-white w-full text-xs font-black"
                   >
                     Launch Video Call
                   </button>
@@ -512,8 +512,8 @@ export function HowItWorksModal({
                   <tbody className="divide-y divide-zinc-200 font-medium">
                     <tr>
                       <td className="py-1.5 px-2 font-bold text-zinc-900">Biometric Skeleton Tracking</td>
-                      <td className="py-1.5 px-2 text-[#22C55E] font-bold">✓ 3D Ghost Guide</td>
-                      <td className="py-1.5 px-2 text-[#22C55E] font-bold">✓ Live Skeleton HUD</td>
+                      <td className="py-1.5 px-2 text-[#58CC02] font-bold">✓ 3D Ghost Guide</td>
+                      <td className="py-1.5 px-2 text-[#58CC02] font-bold">✓ Live Skeleton HUD</td>
                       <td className="py-1.5 px-2 text-zinc-400">—</td>
                     </tr>
                     <tr>
@@ -525,18 +525,18 @@ export function HowItWorksModal({
                     <tr>
                       <td className="py-1.5 px-2 font-bold text-zinc-900">English Sentence Composer</td>
                       <td className="py-1.5 px-2 text-zinc-500">Live AI Guessing Hub</td>
-                      <td className="py-1.5 px-2 text-[#22C55E] font-bold">✓ Full Live Gloss Bar</td>
+                      <td className="py-1.5 px-2 text-[#58CC02] font-bold">✓ Full Live Gloss Bar</td>
                       <td className="py-1.5 px-2 text-zinc-400">—</td>
                     </tr>
                     <tr>
                       <td className="py-1.5 px-2 font-bold text-zinc-900">P2P Video Connection</td>
                       <td className="py-1.5 px-2 text-zinc-400">—</td>
-                      <td className="py-1.5 px-2 text-[#22C55E] font-bold">✓ WebRTC + Room Code</td>
+                      <td className="py-1.5 px-2 text-[#58CC02] font-bold">✓ WebRTC + Room Code</td>
                       <td className="py-1.5 px-2 text-zinc-500">Join room input</td>
                     </tr>
                     <tr>
                       <td className="py-1.5 px-2 font-bold text-zinc-900">Sign Practice Mastery</td>
-                      <td className="py-1.5 px-2 text-[#22C55E] font-bold">✓ 3 Repetitions Loop</td>
+                      <td className="py-1.5 px-2 text-[#58CC02] font-bold">✓ 3 Repetitions Loop</td>
                       <td className="py-1.5 px-2 text-zinc-400">—</td>
                       <td className="py-1.5 px-2 text-zinc-400">—</td>
                     </tr>
@@ -553,7 +553,7 @@ export function HowItWorksModal({
                 {/* 1. Words vs A-Z Mode */}
                 <div className="cartoon-card p-3.5 bg-white space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className="w-7 h-7 rounded-lg bg-[#FFD15C] border-2 border-zinc-900 flex items-center justify-center font-black text-xs">
+                    <span className="w-7 h-7 rounded-lg bg-[#FFC800] border-2 border-zinc-900 flex items-center justify-center font-black text-xs">
                       1
                     </span>
                     <h4 className="font-black text-xs text-zinc-900">Words Mode vs. A–Z Fingerspelling</h4>
@@ -565,7 +565,7 @@ export function HowItWorksModal({
                     <div className="p-2.5 rounded-xl bg-[#FFF9E5] border border-amber-300">
                       <div className="font-extrabold text-xs text-zinc-900 flex items-center justify-between">
                         <span>Word Mode (Whole Signs)</span>
-                        <span className="cartoon-badge !py-0 !px-1.5 text-[8px] bg-[#FFD15C] text-zinc-900">Daily Signs</span>
+                        <span className="cartoon-badge !py-0 !px-1.5 text-[8px] bg-[#FFC800] text-zinc-900">Daily Signs</span>
                       </div>
                       <p className="text-[11px] text-zinc-600 font-medium mt-1 leading-normal">
                         Recognizes 22 core conversational gestures (Namaste, Hello, Good, Water, Help, Doctor, Time, Hospital, Thank You, etc.) using 3D joint distances and velocity vectors.
@@ -574,7 +574,7 @@ export function HowItWorksModal({
                     <div className="p-2.5 rounded-xl bg-[#E0F2FE] border border-sky-300">
                       <div className="font-extrabold text-xs text-zinc-900 flex items-center justify-between">
                         <span>A–Z Alphabet Mode</span>
-                        <span className="cartoon-badge !py-0 !px-1.5 text-[8px] bg-[#38BDF8] text-zinc-900">Fingerspelling</span>
+                        <span className="cartoon-badge !py-0 !px-1.5 text-[8px] bg-[#1CB0F6] text-zinc-900">Fingerspelling</span>
                       </div>
                       <p className="text-[11px] text-zinc-600 font-medium mt-1 leading-normal">
                         Authentic Indian two-handed fingerspelling (plus single-handed C). Useful for spelling out personal names, specific medication brands, or unmapped words.
@@ -586,7 +586,7 @@ export function HowItWorksModal({
                 {/* 2. Motion Gating & Auto-Commit */}
                 <div className="cartoon-card p-3.5 bg-white space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className="w-7 h-7 rounded-lg bg-[#22C55E] border-2 border-zinc-900 flex items-center justify-center font-black text-xs text-white">
+                    <span className="w-7 h-7 rounded-lg bg-[#58CC02] border-2 border-zinc-900 flex items-center justify-center font-black text-xs text-white">
                       2
                     </span>
                     <h4 className="font-black text-xs text-zinc-900">Hands-Free Motion Gating</h4>
@@ -600,10 +600,10 @@ export function HowItWorksModal({
                       <ArrowRight className="w-3 h-3" />
                       <span>Pause Countdown</span>
                       <ArrowRight className="w-3 h-3" />
-                      <span className="text-[#22C55E]">Auto Commit</span>
+                      <span className="text-[#58CC02]">Auto Commit</span>
                     </div>
                     <div className="w-full bg-zinc-200 h-2 rounded-full overflow-hidden border border-zinc-900">
-                      <div className="bg-[#22C55E] h-full w-3/4 rounded-full" />
+                      <div className="bg-[#58CC02] h-full w-3/4 rounded-full" />
                     </div>
                     <p className="text-[11px] text-zinc-600 font-medium leading-normal">
                       When your hands drop or stay still for your configured pause interval (default: <strong>700ms</strong>, adjustable up to 1200ms), Sanket marks the phrase complete and broadcasts it.
@@ -688,8 +688,17 @@ export function HowItWorksModal({
                   >
                     <div>
                       {/* Sign Illustration Preview */}
-                      <div className="w-full h-32 bg-[#FAF8F5] rounded-xl border-2 border-zinc-900 p-2 mb-2 flex items-center justify-center overflow-hidden">
-                        <SignSvgIllustration signId={sign.id} className="w-full h-full max-h-28 object-contain" />
+                      <div className="w-full h-32 bg-white rounded-xl border-2 border-zinc-900 p-1 mb-2 flex items-center justify-center overflow-hidden">
+                        {sign.image ? (
+                          <img
+                            src={sign.image}
+                            alt={`${sign.name} demonstration`}
+                            className="w-full h-full object-contain rounded-lg"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <SignSvgIllustration signId={sign.id} className="w-full h-full max-h-28 object-contain" />
+                        )}
                       </div>
 
                       <div className="flex items-center justify-between mb-1">
@@ -729,7 +738,7 @@ export function HowItWorksModal({
                   {/* Tip 1 */}
                   <div className="p-3 rounded-xl bg-[#FAF8F5] border-2 border-zinc-900">
                     <div className="flex items-center gap-2 mb-1.5">
-                      <div className="w-6 h-6 rounded-lg bg-[#FFD15C] border-2 border-zinc-900 flex items-center justify-center font-black text-xs text-zinc-900">
+                      <div className="w-6 h-6 rounded-lg bg-[#FFC800] border-2 border-zinc-900 flex items-center justify-center font-black text-xs text-zinc-900">
                         1
                       </div>
                       <h5 className="font-black text-xs text-zinc-900">Upper Torso &amp; Shoulder Distance</h5>
@@ -742,7 +751,7 @@ export function HowItWorksModal({
                   {/* Tip 2 */}
                   <div className="p-3 rounded-xl bg-[#FAF8F5] border-2 border-zinc-900">
                     <div className="flex items-center gap-2 mb-1.5">
-                      <div className="w-6 h-6 rounded-lg bg-[#38BDF8] border-2 border-zinc-900 flex items-center justify-center font-black text-xs text-zinc-900">
+                      <div className="w-6 h-6 rounded-lg bg-[#1CB0F6] border-2 border-zinc-900 flex items-center justify-center font-black text-xs text-zinc-900">
                         2
                       </div>
                       <h5 className="font-black text-xs text-zinc-900">Front Lighting (Avoid Backlights)</h5>
@@ -755,7 +764,7 @@ export function HowItWorksModal({
                   {/* Tip 3 */}
                   <div className="p-3 rounded-xl bg-[#FAF8F5] border-2 border-zinc-900">
                     <div className="flex items-center gap-2 mb-1.5">
-                      <div className="w-6 h-6 rounded-lg bg-[#22C55E] border-2 border-zinc-900 flex items-center justify-center font-black text-xs text-white">
+                      <div className="w-6 h-6 rounded-lg bg-[#58CC02] border-2 border-zinc-900 flex items-center justify-center font-black text-xs text-white">
                         3
                       </div>
                       <h5 className="font-black text-xs text-zinc-900">Brief 300ms Pose Hold</h5>
@@ -768,7 +777,7 @@ export function HowItWorksModal({
                   {/* Tip 4 */}
                   <div className="p-3 rounded-xl bg-[#FAF8F5] border-2 border-zinc-900">
                     <div className="flex items-center gap-2 mb-1.5">
-                      <div className="w-6 h-6 rounded-lg bg-[#FF6B6B] border-2 border-zinc-900 flex items-center justify-center font-black text-xs text-white">
+                      <div className="w-6 h-6 rounded-lg bg-[#FF4B4B] border-2 border-zinc-900 flex items-center justify-center font-black text-xs text-white">
                         4
                       </div>
                       <h5 className="font-black text-xs text-zinc-900">Neutral Rest on Desk or Lap</h5>
@@ -839,7 +848,7 @@ export function HowItWorksModal({
               ].map((faq, idx) => (
                 <div key={idx} className="cartoon-card p-3.5 bg-white space-y-1 border-2 border-zinc-900">
                   <div className="font-black text-xs text-zinc-900 flex items-start gap-1.5">
-                    <span className="text-[#38BDF8] font-bold">Q:</span>
+                    <span className="text-[#1CB0F6] font-bold">Q:</span>
                     <span>{faq.q}</span>
                   </div>
                   <div className="text-xs text-zinc-600 leading-relaxed font-medium pl-4">
@@ -852,7 +861,7 @@ export function HowItWorksModal({
         </div>
 
         {/* Footer Controls */}
-        <div className="p-3.5 bg-[#FAF8F5] border-t-2 border-zinc-900 flex flex-wrap items-center justify-between gap-3 flex-shrink-0">
+        <div className="p-3.5 bg-[#EAF6E8] border-t-2 border-zinc-900 flex flex-wrap items-center justify-between gap-3 flex-shrink-0">
           <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-zinc-700">
             <input
               type="checkbox"

@@ -7,52 +7,98 @@ export default {
   theme: {
     extend: {
       colors: {
+        duo: {
+          green: {
+            DEFAULT: '#58CC02',
+            dark: '#46A302',
+            hover: '#61E002',
+            light: '#D7FFB8',
+            subtle: '#EEFDE5'
+          },
+          blue: {
+            DEFAULT: '#1CB0F6',
+            dark: '#1899D6',
+            hover: '#24BEFF',
+            light: '#DDF4FE'
+          },
+          gold: {
+            DEFAULT: '#FFC800',
+            dark: '#E5A500',
+            hover: '#FFD426',
+            light: '#FFF5D1'
+          },
+          coral: {
+            DEFAULT: '#FF4B4B',
+            dark: '#EA2B2B',
+            hover: '#FF5E5E',
+            light: '#FFDFDF'
+          },
+          purple: {
+            DEFAULT: '#CE82FF',
+            dark: '#A559D9',
+            hover: '#D696FF',
+            light: '#F7ECFF'
+          },
+          gray: {
+            50: '#F7F7F7',
+            100: '#E5E5E5',
+            200: '#CECECE',
+            300: '#AFAFAF',
+            400: '#777777',
+            500: '#4B4B4B',
+            600: '#3C3C3C',
+            700: '#262626',
+            800: '#18181B'
+          }
+        },
         cream: {
-          DEFAULT: '#FAF8F5',
+          DEFAULT: '#F7F7F7',
           card: '#FFFFFF',
-          subtle: '#F4EFEA',
-          border: '#E8E2D8'
+          subtle: '#F4F5F6',
+          border: '#E5E5E5'
         },
         ink: {
-          DEFAULT: '#18181B',
-          muted: '#71717A',
-          subtle: '#A1A1AA'
+          DEFAULT: '#3C3C3C',
+          muted: '#777777',
+          subtle: '#AFAFAF'
         },
         sunny: {
-          DEFAULT: '#FFD15C',
-          hover: '#F5C240',
-          light: '#FFF9E5'
+          DEFAULT: '#FFC800',
+          hover: '#E5A500',
+          light: '#FFF5D1'
         },
         mint: {
-          DEFAULT: '#22C55E',
-          hover: '#16A34A',
-          light: '#EDFDF2'
+          DEFAULT: '#58CC02',
+          hover: '#46A302',
+          light: '#EEFDE5'
         },
         coral: {
-          DEFAULT: '#FF6B6B',
-          hover: '#EF4444',
-          light: '#FEECEC'
+          DEFAULT: '#FF4B4B',
+          hover: '#EA2B2B',
+          light: '#FFDFDF'
         },
         sky: {
-          DEFAULT: '#38BDF8',
-          hover: '#0EA5E9',
-          light: '#F0F9FF'
+          DEFAULT: '#1CB0F6',
+          hover: '#1899D6',
+          light: '#DDF4FE'
         },
         lavender: {
-          DEFAULT: '#A78BFA',
-          light: '#F5F3FF'
+          DEFAULT: '#CE82FF',
+          hover: '#A559D9',
+          light: '#F7ECFF'
         }
       },
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-        mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+        sans: ['"Nunito"', '"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['"Nunito"', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace']
       },
       boxShadow: {
-        'cartoon-sm': '2px 2px 0px #18181B',
-        'cartoon': '3px 3px 0px #18181B',
-        'cartoon-md': '4px 4px 0px #18181B',
-        'cartoon-lg': '6px 6px 0px #18181B',
-        'cartoon-active': '1px 1px 0px #18181B'
+        'cartoon-sm': '0 2px 0 #E5E5E5',
+        'cartoon': '0 3px 0 #E5E5E5',
+        'cartoon-md': '0 4px 0 #E5E5E5',
+        'cartoon-lg': '0 6px 0 #CECECE',
+        'cartoon-active': '0 1px 0 #E5E5E5'
       }
     },
   },

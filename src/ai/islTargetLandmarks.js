@@ -3712,7 +3712,27 @@ export function synthesizeLearnItem(word) {
     GOOD_EVENING: '/signs/good_evening.gif',
     GOOD_NIGHT: '/signs/good_night.gif',
     CAREFUL: '/signs/careful.gif',
-    TAKE_CARE: '/signs/take_care.gif'
+    TAKE_CARE: '/signs/take_care.gif',
+    WHO: '/signs/who.gif',
+    WHY: '/signs/why.gif',
+    HOW: '/signs/how.gif',
+    HOME: '/signs/home.gif',
+    WORK: '/signs/work.gif',
+    WASH: '/signs/wash.gif',
+    WASH_HANDS: '/signs/wash.gif',
+    WALK: '/signs/walk.gif',
+    SEE: '/signs/see.gif',
+    LEARN: '/signs/learn.gif',
+    WE: '/signs/we.gif',
+    WHICH: '/signs/which.gif',
+    DOCTOR: '/signs/doctor.gif',
+    CLINIC: '/signs/doctor.gif',
+    TOILET: '/signs/toilet.gif',
+    SIT: '/signs/sit.gif',
+    STAND: '/signs/stand.gif',
+    SAFE: '/signs/safe.gif',
+    SAD: '/signs/sad.gif',
+    HAPPY: '/signs/happy.gif'
   };
 
   return {

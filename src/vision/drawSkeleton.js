@@ -182,24 +182,18 @@ function drawFramingGuide(ctx, marginPercent = 0.10) {
  *
  * @param {CanvasRenderingContext2D} ctx
  * @param {Object} landmarks - { leftHandLandmarks, rightHandLandmarks, poseLandmarks, faceLandmarks }
- * @param {Object} options - { showGuide, showFace, showPose, isBlackScreen }
+ * @param {Object} options - { showGuide, showFace, showPose }
  */
 export function drawSkeleton(ctx, landmarks, options = {}) {
   const {
     showGuide = true,
     showFace = true,
-    showPose = true,
-    isBlackScreen = false
+    showPose = true
   } = options;
   const { width, height } = ctx.canvas;
 
-  // Clear previous frame
-  if (isBlackScreen) {
-    ctx.fillStyle = '#090A0F';
-    ctx.fillRect(0, 0, width, height);
-  } else {
-    ctx.clearRect(0, 0, width, height);
-  }
+  // Clear previous frame transparently
+  ctx.clearRect(0, 0, width, height);
 
   // Safe-zone framing guide
   if (showGuide) {

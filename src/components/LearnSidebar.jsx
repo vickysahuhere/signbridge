@@ -208,20 +208,20 @@ export function LearnSidebar({
             </div>
             <div className="text-left min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="font-black text-xs text-zinc-900">Sign Academy</span>
-                <span className="cartoon-badge !py-0 !px-1.5 text-[9px] bg-[#1CB0F6] text-zinc-900 font-bold border border-zinc-900">
+                <span className="font-black text-sm text-zinc-900">Sign Academy</span>
+                <span className="cartoon-badge !py-0.5 !px-2 text-xs bg-[#1CB0F6] text-zinc-900 font-bold border border-zinc-900">
                   1,000+ Signs
                 </span>
               </div>
-              <span className="text-[10px] text-zinc-500 font-medium block truncate">
+              <span className="text-xs text-zinc-600 font-semibold block truncate">
                 Click to open course & curriculum
               </span>
             </div>
           </div>
 
           <div className="flex items-center gap-1.5 flex-shrink-0">
-            <span className="cartoon-badge !py-0.5 !px-2 text-[10px] bg-[#58CC02] text-white font-bold flex items-center gap-1 border border-zinc-900">
-              <Award className="w-3 h-3 text-white stroke-[2.5]" />
+            <span className="cartoon-badge !py-0.5 !px-2 text-xs bg-[#58CC02] text-white font-bold flex items-center gap-1 border border-zinc-900">
+              <Award className="w-3.5 h-3.5 text-white stroke-[2.5]" />
               {masteredSet ? masteredSet.size : 0} Mastered
             </span>
             <ChevronRight className="w-4 h-4 text-zinc-500 group-hover:translate-x-0.5 transition-transform" />
@@ -230,18 +230,18 @@ export function LearnSidebar({
 
         {/* 1. Upper Card: Selected Sign Guide & Biomechanical Blueprint */}
         {selectedItem && (
-          <div className="cartoon-card bg-white p-3 flex flex-col gap-2 border-2 border-zinc-900 shadow-cartoon-sm flex-1 min-h-0 overflow-hidden justify-between">
+          <div className="cartoon-card bg-white p-3.5 flex flex-col gap-2 border-2 border-zinc-900 shadow-cartoon-sm flex-1 min-h-0 overflow-hidden justify-between">
             {/* Header: Level & Name */}
             <div className="flex items-start justify-between gap-2 flex-shrink-0">
               <div className="min-w-0 flex-1">
-                <span className="text-[10px] uppercase font-bold text-zinc-500 font-mono tracking-wider block">
+                <span className="text-xs uppercase font-bold text-zinc-600 font-mono tracking-wider block">
                   Level {currentSignLevel.levelNumber} • {currentSignLevel.badge || currentSignLevel.title}
                 </span>
-                <h3 className="font-black text-sm sm:text-base text-zinc-900 leading-tight truncate mt-0.5">
+                <h3 className="font-black text-base sm:text-lg text-zinc-900 leading-tight truncate mt-0.5">
                   {selectedItem.name} ({selectedItem.label})
                 </h3>
               </div>
-              <span className="cartoon-badge !py-0.5 !px-2 text-[10px] bg-[#1CB0F6] text-zinc-900 font-bold truncate max-w-[140px] flex-shrink-0 border border-zinc-900 shadow-sm">
+              <span className="cartoon-badge !py-1 !px-2.5 text-xs bg-[#1CB0F6] text-zinc-900 font-black truncate max-w-[140px] flex-shrink-0 border border-zinc-900 shadow-sm">
                 {selectedItem.english}
               </span>
             </div>
@@ -268,20 +268,20 @@ export function LearnSidebar({
                   </div>
                 </div>
               )}
-              <div className="absolute top-2 left-2 bg-zinc-900/90 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1.5 pointer-events-none">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#58CC02] animate-pulse" />
-                Authentic Demonstration
+              <div className="absolute top-2 left-2 bg-zinc-900/90 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1.5 pointer-events-none">
+                <span className="w-2 h-2 rounded-full bg-[#58CC02] animate-pulse" />
+                {selectedItem.image?.endsWith('.gif') ? 'Authentic Motion GIF' : 'Authentic Photo Demonstration'}
               </div>
             </div>
 
             {/* Easy-Going Step-by-Step Motion & Pacing Guidance */}
-            <div className="bg-[#FAF8F5] p-2.5 rounded-xl border border-zinc-200 text-xs text-zinc-700 leading-relaxed font-medium flex-shrink-0 flex flex-col gap-1.5">
-              <div className="text-[11px] text-zinc-800 leading-snug font-medium">
+            <div className="bg-[#EAF6E8] p-3 rounded-xl border border-[#D6EBD3] text-sm text-zinc-800 leading-relaxed font-medium flex-shrink-0 flex flex-col gap-1.5">
+              <div className="text-xs sm:text-sm text-zinc-800 leading-snug font-bold">
                 {selectedItem.description}
               </div>
 
               {selectedItem.tip && (
-                <div className="text-[10px] font-semibold text-[#16A34A] bg-[#EDFDF2] px-2 py-1 rounded-md border border-green-200 flex items-center gap-1">
+                <div className="text-xs font-bold text-[#16A34A] bg-[#EDFDF2] px-2.5 py-1.5 rounded-md border border-green-200 flex items-center gap-1.5">
                   <span>💡</span>
                   <span>{selectedItem.tip}</span>
                 </div>
@@ -291,21 +291,21 @@ export function LearnSidebar({
         )}
 
         {/* 2. Lower Card: Landmark Target Blueprint & Real-time Alignment Guide */}
-        <div className="cartoon-card bg-white p-3 flex flex-col gap-2 flex-1 min-h-0 border-2 border-zinc-900 shadow-cartoon-sm overflow-hidden justify-between">
+        <div className="cartoon-card bg-white p-3.5 flex flex-col gap-2 flex-1 min-h-0 border-2 border-zinc-900 shadow-cartoon-sm overflow-hidden justify-between">
           {/* Header Row */}
           <div className="flex items-center justify-between border-b border-zinc-200 pb-1.5 flex-shrink-0">
             <div className="flex items-center gap-1.5 min-w-0">
               <div className="w-5 h-5 rounded-md bg-[#58CC02] flex items-center justify-center text-white border border-zinc-900/20 flex-shrink-0">
                 <Crosshair className="w-3.5 h-3.5 stroke-[2.5]" />
               </div>
-              <span className="font-extrabold text-xs text-zinc-900 truncate">
+              <span className="font-black text-xs sm:text-sm text-zinc-900 truncate">
                 {selectedItem?.isCompound && selectedItem?.steps?.[activeStepIndex]
                   ? selectedItem.steps[activeStepIndex].title
                   : 'Landmark Target Blueprint'}
               </span>
             </div>
 
-            <div className="flex items-center gap-1 font-mono text-[10px] font-extrabold flex-shrink-0">
+            <div className="flex items-center gap-1 font-mono text-xs font-black flex-shrink-0">
               <span className="text-zinc-500">Match:</span>
               <span className={`px-1.5 py-0.5 rounded border border-zinc-900/30 ${
                 score >= 75 ? 'bg-[#58CC02] text-white' : score >= 40 ? 'bg-[#FFC800] text-zinc-900' : 'bg-zinc-200 text-zinc-700'
@@ -316,9 +316,9 @@ export function LearnSidebar({
           </div>
 
           {/* Repetition Goal: Complete 3 Times to Pass */}
-          <div className="bg-[#FAF8F5] p-2 rounded-xl border border-zinc-200 flex items-center justify-between gap-2 flex-shrink-0">
+          <div className="bg-[#EAF6E8] p-2 rounded-xl border border-[#D6EBD3] flex items-center justify-between gap-2 flex-shrink-0">
             <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-[9px] font-black uppercase text-zinc-600 font-mono">
+              <span className="text-[10px] font-black uppercase text-zinc-700 font-mono">
                 Pass Goal:
               </span>
               <div className="flex items-center gap-1">
@@ -351,19 +351,19 @@ export function LearnSidebar({
 
           {/* Compound Sign Multi-Step Mini Progress Indicator */}
           {selectedItem?.isCompound && selectedItem?.steps && (
-            <div className="flex items-center gap-1 p-1 bg-[#FAF8F5] rounded-lg border border-zinc-200 flex-shrink-0">
+            <div className="flex items-center gap-1 p-1 bg-[#EAF6E8] rounded-lg border border-[#D6EBD3] flex-shrink-0">
               {selectedItem.steps.map((st, idx) => {
                 const isDone = completedSteps.includes(idx);
                 const isCur = idx === activeStepIndex;
                 return (
                   <div
                     key={st.id}
-                    className={`flex-1 text-center py-1 px-1.5 rounded text-[9px] font-bold border transition-all ${
+                    className={`flex-1 text-center py-1 px-1.5 rounded text-xs font-bold border transition-all ${
                       isDone
                         ? 'bg-[#58CC02] text-white border-zinc-900'
                         : isCur
                         ? 'bg-[#FFC800] text-zinc-900 border-zinc-900 shadow-cartoon-sm animate-pulse'
-                        : 'bg-white text-zinc-400 border-zinc-200'
+                        : 'bg-white text-zinc-500 border-zinc-200'
                     }`}
                   >
                     {isDone ? '✔ ' : `${idx + 1}. `}{st.title.split(':')[1]?.trim() || st.title}
@@ -383,7 +383,7 @@ export function LearnSidebar({
                 style={{ width: `${Math.min(100, Math.max(0, score))}%` }}
               />
             </div>
-            <div className="flex justify-between text-[9px] font-bold text-zinc-400 font-mono">
+            <div className="flex justify-between text-xs font-bold text-zinc-500 font-mono">
               <span>0% (Idle)</span>
               <span>Target: 75%+</span>
               <span>100% (Perfect)</span>
@@ -391,7 +391,7 @@ export function LearnSidebar({
           </div>
 
           {/* Real-time Guidance Message Box */}
-          <div className={`p-2 rounded-xl border-2 flex items-start gap-2 flex-shrink-0 ${
+          <div className={`p-2.5 rounded-xl border-2 flex items-start gap-2 flex-shrink-0 ${
             isAligned
               ? 'bg-[#EBFDF0] border-[#58CC02] text-[#15803D]'
               : score > 30
@@ -404,7 +404,7 @@ export function LearnSidebar({
               <Compass className="w-4 h-4 text-zinc-600 flex-shrink-0 mt-0.5 stroke-[2.5]" />
             )}
             <div className="min-w-0 flex-1">
-              <span className="text-[11px] font-bold block leading-snug">
+              <span className="text-xs sm:text-sm font-bold block leading-snug">
                 {primaryGuidance}
               </span>
             </div>
@@ -415,10 +415,10 @@ export function LearnSidebar({
             {checklist.map(item => (
               <div
                 key={item.id}
-                className="flex items-center justify-between p-1.5 rounded-lg bg-[#FAF8F5] border border-zinc-200 text-[10px]"
+                className="flex items-center justify-between p-1.5 rounded-lg bg-[#EAF6E8] border border-[#D6EBD3] text-xs"
               >
                 <div className="flex items-center gap-1.5 min-w-0">
-                  <span className={`w-3.5 h-3.5 rounded flex items-center justify-center text-[9px] font-bold flex-shrink-0 ${
+                  <span className={`w-4 h-4 rounded flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${
                     item.status === 'pass'
                       ? 'bg-[#58CC02] text-white'
                       : item.status === 'warn'
@@ -427,11 +427,11 @@ export function LearnSidebar({
                   }`}>
                     {item.status === 'pass' ? '✓' : '!'}
                   </span>
-                  <span className="font-bold text-zinc-800 truncate">
+                  <span className="font-bold text-xs sm:text-sm text-zinc-800 truncate">
                     {item.label}
                   </span>
                 </div>
-                <span className="font-mono text-zinc-500 font-medium truncate ml-1 flex-shrink-0">
+                <span className="font-mono text-xs text-zinc-600 font-medium truncate ml-1 flex-shrink-0">
                   {item.current}
                 </span>
               </div>
@@ -440,9 +440,9 @@ export function LearnSidebar({
 
           {/* Target Specs Summary */}
           {selectedItem?.blueprint && (
-            <div className="pt-1.5 border-t border-zinc-100 flex items-center justify-between text-[10px] text-zinc-500 font-mono flex-shrink-0">
+            <div className="pt-1.5 border-t border-zinc-100 flex items-center justify-between text-xs text-zinc-600 font-mono flex-shrink-0">
               <span className="truncate">Zone: {selectedItem.blueprint.zone || 'Mid-chest level (Y: 0.42 - 0.70)'}</span>
-              <span className="text-zinc-400 flex-shrink-0 ml-1">ISL Standard</span>
+              <span className="text-zinc-500 flex-shrink-0 ml-1">ISL Standard</span>
             </div>
           )}
         </div>
@@ -460,7 +460,7 @@ export function LearnSidebar({
           />
 
           {/* Slide-over Sidebar Panel */}
-          <div className="relative z-10 w-full max-w-[480px] sm:max-w-[520px] h-full bg-[#FAF8F5] border-r-2 border-zinc-900 shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-left duration-200">
+          <div className="relative z-10 w-full max-w-[480px] sm:max-w-[520px] h-full bg-[#EDF7EC] border-r-2 border-zinc-900 shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-left duration-200">
             {/* Header with Title, Mastered count & Close Button */}
             <div className="px-4 py-3 border-b-2 border-zinc-900 bg-white flex items-center justify-between gap-3 flex-shrink-0">
               <div className="flex items-center gap-2.5 min-w-0">
@@ -468,10 +468,10 @@ export function LearnSidebar({
                   <BookOpen className="w-4 h-4 text-zinc-900 stroke-[2.2]" />
                 </div>
                 <div className="min-w-0">
-                  <h2 className="font-black text-base text-zinc-900 leading-tight">
+                  <h2 className="font-black text-base sm:text-lg text-zinc-900 leading-tight">
                     Sign Academy
                   </h2>
-                  <p className="text-[10px] text-zinc-500 font-medium truncate">
+                  <p className="text-xs text-zinc-600 font-semibold truncate">
                     Guided Course & 1,000+ ISL Vocabulary
                   </p>
                 </div>
@@ -494,11 +494,11 @@ export function LearnSidebar({
             </div>
 
             {/* Primary View Toggle: Guided Course vs All 1,000+ Signs */}
-            <div className="p-3 border-b border-zinc-200 bg-[#FAF8F5] flex-shrink-0">
-              <div className="grid grid-cols-2 gap-1.5 bg-[#F4EFEA] p-1 rounded-xl border border-zinc-300">
+            <div className="p-3 border-b border-zinc-200 bg-[#EAF6E8] flex-shrink-0">
+              <div className="grid grid-cols-2 gap-1.5 bg-[#E5F3E4] p-1 rounded-xl border border-zinc-300">
                 <button
                   onClick={() => setViewMode('course')}
-                  className={`py-1.5 px-2 rounded-lg text-xs font-black flex items-center justify-center gap-1.5 transition-all ${
+                  className={`py-1.5 px-2 rounded-lg text-xs sm:text-sm font-black flex items-center justify-center gap-1.5 transition-all ${
                     viewMode === 'course'
                       ? 'bg-[#FFC800] text-zinc-900 border-2 border-zinc-900 shadow-cartoon-sm'
                       : 'text-zinc-600 hover:text-zinc-900 border-2 border-transparent'
@@ -509,7 +509,7 @@ export function LearnSidebar({
                 </button>
                 <button
                   onClick={() => setViewMode('lexicon')}
-                  className={`py-1.5 px-2 rounded-lg text-xs font-black flex items-center justify-center gap-1.5 transition-all ${
+                  className={`py-1.5 px-2 rounded-lg text-xs sm:text-sm font-black flex items-center justify-center gap-1.5 transition-all ${
                     viewMode === 'lexicon'
                       ? 'bg-[#1CB0F6] text-zinc-900 border-2 border-zinc-900 shadow-cartoon-sm'
                       : 'text-zinc-600 hover:text-zinc-900 border-2 border-transparent'
@@ -528,25 +528,25 @@ export function LearnSidebar({
               <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-3">
                 {/* 1. Recommended Next Sign Banner */}
                 {nextRecommendedItem && (
-                  <div className="p-3 rounded-xl bg-[#FFF9E5] border-2 border-zinc-900 shadow-cartoon-sm flex items-center justify-between gap-3">
+                  <div className="p-3.5 rounded-xl bg-[#FFF9E5] border-2 border-zinc-900 shadow-cartoon-sm flex items-center justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full bg-[#EAB308] animate-ping" />
-                        <span className="text-[10px] font-mono font-bold uppercase text-amber-900">
+                        <span className="text-xs font-mono font-bold uppercase text-amber-900">
                           Recommended Next Step
                         </span>
                       </div>
-                      <div className="font-extrabold text-sm text-zinc-900 truncate mt-0.5">
+                      <div className="font-black text-base text-zinc-900 truncate mt-0.5">
                         {nextRecommendedItem.name} ({nextRecommendedItem.label})
                       </div>
-                      <p className="text-xs text-zinc-600 truncate">
+                      <p className="text-xs sm:text-sm text-zinc-600 truncate font-semibold">
                         {nextRecommendedItem.english}
                       </p>
                     </div>
 
                     <button
                       onClick={() => handleSelectAndClose(nextRecommendedItem)}
-                      className="cartoon-btn cartoon-btn-primary !py-1.5 !px-3 text-xs font-bold flex items-center gap-1.5 flex-shrink-0"
+                      className="cartoon-btn cartoon-btn-primary !py-2 !px-3.5 text-xs sm:text-sm font-black flex items-center gap-1.5 flex-shrink-0"
                     >
                       <Play className="w-3.5 h-3.5 fill-current" />
                       <span>Practice</span>
@@ -568,7 +568,7 @@ export function LearnSidebar({
                         className={`rounded-xl border-2 transition-all overflow-hidden ${
                           hasSelectedSign
                             ? 'border-zinc-900 bg-white shadow-cartoon-sm'
-                            : 'border-zinc-200 bg-[#FAF8F5]'
+                            : 'border-zinc-200 bg-[#EAF6E8]'
                         }`}
                       >
                         {/* Level Accordion Header */}
@@ -585,23 +585,23 @@ export function LearnSidebar({
                             </div>
                             <div className="min-w-0">
                               <div className="flex items-center gap-1.5 flex-wrap">
-                                <span className="font-black text-xs sm:text-sm text-zinc-900 truncate">
+                                <span className="font-black text-sm sm:text-base text-zinc-900 truncate">
                                   Level {lvl.levelNumber}: {lvl.title}
                                 </span>
                                 {isLevelComplete && (
-                                  <span className="cartoon-badge !py-0 !px-1 text-[8px] bg-[#58CC02] text-white">
+                                  <span className="cartoon-badge !py-0 !px-1.5 text-[9px] bg-[#58CC02] text-white">
                                     Complete ✓
                                   </span>
                                 )}
                               </div>
-                              <p className="text-[10px] text-zinc-500 font-medium truncate">
+                              <p className="text-xs text-zinc-600 font-semibold truncate">
                                 {lvl.subtitle}
                               </p>
                             </div>
                           </div>
 
                           <div className="flex items-center gap-2 flex-shrink-0">
-                            <span className="font-mono text-[10px] font-bold text-zinc-600 bg-white px-2 py-0.5 rounded border border-zinc-200">
+                            <span className="font-mono text-xs font-black text-zinc-700 bg-white px-2 py-0.5 rounded border border-zinc-200">
                               {stats ? `${stats.mastered}/${stats.total}` : '0%'}
                             </span>
                             {isExpanded ? (
@@ -615,7 +615,7 @@ export function LearnSidebar({
                         {/* Expanded Level Content */}
                         {isExpanded && (
                           <div className="p-2.5 border-t border-zinc-200 bg-white space-y-2">
-                            <p className="text-[11px] text-zinc-600 font-medium p-2 bg-[#FAF8F5] rounded-lg border border-zinc-100">
+                            <p className="text-xs sm:text-sm text-zinc-700 font-medium p-2.5 bg-[#EAF6E8] rounded-lg border border-zinc-100">
                               {lvl.description}
                             </p>
 
@@ -636,16 +636,16 @@ export function LearnSidebar({
                                       className={`w-full text-left p-2 rounded-xl border transition-all flex items-center justify-between gap-2.5 ${
                                         isSelected
                                           ? 'bg-[#FFC800] border-zinc-900 shadow-cartoon-sm'
-                                          : 'bg-[#FAF8F5] border-zinc-200 hover:border-zinc-900 hover:bg-white'
+                                          : 'bg-[#EAF6E8] border-zinc-200 hover:border-zinc-900 hover:bg-white'
                                       }`}
                                     >
                                       <div className="flex items-center gap-2.5 min-w-0">
-                                        <span className="font-mono text-[9px] font-bold text-zinc-400 w-5 text-right flex-shrink-0">
+                                        <span className="font-mono text-[10px] font-bold text-zinc-400 w-5 text-right flex-shrink-0">
                                           #{idx + 1}
                                         </span>
                                         <div className="min-w-0">
                                           <div className="flex items-center gap-1.5">
-                                            <span className="font-extrabold text-xs text-zinc-900 truncate">
+                                            <span className="font-black text-sm sm:text-base text-zinc-900 truncate">
                                               {item.name}
                                             </span>
                                             {item.image?.endsWith('.gif') && (

@@ -28,15 +28,15 @@ let isWordModelReady = false;
 let frameCounter = 0;
 
 const wordConfirmationGate = new ConsecutiveConfirmationGate({
-  confidenceThreshold: 0.80,
-  requiredConsecutive: 5,
+  confidenceThreshold: 0.85,
+  requiredConsecutive: 7,
   cooldownFrames: 8,
   lockUntilRelease: true
 });
 
 const alphabetConfirmationGate = new ConsecutiveConfirmationGate({
-  confidenceThreshold: 0.80,
-  requiredConsecutive: 5,
+  confidenceThreshold: 0.85,
+  requiredConsecutive: 7,
   cooldownFrames: 7,
   lockUntilRelease: true
 });
@@ -311,7 +311,7 @@ async function initVision(config = {}) {
 /**
  * Process a single video frame ImageBitmap
  */
-async function processFrame(imageBitmap, timestamp) {
+async function processFrame(imageBitmap, timestamp, recognitionMode = 'word') {
   if (!isInitialized || !holisticLandmarker) {
     if (imageBitmap && typeof imageBitmap.close === 'function') {
       imageBitmap.close();
@@ -359,11 +359,13 @@ async function processFrame(imageBitmap, timestamp) {
     const pose = getLandmarkArray(results.poseLandmarks);
 
     const tClassifierStart = performance.now();
+
     // 4. Run Authentic Two-Handed & One-Handed ISL Alphabet Fingerspelling Classification
+    // STRICT MODE ISOLATION: ONLY run alphabet fingerspelling in 'alphabet' mode
     let alphabetPredictions = [];
     let confirmedLetter = null;
     let alphabetGateDelayMs = 0;
-    if (leftHand.length > 0 || rightHand.length > 0) {
+    if (recognitionMode === 'alphabet' && (leftHand.length > 0 || rightHand.length > 0)) {
       alphabetPredictions = classifyIslAlphabet(leftHand, rightHand, pose);
       if (alphabetPredictions.length > 0) {
         const topCandidate = alphabetPredictions[0];
@@ -380,9 +382,10 @@ async function processFrame(imageBitmap, timestamp) {
     }
 
     // 5. Run Authentic ISL Word Recognition: ONNX temporal model (if trained) with 3D geometric fallback
+    // STRICT MODE ISOLATION: ONLY run word classification in 'word' mode
     let wordPredictions = { topCandidates: [], confirmedWord: null };
     let wordGateDelayMs = 0;
-    if (leftHand.length > 0 || rightHand.length > 0) {
+    if (recognitionMode === 'word' && (leftHand.length > 0 || rightHand.length > 0)) {
       let candidates = [];
       let engineSource = 'heuristic_fallback';
 
@@ -414,7 +417,16 @@ async function processFrame(imageBitmap, timestamp) {
 
       if (candidates.length > 0) {
         const topCandidate = { ...candidates[0], engineSource };
-        const confirmation = wordConfirmationGate.processCandidate(topCandidate);
+        const isStaticHoldSign = ['NAMASTE', 'GOOD', 'BAD', 'LOVE', 'STOP', 'TIME', 'CALL'].includes(topCandidate.label);
+        const canConfirm = motion.state === 'SIGNING_ACTIVE' || motion.state === 'PAUSE_COUNTDOWN' || isStaticHoldSign;
+
+        let confirmation = { confirmed: false };
+        if (canConfirm) {
+          confirmation = wordConfirmationGate.processCandidate(topCandidate);
+        } else {
+          wordConfirmationGate.reset();
+        }
+
         if (confirmation.confirmed) {
           wordGateDelayMs = confirmation.gateDelayMs || 0;
         }
@@ -473,7 +485,7 @@ async function processFrame(imageBitmap, timestamp) {
 
 // Worker message listener
 self.onmessage = async (event) => {
-  const { type, imageBitmap, timestamp, config } = event.data || {};
+  const { type, imageBitmap, timestamp, config, recognitionMode } = event.data || {};
 
   switch (type) {
     case 'INIT_VISION':
@@ -485,7 +497,7 @@ self.onmessage = async (event) => {
       break;
 
     case 'PROCESS_FRAME':
-      await processFrame(imageBitmap, timestamp);
+      await processFrame(imageBitmap, timestamp, recognitionMode);
       break;
 
     case 'CLEAR_BUFFER':

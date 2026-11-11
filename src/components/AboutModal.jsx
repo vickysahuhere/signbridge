@@ -108,7 +108,7 @@ export function AboutModal({ isOpen, onClose }) {
     >
       <div className="cartoon-card w-full max-w-2xl flex flex-col shadow-cartoon-lg bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Title Bar */}
-        <div className="px-4 py-3 bg-[#FAF8F5] border-b-2 border-zinc-900 flex items-center justify-between gap-2 flex-shrink-0">
+        <div className="px-4 py-3 bg-[#EAF6E8] border-b-2 border-zinc-900 flex items-center justify-between gap-2 flex-shrink-0">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-zinc-900 text-white flex items-center justify-center flex-shrink-0 shadow-cartoon-sm">
               <ShieldCheck className="w-4 h-4 stroke-[2.2]" />
@@ -179,7 +179,7 @@ export function AboutModal({ isOpen, onClose }) {
                     <GitPullRequest className="w-4 h-4 text-zinc-900 stroke-[2.2]" />
                     <span>Official Git Repository</span>
                   </div>
-                  <span className="cartoon-badge !py-0 !px-1.5 text-[9px] bg-[#38BDF8] text-zinc-900 font-bold">
+                  <span className="cartoon-badge !py-0 !px-1.5 text-[9px] bg-[#1CB0F6] text-zinc-900 font-bold">
                     Open Source
                   </span>
                 </div>
@@ -249,7 +249,7 @@ export function AboutModal({ isOpen, onClose }) {
               {/* PR Attribution Protocol */}
               <div className="cartoon-card p-3.5 bg-white space-y-2 border-2 border-zinc-900">
                 <div className="flex items-center gap-2 font-extrabold text-xs text-zinc-900">
-                  <CheckCircle2 className="w-4 h-4 text-[#22C55E] stroke-[2.2]" />
+                  <CheckCircle2 className="w-4 h-4 text-[#58CC02] stroke-[2.2]" />
                   <span>Pull Request Attribution Protocol</span>
                 </div>
                 <p className="text-xs text-zinc-600 leading-relaxed font-medium">
@@ -282,7 +282,7 @@ export function AboutModal({ isOpen, onClose }) {
                     disabled={isClearing || clearSuccess}
                     className={`cartoon-btn !py-1.5 !px-3 text-xs font-black transition-all flex items-center gap-1.5 ${
                       clearSuccess
-                        ? 'bg-[#22C55E] text-white border-zinc-900'
+                        ? 'bg-[#58CC02] text-white border-zinc-900'
                         : 'bg-red-50 hover:bg-red-500 hover:text-white text-red-700 border-2 border-zinc-900 shadow-cartoon-sm'
                     }`}
                     title="Wipes localStorage, sessionStorage, and cache storage, then reloads"
@@ -317,7 +317,7 @@ export function AboutModal({ isOpen, onClose }) {
           {activeTab === 'general' && (
             <div className="space-y-3">
               <div className="cartoon-card p-4 bg-white flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-[#FFD15C] border-2 border-zinc-900 flex items-center justify-center flex-shrink-0 shadow-cartoon-sm">
+                <div className="w-12 h-12 rounded-2xl bg-[#FFC800] border-2 border-zinc-900 flex items-center justify-center flex-shrink-0 shadow-cartoon-sm">
                   <Monitor className="w-6 h-6 text-zinc-900 stroke-[2.2]" />
                 </div>
                 <div>
@@ -375,7 +375,7 @@ export function AboutModal({ isOpen, onClose }) {
         </div>
 
         {/* Footer */}
-        <div className="p-3 bg-[#FAF8F5] border-t-2 border-zinc-900 flex justify-between items-center">
+        <div className="p-3 bg-[#EAF6E8] border-t-2 border-zinc-900 flex justify-between items-center">
           <div className="text-[11px] font-mono text-zinc-500 font-bold">
             Git: <span className="text-zinc-800">github.com/vickysahuhere/signbridge</span>
           </div>

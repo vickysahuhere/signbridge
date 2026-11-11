@@ -118,11 +118,11 @@ export function Navbar({
                   ? 'bg-[#1CB0F6] text-white border-2 border-[#1CB0F6] border-b-[3px] border-b-[#1899D6]'
                   : 'text-zinc-500 hover:text-zinc-800'
               }`}
-              title="Real-Time ISL Video & Text Messenger"
+              title="Real-Time Dual-Camera Video Call & Live ISL Auto-Translator"
             >
               <Video className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span className="sm:hidden">Translator</span>
-              <span className="hidden sm:inline">Translator</span>
+              <span className="sm:hidden">Sign Call</span>
+              <span className="hidden sm:inline">Sign Call</span>
             </button>
           </div>
 

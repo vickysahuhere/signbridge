@@ -63,7 +63,7 @@ export function FeedbackModal({
 
   // Annotation drawing state
   const [isAnnotating, setIsAnnotating] = useState(false);
-  const [drawColor, setDrawColor] = useState('#FF6B6B'); // coral red default
+  const [drawColor, setDrawColor] = useState('#FF4B4B'); // coral red default
   const canvasRef = useRef(null);
   const isDrawingRef = useRef(false);
 
@@ -263,9 +263,9 @@ export function FeedbackModal({
       <div className="cartoon-card w-full max-w-2xl flex flex-col shadow-cartoon-lg bg-white overflow-hidden max-h-[92vh] animate-in fade-in zoom-in-95 duration-150 border-2 border-zinc-900">
         
         {/* Title Bar */}
-        <div className="px-4 py-3 bg-[#FAF8F5] border-b-2 border-zinc-900 flex items-center justify-between gap-2 flex-shrink-0">
+        <div className="px-4 py-3 bg-[#EAF6E8] border-b-2 border-zinc-900 flex items-center justify-between gap-2 flex-shrink-0">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-[#FF6B6B] border-2 border-zinc-900 text-white flex items-center justify-center flex-shrink-0 shadow-cartoon-sm">
+            <div className="w-8 h-8 rounded-xl bg-[#FF4B4B] border-2 border-zinc-900 text-white flex items-center justify-center flex-shrink-0 shadow-cartoon-sm">
               <Bug className="w-4 h-4 stroke-[2.5]" />
             </div>
             <div>
@@ -344,7 +344,7 @@ export function FeedbackModal({
               {submittedReport ? (
                 /* Post-Submission Success Screen */
                 <div className="cartoon-card p-4 sm:p-6 bg-white space-y-4 text-center">
-                  <div className="w-14 h-14 rounded-2xl bg-[#22C55E] border-2 border-zinc-900 text-white flex items-center justify-center mx-auto shadow-cartoon-sm">
+                  <div className="w-14 h-14 rounded-2xl bg-[#58CC02] border-2 border-zinc-900 text-white flex items-center justify-center mx-auto shadow-cartoon-sm">
                     <CheckCircle2 className="w-8 h-8 stroke-[2.5]" />
                   </div>
 
@@ -367,7 +367,7 @@ export function FeedbackModal({
                       href={generateEmailFeedbackUrl(submittedReport)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="cartoon-btn !py-2.5 !px-3 text-xs bg-[#22C55E] hover:bg-[#16A34A] text-white flex items-center justify-center gap-2 shadow-cartoon-sm font-black"
+                      className="cartoon-btn !py-2.5 !px-3 text-xs bg-[#58CC02] hover:bg-[#16A34A] text-white flex items-center justify-center gap-2 shadow-cartoon-sm font-black"
                       title={`Open pre-filled email addressed to ${DEVELOPER_FEEDBACK_EMAIL}`}
                     >
                       <Mail className="w-4 h-4 stroke-[2.5]" />
@@ -411,7 +411,7 @@ export function FeedbackModal({
                         href={generateGitHubIssueUrl(submittedReport)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="cartoon-btn !py-2 !px-3 text-xs bg-[#FFD15C] hover:bg-[#FFE082] flex items-center justify-center gap-1.5 text-zinc-900"
+                        className="cartoon-btn !py-2 !px-3 text-xs bg-[#FFC800] hover:bg-[#FFE082] flex items-center justify-center gap-1.5 text-zinc-900"
                         title="Open pre-filled GitHub issue"
                       >
                         <ExternalLink className="w-3.5 h-3.5 stroke-[2.2]" />
@@ -477,7 +477,7 @@ export function FeedbackModal({
                   <div className="cartoon-card p-3 bg-white space-y-2">
                     <div className="flex items-center justify-between flex-wrap gap-2">
                       <div className="flex items-center gap-1.5 font-extrabold text-xs text-zinc-900">
-                        <Camera className="w-4 h-4 text-[#38BDF8] stroke-[2.2]" />
+                        <Camera className="w-4 h-4 text-[#1CB0F6] stroke-[2.2]" />
                         <span>2. Window Screenshot Snapshot</span>
                       </div>
 
@@ -531,7 +531,7 @@ export function FeedbackModal({
                                 {isAnnotating ? (
                                   <>
                                     <div className="flex items-center gap-1 mr-1">
-                                      {['#FF6B6B', '#FFD15C', '#38BDF8', '#22C55E'].map((color) => (
+                                      {['#FF4B4B', '#FFC800', '#1CB0F6', '#58CC02'].map((color) => (
                                         <button
                                           key={color}
                                           type="button"
@@ -832,7 +832,7 @@ export function FeedbackModal({
                       </div>
 
                       {/* Description preview */}
-                      <p className="text-[11px] text-zinc-600 line-clamp-2 bg-[#FAF8F5] p-2 rounded-lg border border-zinc-200">
+                      <p className="text-xs text-zinc-700 line-clamp-2 bg-[#EAF6E8] p-2 rounded-lg border border-[#D6EBD3]">
                         {report.description}
                       </p>
 
