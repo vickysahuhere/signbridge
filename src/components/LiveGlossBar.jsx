@@ -50,11 +50,11 @@ export function LiveGlossBar({
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
           <button
             onClick={onUndo}
             disabled={!hasGlosses}
-            className="duo-btn !py-1 !px-2.5 text-xs sm:text-sm font-black text-zinc-700 hover:text-zinc-900 bg-white"
+            className="duo-btn !py-1 !px-2 sm:!px-2.5 text-xs sm:text-sm font-black text-zinc-700 hover:text-zinc-900 bg-white flex-shrink-0"
             title="Undo last sign"
           >
             <Undo2 className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -64,7 +64,7 @@ export function LiveGlossBar({
           <button
             onClick={onClear}
             disabled={!hasGlosses}
-            className="duo-btn !py-1 !px-2.5 text-xs sm:text-sm font-black text-zinc-700 hover:text-[#FF4B4B] bg-white"
+            className="duo-btn !py-1 !px-2 sm:!px-2.5 text-xs sm:text-sm font-black text-zinc-700 hover:text-[#FF4B4B] bg-white flex-shrink-0"
             title="Clear all signs"
           >
             <Trash2 className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -74,11 +74,12 @@ export function LiveGlossBar({
           <button
             onClick={onCommit}
             disabled={!hasGlosses}
-            className="duo-btn duo-btn-green font-black !py-1.5 !px-3.5 text-xs sm:text-sm"
+            className="duo-btn duo-btn-green font-black !py-1.5 !px-2.5 sm:!px-3.5 text-xs sm:text-sm flex-shrink-0"
             title="Instant commit now (or simply rest hands to auto-commit)"
           >
             <Send className="w-3.5 h-3.5 stroke-[2.5]" />
-            <span>Commit Now</span>
+            <span className="hidden sm:inline">Commit Now</span>
+            <span className="sm:hidden">Commit</span>
           </button>
         </div>
       </div>
@@ -147,24 +148,24 @@ export function LiveGlossBar({
 
           {/* Direct 1-Click Undo and Remove All Buttons right inside this bar */}
           {hasGlosses && (
-            <div className="flex items-center gap-1.5 flex-shrink-0 pl-2 border-l-2 border-[#D6EBD3]">
+            <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0 pl-1.5 sm:pl-2 border-l-2 border-[#D6EBD3]">
               <button
                 type="button"
                 onClick={onUndo}
-                className="duo-btn !py-1 !px-2.5 text-xs sm:text-sm font-black bg-white hover:bg-zinc-100 text-zinc-800 flex items-center gap-1 flex-shrink-0"
+                className="duo-btn !py-1 !px-2 sm:!px-2.5 text-xs sm:text-sm font-black bg-white hover:bg-zinc-100 text-zinc-800 flex items-center gap-1 flex-shrink-0"
                 title="Undo last sign (1-click)"
               >
                 <Undo2 className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span>Undo</span>
+                <span className="hidden sm:inline">Undo</span>
               </button>
               <button
                 type="button"
                 onClick={onClear}
-                className="duo-btn !py-1 !px-2.5 text-xs sm:text-sm font-black bg-white hover:bg-red-50 text-zinc-800 hover:text-[#FF4B4B] flex items-center gap-1 flex-shrink-0"
+                className="duo-btn !py-1 !px-2 sm:!px-2.5 text-xs sm:text-sm font-black bg-white hover:bg-red-50 text-zinc-800 hover:text-[#FF4B4B] flex items-center gap-1 flex-shrink-0"
                 title="Clear all signs (1-click)"
               >
                 <Trash2 className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span>Clear</span>
+                <span className="hidden sm:inline">Clear</span>
               </button>
             </div>
           )}

@@ -194,7 +194,7 @@ export function HowItWorksModal({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-3 py-1.5 text-xs font-black rounded-t-xl border-2 border-b-0 transition-all flex items-center gap-1.5 whitespace-nowrap ${
+                className={`px-3 py-1.5 text-xs font-black rounded-t-xl border-2 border-b-0 transition-all flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 ${
                   isActive
                     ? 'bg-white border-zinc-900 text-zinc-900 -mb-[2px] z-10 shadow-[0_-2px_0_#18181B]'
                     : 'bg-[#F4EFEA] border-transparent text-zinc-600 hover:text-zinc-900 hover:bg-[#EAE4DC]'

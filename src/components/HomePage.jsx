@@ -794,6 +794,7 @@ export function HomePage({
 }) {
   const [customRoomInput, setCustomRoomInput] = useState('');
   const [showRoomInput, setShowRoomInput] = useState(false);
+  const [mobileHomeTab, setMobileHomeTab] = useState('learn'); // 'learn' | 'chat' on mobile
 
   const handleJoinSubmit = (e) => {
     e.preventDefault();
@@ -806,107 +807,122 @@ export function HomePage({
   };
 
   return (
-    <div className="w-full flex-1 min-h-0 flex flex-col items-center justify-between px-3 sm:px-6 py-2 sm:py-3 max-w-5xl mx-auto">
-      {/* 1. Header Minimal Branding & Duolingo Mascot Welcome */}
-      <div className="w-full max-w-2xl mb-2 sm:mb-4 flex-shrink-0 flex flex-col items-center">
-        {/* Top Mascot Greeting Unit */}
-        <div className="flex items-center justify-center gap-3 sm:gap-4 mb-2">
-          {/* Mitra the Mascot */}
-          <div className="relative group cursor-pointer hover:scale-105 active:scale-95 transition-transform duration-200">
-            <HeroMascotArt />
-            {/* Live AI Pulse Ring */}
-            <span className="absolute -bottom-1 right-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-white border-2 border-[#18181B] text-[8px] font-black text-[#15803D] shadow-sm">
+    <div className="w-full flex-1 min-h-0 flex flex-col items-center justify-between px-2 sm:px-4 md:px-6 py-1 sm:py-2 max-w-5xl mx-auto">
+      {/* 1. Header Minimal Branding & Duolingo Mascot Welcome (Compact & Uncluttered) */}
+      <div className="w-full max-w-4xl mb-2 sm:mb-2.5 flex-shrink-0 flex flex-col md:flex-row items-center justify-between gap-2 sm:gap-3 bg-white/90 p-2 sm:p-2.5 rounded-2xl border-2 border-[#E5E5E5] border-b-[3px] shadow-sm">
+        {/* Left: Mascot & Headline */}
+        <div className="flex items-center gap-2.5 sm:gap-3 text-left w-full md:w-auto min-w-0">
+          {/* Mitra Mascot */}
+          <div className="relative flex-shrink-0 cursor-pointer hover:scale-105 active:scale-95 transition-transform">
+            <HeroMascotArt className="w-11 h-11 sm:w-13 sm:h-13" />
+            <span className="absolute -bottom-1 -right-0.5 inline-flex items-center gap-0.5 px-1 py-0.2 rounded-full bg-white border border-[#18181B] text-[7.5px] font-black text-[#15803D] shadow-xs">
               <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] animate-pulse" />
-              <span>ISL AI</span>
+              <span>AI</span>
             </span>
           </div>
 
-          {/* Duolingo-Style Chat Bubble Greeting */}
-          <div className="relative bg-white border-2 border-[#18181B] border-b-[4px] rounded-2xl px-3.5 py-2 text-left shadow-sm max-w-[260px] sm:max-w-xs">
-            {/* Speech Bubble Tail pointing left to mascot */}
-            <div className="absolute top-1/2 -left-2.5 -translate-y-1/2 w-0 h-0 border-y-[6px] border-y-transparent border-r-[8px] border-r-[#18181B]" />
-            <div className="absolute top-1/2 -left-[7px] -translate-y-1/2 w-0 h-0 border-y-[5px] border-y-transparent border-r-[7px] border-r-white" />
-
-            <div className="flex items-center gap-1.5 mb-0.5">
-              <span className="text-sm font-black text-[#3C3C3C]">👋 Namaste!</span>
-              <span className="inline-flex items-center gap-0.5 text-xs font-black text-[#58CC02] bg-[#EEFDE5] px-2 py-0.5 rounded border border-[#58CC02]/30">
-                <Sparkles className="w-3 h-3" /> 100% FREE
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="inline-flex items-center gap-1 text-[10px] font-black text-[#58CC02] bg-[#EEFDE5] px-2 py-0.5 rounded-full border border-[#58CC02]/30">
+                <Sparkles className="w-2.5 h-2.5 fill-[#58CC02]" /> 100% Free Edge AI
+              </span>
+              <span className="text-[11px] font-bold text-zinc-400 font-mono hidden sm:inline">
+                संकेत • SANKET ISL
+              </span>
+              <span className="text-[11px] font-bold text-zinc-600 hidden min-[480px]:inline">
+                👋 Namaste!
               </span>
             </div>
-            <p className="text-xs sm:text-sm font-bold text-zinc-700 leading-snug">
-              Ready to sign or translate today? Practice 1,000+ signs or start a live call!
+            <h1 className="text-base sm:text-lg lg:text-xl font-black text-[#3C3C3C] tracking-tight leading-tight mt-0.5">
+              Indian Sign Language,{' '}
+              <span className="text-[#58CC02] relative inline-block">
+                <span>made simple.</span>
+                <span
+                  className="absolute -bottom-0.5 left-0 right-0 h-1.5 bg-[#D7FFB8] -rotate-1 rounded-full -z-0 opacity-80"
+                  aria-hidden="true"
+                />
+              </span>
+            </h1>
+            <p className="text-[11px] sm:text-xs text-zinc-600 font-bold truncate max-w-sm sm:max-w-lg md:max-w-xl">
+              Learn 1,000+ signs with live AI feedback or start a real-time translated call.
             </p>
           </div>
         </div>
 
-        {/* Duolingo Pill Badge */}
-        <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white border-2 border-[#E5E5E5] border-b-[3px] text-xs sm:text-sm font-black tracking-wide text-[#3C3C3C] mb-1.5 shadow-sm">
-          <Sparkles className="w-3.5 h-3.5 text-[#58CC02] fill-[#58CC02]" />
-          <span>संकेत • SANKET ISL</span>
-          <span className="text-zinc-300 font-normal">|</span>
-          <span className="text-[#58CC02] font-black">100% Free Edge AI</span>
-        </div>
-
-        {/* Hero Title */}
-        <h1 className="text-2xl sm:text-3xl lg:text-[2.5rem] font-black text-[#3C3C3C] tracking-tight leading-tight text-center">
-          Indian Sign Language,{' '}
-          <span className="relative inline-block text-[#58CC02]">
-            <span>made simple.</span>
-            <span
-              className="absolute -bottom-0.5 left-0 right-0 h-2 bg-[#D7FFB8] -rotate-1 rounded-full -z-0 opacity-80"
-              aria-hidden="true"
-            />
-          </span>
-        </h1>
-
-        <p className="mt-1.5 text-sm sm:text-base text-zinc-700 font-bold max-w-lg mx-auto leading-normal text-center">
-          The fun, free, and easiest way to learn and translate Indian Sign Language — powered by real-time on-device AI.
-        </p>
-
-        {/* Quick App Guide & AI Chatbot Launchers */}
-        <div className="mt-2.5 flex flex-wrap items-center justify-center gap-2">
+        {/* Right: Quick App Guide & AI Chatbot Launchers */}
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0 w-full md:w-auto justify-end">
           {onOpenGuide && (
             <button
               type="button"
               onClick={onOpenGuide}
-              className="duo-btn duo-btn-gold !py-2 !px-4 text-xs sm:text-sm font-black shadow-sm"
+              className="duo-btn duo-btn-gold !py-1.5 !px-2.5 sm:!px-3 text-xs font-black shadow-sm flex items-center gap-1 flex-shrink-0"
               title="Open interactive application guide and walkthrough"
             >
-              <HelpCircle className="w-4 h-4 stroke-[2.5]" />
+              <HelpCircle className="w-3.5 h-3.5 stroke-[2.5]" />
               <span>Quick Guide</span>
-              <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
+              <ArrowRight className="w-3 h-3 stroke-[2.5] hidden min-[400px]:inline" />
             </button>
           )}
           <button
             type="button"
             onClick={onOpenChatbot}
-            className="duo-btn bg-white hover:bg-[#FFF9E5] border-2 border-zinc-900 text-zinc-900 !py-2 !px-4 text-xs sm:text-sm font-black shadow-sm flex items-center gap-1.5 transition-all"
+            className="duo-btn bg-white hover:bg-[#FFF9E5] border-2 border-zinc-900 text-zinc-900 !py-1.5 !px-2.5 sm:!px-3 text-xs font-black shadow-sm flex items-center gap-1.5 transition-all flex-shrink-0"
             title="Open Sanket AI Chatbot (BYOK)"
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
             <span>Ask AI Guide</span>
-            <span className="text-[10px] font-black uppercase px-1.5 py-0.5 rounded bg-amber-200 text-amber-950 border border-amber-600/60 leading-none">
+            <span className="text-[9px] font-black uppercase px-1 py-0.5 rounded bg-amber-200 text-amber-950 border border-amber-600/60 leading-none">
               BYOK
             </span>
           </button>
         </div>
       </div>
 
-      {/* 2. Primary Choice Arena: Dual Minimal Portals */}
-      <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 items-stretch max-w-4xl">
+      {/* Mobile Tab Switcher for Quick Arena Jump (< md) */}
+      <div className="w-full flex md:hidden bg-[#E5F3E4] p-1 rounded-2xl border-2 border-[#18181B] mb-2 shadow-cartoon-sm flex-shrink-0 max-w-sm">
+        <button
+          type="button"
+          onClick={() => setMobileHomeTab('learn')}
+          className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+            mobileHomeTab === 'learn'
+              ? 'bg-[#58CC02] text-white border-2 border-[#46A302] border-b-[3px] shadow-sm'
+              : 'text-zinc-600'
+          }`}
+        >
+          <BookOpen className="w-3.5 h-3.5 stroke-[2.5]" />
+          <span>Learn ISL</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setMobileHomeTab('chat')}
+          className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+            mobileHomeTab === 'chat'
+              ? 'bg-[#1CB0F6] text-white border-2 border-[#1899D6] border-b-[3px] shadow-sm'
+              : 'text-zinc-600'
+          }`}
+        >
+          <Video className="w-3.5 h-3.5 stroke-[2.5]" />
+          <span>Sign Call</span>
+        </button>
+      </div>
+
+      {/* 2. Primary Choice Arena: Dual Minimal Portals (Both Action Buttons Above-The-Fold) */}
+      <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-4 items-stretch max-w-4xl flex-1 min-h-0">
         {/* =========================================================================
             CARD 1: LEARN ISL (Duolingo Green Theme)
             ========================================================================= */}
         <div
           onClick={() => onSelectMode('learn')}
-          className="duo-card bg-white p-4 sm:p-5 flex flex-col justify-between cursor-pointer group hover:-translate-y-1 transition-all duration-150 relative"
+          className={`duo-card bg-white p-3 sm:p-4 flex-col justify-between cursor-pointer group hover:-translate-y-0.5 transition-all duration-150 relative ${
+            mobileHomeTab === 'learn' ? 'flex' : 'hidden md:flex'
+          }`}
           role="button"
           tabIndex={0}
           onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onSelectMode('learn')}
         >
-          <div>
+          <div className="flex flex-col flex-1 min-h-0">
             {/* Card Accent Top Banner */}
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-1.5 flex-shrink-0">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#EEFDE5] border-2 border-[#58CC02] text-[10px] font-black text-[#388402]">
                 <Compass className="w-3 h-3 text-[#58CC02] stroke-[2.5]" />
                 <span>PRACTICE &amp; MASTER</span>
@@ -916,47 +932,49 @@ export function HomePage({
               </span>
             </div>
 
-            {/* Artistic SVG Illustration */}
-            <div className="w-full max-w-[280px] sm:max-w-[310px] mx-auto py-1 group-hover:scale-[1.03] transition-transform duration-200">
-              <ArtisticLearnIllustration />
+            {/* Artistic SVG Illustration (Responsively scaled so card never causes vertical overflow) */}
+            <div className="w-full max-w-[240px] sm:max-w-[270px] max-h-[50px] min-[400px]:max-h-[70px] sm:max-h-[105px] md:max-h-[120px] mx-auto py-0.5 group-hover:scale-[1.02] transition-transform duration-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
+              <ArtisticLearnIllustration className="w-full h-auto max-h-[120px]" />
             </div>
 
             {/* Text Content */}
-            <div className="mt-2 text-left">
-              <h2 className="text-lg sm:text-xl font-black text-[#3C3C3C] tracking-tight flex items-center justify-between">
-                <span>Learn ISL Curriculum</span>
-                <span className="text-sm font-black text-[#58CC02] group-hover:translate-x-1 transition-transform">
-                  Start →
-                </span>
-              </h2>
-              <p className="mt-1.5 text-xs sm:text-sm text-zinc-700 font-bold leading-relaxed">
-                Step-by-step 7 levels: start with Namaste, master two-handed A–Z fingerspelling, daily needs, transit, and 1,000+ signs with live AI feedback.
-              </p>
+            <div className="mt-1.5 text-left flex-1 min-h-0 flex flex-col justify-between">
+              <div>
+                <h2 className="text-base sm:text-lg font-black text-[#3C3C3C] tracking-tight flex items-center justify-between">
+                  <span>Learn ISL Curriculum</span>
+                  <span className="text-xs sm:text-sm font-black text-[#58CC02] group-hover:translate-x-1 transition-transform">
+                    Start →
+                  </span>
+                </h2>
+                <p className="mt-1 text-[11px] sm:text-xs text-zinc-700 font-bold leading-snug">
+                  Step-by-step 7 levels: start with Namaste, master two-handed A–Z fingerspelling, daily needs, transit, and 1,000+ signs with live AI feedback.
+                </p>
+              </div>
 
               {/* Micro Feature List */}
-              <div className="mt-2.5 pt-2 border-t border-zinc-100 flex flex-wrap gap-1.5">
-                <span className="inline-flex items-center gap-1 text-xs font-black text-[#388402] bg-[#EEFDE5] px-2.5 py-1 rounded-lg border border-[#58CC02]/30">
-                  <CheckCircle2 className="w-3 h-3 text-[#58CC02]" /> Start with Namaste
+              <div className="mt-2 pt-1.5 border-t border-zinc-100 flex flex-wrap gap-1 flex-shrink-0">
+                <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-black text-[#388402] bg-[#EEFDE5] px-2 py-0.5 rounded-md border border-[#58CC02]/30">
+                  <CheckCircle2 className="w-3 h-3 text-[#58CC02]" /> Namaste (L1)
                 </span>
-                <span className="inline-flex items-center gap-1 text-xs font-black text-[#388402] bg-[#EEFDE5] px-2.5 py-1 rounded-lg border border-[#58CC02]/30">
+                <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-black text-[#388402] bg-[#EEFDE5] px-2 py-0.5 rounded-md border border-[#58CC02]/30">
                   <CheckCircle2 className="w-3 h-3 text-[#58CC02]" /> 3 Reps to Master
                 </span>
-                <span className="inline-flex items-center gap-1 text-xs font-black text-[#388402] bg-[#EEFDE5] px-2.5 py-1 rounded-lg border border-[#58CC02]/30">
+                <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-black text-[#388402] bg-[#EEFDE5] px-2 py-0.5 rounded-md border border-[#58CC02]/30">
                   <CheckCircle2 className="w-3 h-3 text-[#58CC02]" /> 1,000+ Sign Lexicon
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Primary CTA Button */}
-          <div className="mt-4 pt-1">
+          {/* Primary CTA Button (Prominently placed above-the-fold) */}
+          <div className="mt-2.5 pt-1 flex-shrink-0">
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 onSelectMode('learn');
               }}
-              className="w-full duo-btn duo-btn-green !py-3 text-xs sm:text-sm font-black flex items-center justify-center gap-2"
+              className="w-full duo-btn duo-btn-green !py-2.5 text-xs sm:text-sm font-black flex items-center justify-center gap-2"
             >
               <BookOpen className="w-4 h-4 stroke-[2.5]" />
               <span>START LEARNING (LEVEL 1)</span>
@@ -970,51 +988,53 @@ export function HomePage({
             ========================================================================= */}
         <div
           onClick={() => onSelectMode('chat')}
-          className="duo-card bg-white p-4 sm:p-5 flex flex-col justify-between cursor-pointer group hover:-translate-y-1 transition-all duration-150 relative"
+          className={`duo-card bg-white p-3 sm:p-4 flex-col justify-between cursor-pointer group hover:-translate-y-0.5 transition-all duration-150 relative ${
+            mobileHomeTab === 'chat' ? 'flex' : 'hidden md:flex'
+          }`}
           role="button"
           tabIndex={0}
           onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onSelectMode('chat')}
         >
-          <div>
+          <div className="flex flex-col flex-1 min-h-0">
             {/* Card Accent Top Banner */}
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#DDF4FE] border-2 border-[#1CB0F6] text-xs font-black text-[#0284C7]">
-                  <Video className="w-3.5 h-3.5 text-[#1CB0F6] stroke-[2.5]" />
-                  <span>SIGN VIDEO CALL</span>
-                </div>
+            <div className="flex items-center justify-between mb-1.5 flex-shrink-0">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#DDF4FE] border-2 border-[#1CB0F6] text-[10px] font-black text-[#0284C7]">
+                <Video className="w-3 h-3 text-[#1CB0F6] stroke-[2.5]" />
+                <span>SIGN VIDEO CALL</span>
               </div>
-              <span className="text-xs font-bold text-zinc-500 font-mono">
+              <span className="text-[10px] font-bold text-zinc-500 font-mono">
                 P2P Encrypted • &lt;20ms
               </span>
             </div>
 
-            {/* Artistic SVG Illustration */}
-            <div className="w-full max-w-[280px] sm:max-w-[310px] mx-auto py-1 group-hover:scale-[1.03] transition-transform duration-200">
-              <ArtisticCallIllustration />
+            {/* Artistic SVG Illustration (Responsively scaled so card never causes vertical overflow) */}
+            <div className="w-full max-w-[240px] sm:max-w-[270px] max-h-[50px] min-[400px]:max-h-[70px] sm:max-h-[105px] md:max-h-[120px] mx-auto py-0.5 group-hover:scale-[1.02] transition-transform duration-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
+              <ArtisticCallIllustration className="w-full h-auto max-h-[120px]" />
             </div>
 
             {/* Text Content */}
-            <div className="mt-2 text-left">
-              <h2 className="text-lg sm:text-xl font-black text-[#3C3C3C] tracking-tight flex items-center justify-between">
-                <span>Sign Video Call &amp; Auto-Translator</span>
-                <span className="text-sm font-black text-[#1CB0F6] group-hover:translate-x-1 transition-transform">
-                  Start Call →
-                </span>
-              </h2>
-              <p className="mt-1.5 text-xs sm:text-sm text-zinc-700 font-bold leading-relaxed">
-                Dual-camera video calling with simultaneous sign guessing and automatic ISL-to-English translation. No manual "Send" needed.
-              </p>
+            <div className="mt-1.5 text-left flex-1 min-h-0 flex flex-col justify-between">
+              <div>
+                <h2 className="text-base sm:text-lg font-black text-[#3C3C3C] tracking-tight flex items-center justify-between">
+                  <span>Sign Video Call &amp; Auto-Translator</span>
+                  <span className="text-xs sm:text-sm font-black text-[#1CB0F6] group-hover:translate-x-1 transition-transform">
+                    Start Call →
+                  </span>
+                </h2>
+                <p className="mt-1 text-[11px] sm:text-xs text-zinc-700 font-bold leading-snug">
+                  Dual-camera video calling with simultaneous sign guessing and automatic ISL-to-English translation. No manual "Send" needed.
+                </p>
+              </div>
 
               {/* Micro Feature List */}
-              <div className="mt-2.5 pt-2 border-t border-zinc-100 flex flex-wrap gap-1.5">
-                <span className="inline-flex items-center gap-1 text-xs font-black text-[#0284C7] bg-[#DDF4FE] px-2.5 py-1 rounded-lg border border-[#1CB0F6]/30">
+              <div className="mt-2 pt-1.5 border-t border-zinc-100 flex flex-wrap gap-1 flex-shrink-0">
+                <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-black text-[#0284C7] bg-[#DDF4FE] px-2 py-0.5 rounded-md border border-[#1CB0F6]/30">
                   <CheckCircle2 className="w-3 h-3 text-[#1CB0F6]" /> Dual-Camera Grid
                 </span>
-                <span className="inline-flex items-center gap-1 text-xs font-black text-[#0284C7] bg-[#DDF4FE] px-2.5 py-1 rounded-lg border border-[#1CB0F6]/30">
+                <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-black text-[#0284C7] bg-[#DDF4FE] px-2 py-0.5 rounded-md border border-[#1CB0F6]/30">
                   <CheckCircle2 className="w-3 h-3 text-[#1CB0F6]" /> Hands-Free Auto-Commit
                 </span>
-                <span className="inline-flex items-center gap-1 text-xs font-black text-[#0284C7] bg-[#DDF4FE] px-2.5 py-1 rounded-lg border border-[#1CB0F6]/30">
+                <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-black text-[#0284C7] bg-[#DDF4FE] px-2 py-0.5 rounded-md border border-[#1CB0F6]/30">
                   <CheckCircle2 className="w-3 h-3 text-[#1CB0F6]" /> Distributed Edge AI
                 </span>
               </div>
@@ -1022,20 +1042,20 @@ export function HomePage({
           </div>
 
           {/* Call Actions (Direct Start or Custom Room Code) */}
-          <div className="mt-4 pt-1 flex flex-col gap-1.5">
+          <div className="mt-2.5 pt-1 flex flex-col gap-1.5 flex-shrink-0">
             {!showRoomInput ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     onSelectMode('chat');
                   }}
-                  className="flex-1 duo-btn duo-btn-blue !py-3 text-xs sm:text-sm font-black flex items-center justify-center gap-2"
+                  className="flex-1 duo-btn duo-btn-blue !py-2.5 text-xs sm:text-sm font-black flex items-center justify-center gap-2 min-w-0"
                 >
-                  <Video className="w-4 h-4 stroke-[2.5]" />
-                  <span>START SIGN CALL</span>
-                  <ArrowRight className="w-3.5 h-3.5 stroke-[2.5] group-hover:translate-x-1 transition-transform" />
+                  <Video className="w-4 h-4 stroke-[2.5] flex-shrink-0" />
+                  <span className="truncate">START SIGN CALL</span>
+                  <ArrowRight className="w-3.5 h-3.5 stroke-[2.5] group-hover:translate-x-1 transition-transform flex-shrink-0" />
                 </button>
                 <button
                   type="button"
@@ -1043,11 +1063,11 @@ export function HomePage({
                     e.stopPropagation();
                     setShowRoomInput(true);
                   }}
-                  className="cartoon-btn bg-white hover:bg-zinc-100 !py-2 !px-2.5 text-xs font-bold"
+                  className="cartoon-btn bg-white hover:bg-zinc-100 !py-2 !px-2.5 text-xs font-bold flex items-center gap-1 flex-shrink-0"
                   title="Join an existing room code"
                 >
-                  <Hash className="w-3.5 h-3.5 text-zinc-700" />
-                  <span className="hidden sm:inline">Join</span>
+                  <Hash className="w-3.5 h-3.5 text-zinc-700 flex-shrink-0" />
+                  <span>Join</span>
                 </button>
               </div>
             ) : (
@@ -1062,18 +1082,18 @@ export function HomePage({
                   onChange={(e) => setCustomRoomInput(e.target.value)}
                   placeholder="Enter room code..."
                   autoFocus
-                  className="flex-1 px-2.5 py-1.5 text-xs font-bold bg-[#FAF8F5] border-2 border-zinc-900 rounded-xl focus:outline-none"
+                  className="flex-1 px-2.5 py-1.5 text-xs font-bold bg-[#FAF8F5] border-2 border-zinc-900 rounded-xl focus:outline-none min-w-0"
                 />
                 <button
                   type="submit"
-                  className="cartoon-btn cartoon-btn-secondary !py-1.5 !px-3 text-xs font-black"
+                  className="cartoon-btn cartoon-btn-secondary !py-1.5 !px-3 text-xs font-black flex-shrink-0"
                 >
                   Join
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowRoomInput(false)}
-                  className="text-xs font-bold text-zinc-500 hover:text-zinc-900 px-1"
+                  className="text-xs font-bold text-zinc-500 hover:text-zinc-900 px-1 flex-shrink-0"
                 >
                   Cancel
                 </button>
@@ -1084,28 +1104,28 @@ export function HomePage({
       </div>
 
       {/* 3. Bottom Minimal Trust & Technical Credentials */}
-      <div className="mt-3 pt-2 flex-shrink-0 w-full max-w-4xl flex flex-wrap items-center justify-between gap-2 text-zinc-500 text-[11px] font-semibold">
-        <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
+      <div className="mt-2 pt-1 flex-shrink-0 w-full max-w-4xl flex flex-wrap items-center justify-between gap-1.5 text-zinc-500 text-[10.5px] sm:text-[11px] font-semibold border-t border-zinc-200/60">
+        <div className="flex items-center gap-2.5 sm:gap-4 flex-wrap">
           <span className="flex items-center gap-1 text-zinc-700">
-            <Zap className="w-3 h-3 text-[#FFD15C] fill-[#FFD15C]" />
+            <Zap className="w-3 h-3 text-[#FFD15C] fill-[#FFD15C] flex-shrink-0" />
             <span>100% In-Browser Edge AI</span>
           </span>
           <span className="flex items-center gap-1 text-zinc-700">
-            <ShieldCheck className="w-3 h-3 text-[#22C55E]" />
+            <ShieldCheck className="w-3 h-3 text-[#22C55E] flex-shrink-0" />
             <span>Zero Video Saved</span>
           </span>
           <span className="flex items-center gap-1 text-zinc-700">
-            <Globe className="w-3 h-3 text-[#38BDF8]" />
+            <Globe className="w-3 h-3 text-[#38BDF8] flex-shrink-0" />
             <span>Direct P2P WebRTC</span>
           </span>
         </div>
 
-        <div className="flex items-center gap-3 text-[11px]">
+        <div className="flex items-center gap-2.5 sm:gap-3 text-[10.5px] sm:text-[11px] flex-wrap">
           <button
             onClick={onOpenChatbot}
             className="hover:text-zinc-900 underline underline-offset-2 transition-colors font-bold text-amber-700 flex items-center gap-1"
           >
-            <Sparkles className="w-3 h-3 text-amber-500 fill-amber-500" />
+            <Sparkles className="w-3 h-3 text-amber-500 fill-amber-500 flex-shrink-0" />
             <span>AI Chatbot</span>
           </button>
           {onOpenDictionary && (

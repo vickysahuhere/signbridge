@@ -22,6 +22,7 @@ import { ISL_LEARN_ITEMS, getLearnItemByLabel } from './ai/islTargetLandmarks.js
 import { getNextRecommendedSign } from './ai/islCourseCurriculum.js';
 import { AlertCircle, ShieldCheck, Video, MessageSquare, BookOpen, Compass, Bug, Sparkles } from 'lucide-react';
 import { HomeChatbotPopup } from './components/HomeChatbotPopup.jsx';
+import { ErrorBoundary } from './components/ErrorBoundary.jsx';
 
 export function App() {
   const [fps, setFps] = useState(0);
@@ -837,132 +838,134 @@ export function App() {
             PAGE 2: LIVE CALL & AUTO-TRANSLATOR (Dual-Camera Hub)
             ========================================================================= */}
         {currentPage === 'chat' && (
-          <div className="flex flex-col h-full min-h-0 overflow-hidden">
-            {/* Mobile Tab Switcher in Sign Call Mode */}
-            <div className="pb-1.5 md:hidden flex-shrink-0">
-              <div className="flex bg-[#E5F3E4] p-1 rounded-xl border-2 border-zinc-900 shadow-cartoon-sm">
-                <button
-                  onClick={() => setMobileTab('stage')}
-                  className={`flex-1 py-1 rounded-lg text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 ${
-                    mobileTab === 'stage'
-                      ? 'bg-[#FFD15C] text-zinc-900 border-2 border-zinc-900 shadow-cartoon-sm'
-                      : 'text-zinc-600'
+          <ErrorBoundary title="Calling & Translation Stage Error" onReset={() => setCurrentPage('chat')}>
+            <div className="flex flex-col h-full min-h-0 overflow-hidden">
+              {/* Mobile Tab Switcher in Sign Call Mode */}
+              <div className="pb-1.5 md:hidden flex-shrink-0">
+                <div className="flex bg-[#E5F3E4] p-1 rounded-xl border-2 border-zinc-900 shadow-cartoon-sm">
+                  <button
+                    onClick={() => setMobileTab('stage')}
+                    className={`flex-1 py-1 rounded-lg text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 ${
+                      mobileTab === 'stage'
+                        ? 'bg-[#FFD15C] text-zinc-900 border-2 border-zinc-900 shadow-cartoon-sm'
+                        : 'text-zinc-600'
+                    }`}
+                  >
+                    <Video className="w-3.5 h-3.5 stroke-[2.2]" />
+                    <span>Dual Video Stage</span>
+                  </button>
+                  <button
+                    onClick={() => setMobileTab('chat')}
+                    className={`flex-1 py-1 rounded-lg text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 ${
+                      mobileTab === 'chat'
+                        ? 'bg-[#38BDF8] text-zinc-900 border-2 border-zinc-900 shadow-cartoon-sm'
+                        : 'text-zinc-600'
+                    }`}
+                  >
+                    <Sparkles className="w-3.5 h-3.5 stroke-[2.2]" />
+                    <span>Auto-Conversion Feed</span>
+                    {allMessages.length > 0 && (
+                      <span className="cartoon-badge !py-0 !px-1.5 text-[9px] bg-white text-zinc-900 shadow-none">
+                        {allMessages.length}
+                      </span>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Side-by-side flex panes on tablet & desktop screens */}
+              <div className="flex flex-col md:flex-row gap-3 sm:gap-4 h-full min-h-0 overflow-hidden items-stretch">
+                {/* Left Pane: Dual Camera Viewport on top + Sign Buffer below */}
+                <div
+                  className={`w-full md:w-[58%] lg:w-[60%] flex flex-col gap-3 sm:gap-4 h-full min-h-0 overflow-hidden flex-shrink-0 ${
+                    mobileTab === 'stage' ? 'flex' : 'hidden md:flex'
                   }`}
                 >
-                  <Video className="w-3.5 h-3.5 stroke-[2.2]" />
-                  <span>Dual Video Stage</span>
-                </button>
-                <button
-                  onClick={() => setMobileTab('chat')}
-                  className={`flex-1 py-1 rounded-lg text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 ${
-                    mobileTab === 'chat'
-                      ? 'bg-[#38BDF8] text-zinc-900 border-2 border-zinc-900 shadow-cartoon-sm'
-                      : 'text-zinc-600'
+                  <SignerStage
+                    onFrame={handleFrame}
+                    onFpsUpdate={setFps}
+                    fps={fps}
+                    profilingData={profilingData}
+                    commitPauseMs={commitPauseMs}
+                    onPauseChange={handlePauseChange}
+                    latestLandmarks={latestLandmarks}
+                    isWorkerReady={isWorkerReady}
+                    motionState={motionState}
+                    bufferSize={bufferSize}
+                    alphabetPredictions={alphabetPredictions}
+                    wordPredictions={wordPredictions}
+                    latestConfirmedWord={latestConfirmedWord}
+                    latestReply={latestIncomingReply}
+                    recognitionMode={recognitionMode}
+                    onToggleMode={setRecognitionMode}
+                    onStreamChange={setLocalStream}
+                    remoteStream={remoteStream}
+                    peerPresence={peerPresence}
+                    onOpenGuide={() => setIsGuideOpen(true)}
+                    candidates={persistedCandidates}
+                    isCandidateLive={isCandidateLive}
+                    onSelectCandidate={handleSelectCandidate}
+                    onDismissCandidates={handleDismissCandidates}
+                    onSetInteracting={(isInteracting) => {
+                      isInteractingWithCandidatesRef.current = isInteracting;
+                      if (!isInteracting && persistedCandidates.length > 0) {
+                        if (candidateTimeoutRef.current) clearTimeout(candidateTimeoutRef.current);
+                        candidateTimeoutRef.current = setTimeout(() => {
+                          if (!isInteractingWithCandidatesRef.current) {
+                            setPersistedCandidates([]);
+                          }
+                        }, 3500);
+                      }
+                    }}
+                    currentGlosses={glosses}
+                    onUndo={handleUndo}
+                    onClear={handleClear}
+                    roomId={roomId}
+                    onCopyLink={() => {
+                      const shareUrl = getRoomShareUrl();
+                      if (navigator.clipboard) {
+                        navigator.clipboard.writeText(shareUrl);
+                      }
+                    }}
+                  />
+
+                  <LiveGlossBar
+                    glosses={glosses}
+                    previewText={previewText}
+                    motionState={motionState}
+                    candidates={persistedCandidates}
+                    onSelectCandidate={handleSelectCandidate}
+                    onRemoveAt={handleRemoveGloss}
+                    onUndo={handleUndo}
+                    onClear={handleClear}
+                    onCommit={handleCommit}
+                  />
+                </div>
+
+                {/* Right Pane: Live Scrollable Auto-Conversion Feed */}
+                <div
+                  className={`w-full md:w-[42%] lg:w-[40%] h-full min-h-0 overflow-hidden flex flex-col flex-1 ${
+                    mobileTab === 'chat' ? 'flex' : 'hidden md:flex'
                   }`}
                 >
-                  <Sparkles className="w-3.5 h-3.5 stroke-[2.2]" />
-                  <span>Auto-Conversion Feed</span>
-                  {allMessages.length > 0 && (
-                    <span className="cartoon-badge !py-0 !px-1.5 text-[9px] bg-white text-zinc-900 shadow-none">
-                      {allMessages.length}
-                    </span>
-                  )}
-                </button>
+                  <ChatPanel
+                    messages={allMessages}
+                    incomingPartialSigning={incomingPartialSigning}
+                    localGlosses={glosses}
+                    localPreviewText={previewText}
+                    motionState={motionState}
+                    onSendMessage={sendTextReply}
+                    currentUserRole="peer"
+                    currentUserName={userName}
+                    peerPresence={peerPresence}
+                    connectionMode={connectionMode}
+                    rttMs={rttMs}
+                    onClearMessages={() => setLocalCommittedSentences([])}
+                  />
+                </div>
               </div>
             </div>
-
-            {/* Side-by-side flex panes on tablet & desktop screens */}
-            <div className="flex flex-col md:flex-row gap-3 sm:gap-4 h-full min-h-0 overflow-hidden items-stretch">
-              {/* Left Pane: Dual Camera Viewport on top + Sign Buffer below */}
-              <div
-                className={`w-full md:w-[58%] lg:w-[60%] flex flex-col gap-3 sm:gap-4 h-full min-h-0 overflow-hidden flex-shrink-0 ${
-                  mobileTab === 'stage' ? 'flex' : 'hidden md:flex'
-                }`}
-              >
-                <SignerStage
-                  onFrame={handleFrame}
-                  onFpsUpdate={setFps}
-                  fps={fps}
-                  profilingData={profilingData}
-                  commitPauseMs={commitPauseMs}
-                  onPauseChange={handlePauseChange}
-                  latestLandmarks={latestLandmarks}
-                  isWorkerReady={isWorkerReady}
-                  motionState={motionState}
-                  bufferSize={bufferSize}
-                  alphabetPredictions={alphabetPredictions}
-                  wordPredictions={wordPredictions}
-                  latestConfirmedWord={latestConfirmedWord}
-                  latestReply={latestIncomingReply}
-                  recognitionMode={recognitionMode}
-                  onToggleMode={setRecognitionMode}
-                  onStreamChange={setLocalStream}
-                  remoteStream={remoteStream}
-                  peerPresence={peerPresence}
-                  onOpenGuide={() => setIsGuideOpen(true)}
-                  candidates={persistedCandidates}
-                  isCandidateLive={isCandidateLive}
-                  onSelectCandidate={handleSelectCandidate}
-                  onDismissCandidates={handleDismissCandidates}
-                  onSetInteracting={(isInteracting) => {
-                    isInteractingWithCandidatesRef.current = isInteracting;
-                    if (!isInteracting && persistedCandidates.length > 0) {
-                      if (candidateTimeoutRef.current) clearTimeout(candidateTimeoutRef.current);
-                      candidateTimeoutRef.current = setTimeout(() => {
-                        if (!isInteractingWithCandidatesRef.current) {
-                          setPersistedCandidates([]);
-                        }
-                      }, 3500);
-                    }
-                  }}
-                  currentGlosses={glosses}
-                  onUndo={handleUndo}
-                  onClear={handleClear}
-                  roomId={roomId}
-                  onCopyLink={() => {
-                    const shareUrl = getRoomShareUrl();
-                    if (navigator.clipboard) {
-                      navigator.clipboard.writeText(shareUrl);
-                    }
-                  }}
-                />
-
-                <LiveGlossBar
-                  glosses={glosses}
-                  previewText={previewText}
-                  motionState={motionState}
-                  candidates={persistedCandidates}
-                  onSelectCandidate={handleSelectCandidate}
-                  onRemoveAt={handleRemoveGloss}
-                  onUndo={handleUndo}
-                  onClear={handleClear}
-                  onCommit={handleCommit}
-                />
-              </div>
-
-              {/* Right Pane: Live Scrollable Auto-Conversion Feed */}
-              <div
-                className={`w-full md:w-[42%] lg:w-[40%] h-full min-h-0 overflow-hidden flex flex-col flex-1 ${
-                  mobileTab === 'chat' ? 'flex' : 'hidden md:flex'
-                }`}
-              >
-                <ChatPanel
-                  messages={allMessages}
-                  incomingPartialSigning={incomingPartialSigning}
-                  localGlosses={glosses}
-                  localPreviewText={previewText}
-                  motionState={motionState}
-                  onSendMessage={sendTextReply}
-                  currentUserRole="peer"
-                  currentUserName={userName}
-                  peerPresence={peerPresence}
-                  connectionMode={connectionMode}
-                  rttMs={rttMs}
-                  onClearMessages={() => setLocalCommittedSentences([])}
-                />
-              </div>
-            </div>
-          </div>
+          </ErrorBoundary>
         )}
       </main>
 

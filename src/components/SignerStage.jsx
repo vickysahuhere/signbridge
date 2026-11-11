@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Camera,
   CameraOff,
@@ -688,12 +688,12 @@ export function SignerStage({
         </div>
 
         {/* 3. Bottom Controls Bar */}
-        <div className="flex items-center justify-between gap-2 mt-2 pt-1 flex-shrink-0 flex-wrap">
-          <div className="flex items-center gap-1.5">
+        <div className="flex items-center justify-between gap-1.5 sm:gap-2 mt-2 pt-1 flex-shrink-0 flex-wrap">
+          <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
             {isCameraActive ? (
               <button
                 onClick={stopCamera}
-                className="cartoon-btn cartoon-btn-coral !py-1 !px-2.5 text-xs font-bold"
+                className="cartoon-btn cartoon-btn-coral !py-1 !px-2 sm:!px-2.5 text-xs font-bold flex-shrink-0"
               >
                 <CameraOff className="w-3.5 h-3.5 stroke-[2.2]" />
                 <span>Stop Camera</span>
@@ -702,7 +702,7 @@ export function SignerStage({
               <button
                 onClick={startCamera}
                 disabled={isLoadingCamera}
-                className="cartoon-btn cartoon-btn-mint !py-1 !px-2.5 text-xs font-bold"
+                className="cartoon-btn cartoon-btn-mint !py-1 !px-2 sm:!px-2.5 text-xs font-bold flex-shrink-0"
               >
                 <Camera className="w-3.5 h-3.5 stroke-[2.2]" />
                 <span>Start Camera</span>
@@ -712,7 +712,7 @@ export function SignerStage({
             {isCameraActive && (
               <button
                 onClick={() => setShowSkeleton(!showSkeleton)}
-                className={`cartoon-btn !py-1 !px-2.5 text-xs font-bold ${
+                className={`cartoon-btn !py-1 !px-2 sm:!px-2.5 text-xs font-bold flex-shrink-0 ${
                   showSkeleton ? 'bg-zinc-900 text-white' : 'bg-white text-zinc-700'
                 }`}
                 title="Toggle skeleton landmarks overlay"
@@ -724,7 +724,7 @@ export function SignerStage({
 
             <button
               onClick={() => setShowProfiler(prev => !prev)}
-              className={`cartoon-btn !py-1 !px-2 text-xs font-bold ${
+              className={`cartoon-btn !py-1 !px-2 text-xs font-bold flex-shrink-0 ${
                 showProfiler ? 'bg-[#FFC800] text-zinc-900' : 'bg-white text-zinc-600'
               }`}
               title="Toggle Pipeline Latency HUD"
@@ -736,7 +736,7 @@ export function SignerStage({
               <button
                 type="button"
                 onClick={onUndo}
-                className="cartoon-btn !py-1 !px-2.5 text-xs font-extrabold bg-white text-zinc-800 hover:text-zinc-950 flex items-center gap-1 border-2 border-zinc-900 shadow-cartoon-sm"
+                className="cartoon-btn !py-1 !px-2 sm:!px-2.5 text-xs font-extrabold bg-white text-zinc-800 hover:text-zinc-950 flex items-center gap-1 border-2 border-zinc-900 shadow-cartoon-sm flex-shrink-0"
                 title="Undo last sign (1-click)"
               >
                 <Undo2 className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -745,7 +745,7 @@ export function SignerStage({
             )}
           </div>
 
-          <div className="flex items-center gap-1 text-[11px] font-mono text-zinc-500">
+          <div className="flex items-center gap-1 text-[11px] font-mono text-zinc-500 flex-shrink-0">
             <span>Buffer:</span>
             <span className="font-bold text-zinc-800">{bufferSize}/30</span>
           </div>

@@ -24,7 +24,8 @@ import {
   getWorkingModel,
   setWorkingModel,
   buildAlternatingChatMessages,
-  fetchLiveActiveModels
+  fetchLiveActiveModels,
+  pruneHistoryForTokenEfficiency
 } from '../src/utils/byokChatbotService.js';
 
 test('pageContextManager - builds comprehensive grounded context for Home page', () => {
@@ -380,4 +381,45 @@ test('byokChatbotService - buildAlternatingChatMessages guarantees valid LLM rol
   assert.ok(messages2[2].content.includes('Keep hand relaxed.'));
   assert.equal(messages2[3].role, 'user');
   assert.equal(messages2[3].content, 'Got it, thank you!');
+});
+
+test('byokChatbotService - pruneHistoryForTokenEfficiency compresses long history and prevents quadratic token bloat', () => {
+  // Generate a long 12-message history with verbose assistant responses
+  const longHistory = [];
+  for (let i = 1; i <= 6; i++) {
+    longHistory.push({
+      id: `u-${i}`,
+      role: 'user',
+      text: `Question ${i}: How do I do step ${i}?`
+    });
+    longHistory.push({
+      id: `a-${i}`,
+      role: 'assistant',
+      text: `Answer ${i}: `.repeat(50) // ~550 characters long verbose response
+    });
+  }
+
+  assert.equal(longHistory.length, 12);
+
+  // Apply token efficiency pruning with maxTurns = 4
+  const pruned = pruneHistoryForTokenEfficiency(longHistory, 4, 100);
+
+  // 1. Must only retain the most recent 4 messages
+  assert.equal(pruned.length, 4);
+  assert.equal(pruned[0].id, 'u-5');
+  assert.equal(pruned[1].id, 'a-5');
+  assert.equal(pruned[2].id, 'u-6');
+  assert.equal(pruned[3].id, 'a-6');
+
+  // 2. Older assistant response (a-5) must be truncated to save tokens
+  assert.ok(pruned[1].text.includes('[truncated for context]'));
+  assert.ok(pruned[1].text.length < 150);
+
+  // 3. User turns must remain intact for intent preservation
+  assert.equal(pruned[0].text, 'Question 5: How do I do step 5?');
+  assert.equal(pruned[2].text, 'Question 6: How do I do step 6?');
+
+  // 4. Handles empty or null gracefully
+  assert.deepEqual(pruneHistoryForTokenEfficiency([]), []);
+  assert.deepEqual(pruneHistoryForTokenEfficiency(null), []);
 });

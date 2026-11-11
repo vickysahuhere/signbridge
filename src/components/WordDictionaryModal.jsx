@@ -102,26 +102,28 @@ export function WordDictionaryModal({ isOpen, onClose, onSelectForPractice }) {
                   setActiveTab('words');
                   setSearchQuery('');
                 }}
-                className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-black transition-all ${
+                className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-black transition-all flex-shrink-0 ${
                   activeTab === 'words'
                     ? 'bg-[#FFC800] text-zinc-900 border-2 border-zinc-900 shadow-cartoon-sm'
                     : 'text-zinc-600 hover:text-zinc-900 border-2 border-transparent'
                 }`}
               >
-                1,000+ Lexicon Words ({ISL_WORD_LABELS.length})
+                <span className="hidden sm:inline">1,000+ Lexicon Words</span>
+                <span className="sm:hidden">Words</span> ({ISL_WORD_LABELS.length})
               </button>
               <button
                 onClick={() => {
                   setActiveTab('alphabet');
                   setSearchQuery('');
                 }}
-                className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-black transition-all ${
+                className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-black transition-all flex-shrink-0 ${
                   activeTab === 'alphabet'
                     ? 'bg-[#1CB0F6] text-zinc-900 border-2 border-zinc-900 shadow-cartoon-sm'
                     : 'text-zinc-600 hover:text-zinc-900 border-2 border-transparent'
                 }`}
               >
-                A–Z Fingerspelling (26)
+                <span className="hidden sm:inline">A–Z Fingerspelling</span>
+                <span className="sm:hidden">A–Z</span> (26)
               </button>
             </div>
 
