@@ -155,19 +155,60 @@ export function setWorkingModel(provider, model) {
 }
 
 /**
+ * Prunes and compresses chat history to minimize token consumption:
+ * 1. Retains only the most recent `maxTurns` (default: 6 messages, e.g. 3 back-and-forth turns).
+ * 2. Compresses older assistant responses exceeding `maxAssistantChars` (default: 280 chars),
+ *    preventing historical essay responses from quadratic token bloat.
+ * 3. Keeps user's past prompts intact so contextual intent is preserved.
+ *
+ * @param {Array} history - Full chat history
+ * @param {number} [maxTurns=6] - Number of recent turns to retain
+ * @param {number} [maxAssistantChars=280] - Max character length for older assistant turns
+ * @returns {Array} Token-optimized history array
+ */
+export function pruneHistoryForTokenEfficiency(history = [], maxTurns = 6, maxAssistantChars = 280) {
+  if (!Array.isArray(history) || history.length === 0) return [];
+
+  // Window to the most recent turns
+  const recent = history.slice(-maxTurns);
+
+  return recent.map((item, idx) => {
+    if (!item || !item.text) return item;
+
+    // For assistant messages (except the very last turn if it's right before user), compress length
+    if (item.role === 'assistant' && item.text.length > maxAssistantChars && idx < recent.length - 1) {
+      return {
+        ...item,
+        text: item.text.slice(0, maxAssistantChars).trim() + '... [truncated for context]'
+      };
+    }
+    return item;
+  });
+}
+
+/**
  * Ensures message history strictly follows the required alternating conversation pattern:
  * system (optional, first) -> user -> assistant -> user -> ...
  * Drops leading assistant messages (e.g. initial welcome greeting), merges duplicate adjacent roles,
- * and ensures the payload ends with the current user message.
+ * prunes history for token efficiency, and ensures the payload ends with the current user message.
  */
-export function buildAlternatingChatMessages(systemInstruction, history = [], currentMessage = '') {
+export function buildAlternatingChatMessages(
+  systemInstruction,
+  history = [],
+  currentMessage = '',
+  options = {}
+) {
+  const maxTurns = options.maxTurns ?? 6;
+  const maxAssistantChars = options.maxAssistantChars ?? 280;
+  const optimizedHistory = pruneHistoryForTokenEfficiency(history, maxTurns, maxAssistantChars);
+
   const result = [];
   if (systemInstruction) {
     result.push({ role: 'system', content: systemInstruction });
   }
 
   const turns = [];
-  for (const h of history) {
+  for (const h of optimizedHistory) {
     if (!h.text || !h.text.trim()) continue;
     // Skip leading assistant messages (e.g. welcome greeting) before any user turn
     if (turns.length === 0 && h.role === 'assistant') continue;
@@ -753,7 +794,7 @@ export async function sendChatbotMessage({
             contents,
             generationConfig: {
               temperature: 0.4,
-              maxOutputTokens: 1000
+              maxOutputTokens: 500
             }
           })
         });
@@ -838,7 +879,7 @@ export async function sendChatbotMessage({
             model,
             messages,
             temperature: 0.4,
-            max_completion_tokens: 1000
+            max_completion_tokens: 500
           })
         });
 
@@ -920,7 +961,7 @@ export async function sendChatbotMessage({
             model,
             messages,
             temperature: 0.4,
-            max_tokens: 1000
+            max_tokens: 500
           })
         });
 
@@ -987,7 +1028,7 @@ export async function sendChatbotMessage({
             model,
             messages,
             temperature: 0.4,
-            max_tokens: 1000
+            max_tokens: 500
           })
         });
 
