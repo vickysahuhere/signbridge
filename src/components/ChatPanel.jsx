@@ -185,8 +185,9 @@ export function ChatPanel({
                   Auto-commits in {remainingSeconds}s...
                 </span>
               ) : (
-                <span className="text-xs font-mono font-bold text-emerald-700">
-                  ⚡ Live Guessing
+                <span className="text-xs font-mono font-bold text-emerald-700 inline-flex items-center gap-1">
+                  <Zap className="w-3 h-3 text-emerald-600 fill-emerald-600" />
+                  <span>Live Guessing</span>
                 </span>
               )}
             </div>
@@ -380,20 +381,20 @@ export function ChatPanel({
         </div>
 
         {/* Minimal Typed Message Bar (Hearing Partner Fallback) */}
-        <form onSubmit={handleSubmit} className="p-2 sm:p-2.5 flex items-center gap-2">
+        <form onSubmit={handleSubmit} className="p-2 sm:p-2.5 flex items-center gap-1.5 sm:gap-2">
           <input
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            placeholder="Type optional text reply for hearing partner..."
-            className="duo-input flex-1 text-xs py-1.5 px-3"
+            placeholder="Type text reply..."
+            className="duo-input flex-1 text-xs py-2 px-3"
           />
           <button
             type="submit"
             disabled={!inputText.trim()}
-            className="duo-btn duo-btn-blue font-black text-xs py-1.5 px-3 flex items-center gap-1"
+            className="duo-btn duo-btn-blue font-black text-xs py-2 px-3.5 flex items-center gap-1 min-h-[38px] flex-shrink-0"
           >
-            <Send className="w-3 h-3 stroke-[2.5]" />
+            <Send className="w-3.5 h-3.5 stroke-[2.5]" />
             <span className="hidden sm:inline">Send</span>
           </button>
         </form>

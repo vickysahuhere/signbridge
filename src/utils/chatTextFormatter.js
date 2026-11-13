@@ -10,7 +10,7 @@
  * - Links: [label](url), raw URLs (https://...)
  * - Unordered bullet lists: root bullets (•, -, *), nested sub-bullets (  - item)
  * - Ordered lists: 1. item, 2. item
- * - Callout alerts: ⚠️, 💡, ℹ️, ❗, > quote
+ * - Callout alerts: [Warning], [Tip], [Info], > quote
  * - Fenced code blocks: ```lang ... ```
  * - Horizontal rules: ---, ***, ___
  */
@@ -183,15 +183,18 @@ export function parseMessageBlocks(text) {
     // Callout / Alert / Blockquote
     if (
       trimmed.startsWith('> ') ||
-      trimmed.startsWith('⚠️') ||
-      trimmed.startsWith('💡') ||
-      trimmed.startsWith('ℹ️') ||
-      trimmed.startsWith('❗')
+      trimmed.startsWith('\u26A0\uFE0F') ||
+      trimmed.startsWith('\uD83D\uDCA1') ||
+      trimmed.startsWith('\u2139\uFE0F') ||
+      trimmed.startsWith('\u2757') ||
+      trimmed.startsWith('[Tip]') ||
+      trimmed.startsWith('[Warning]') ||
+      trimmed.startsWith('[Info]')
     ) {
       let alertType = 'quote';
-      if (trimmed.startsWith('⚠️') || trimmed.startsWith('❗')) alertType = 'warning';
-      else if (trimmed.startsWith('💡')) alertType = 'tip';
-      else if (trimmed.startsWith('ℹ️')) alertType = 'info';
+      if (trimmed.startsWith('\u26A0\uFE0F') || trimmed.startsWith('\u2757') || trimmed.startsWith('[Warning]')) alertType = 'warning';
+      else if (trimmed.startsWith('\uD83D\uDCA1') || trimmed.startsWith('[Tip]')) alertType = 'tip';
+      else if (trimmed.startsWith('\u2139\uFE0F') || trimmed.startsWith('[Info]')) alertType = 'info';
 
       const content = trimmed.startsWith('> ') ? trimmed.substring(2) : trimmed;
       blocks.push({

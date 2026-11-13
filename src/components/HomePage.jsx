@@ -10,9 +10,11 @@ import {
   Compass,
   Hash,
   HelpCircle,
-  MessageSquare
+  MessageSquare,
+  Hand
 } from 'lucide-react';
 import { HomeChatbotPopup } from './HomeChatbotPopup.jsx';
+import AnimatedHeroOtter from './AnimatedHeroOtter.jsx';
 
 /**
  * Artistic Vector SVG for Learn ISL (Duolingo-Inspired Art Direction)
@@ -45,6 +47,18 @@ function ArtisticLearnIllustration({ className = 'w-full h-auto' }) {
         <linearGradient id="duoMintFacet" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stopColor="#F0FDF4" />
           <stop offset="100%" stopColor="#DCFCE7" />
+        </linearGradient>
+        {/* Otter Coat Rich Gradients (Otter's Natural Colors) */}
+        <linearGradient id="otterFurMain" x1="50%" y1="10%" x2="50%" y2="100%">
+          <stop offset="0%" stopColor="#9E6439" />
+          <stop offset="48%" stopColor="#844F27" />
+          <stop offset="100%" stopColor="#643613" />
+        </linearGradient>
+
+        <linearGradient id="otterBibMain" x1="50%" y1="0%" x2="50%" y2="100%">
+          <stop offset="0%" stopColor="#FFFDF7" />
+          <stop offset="45%" stopColor="#FFF4DF" />
+          <stop offset="100%" stopColor="#F5DFBD" />
         </linearGradient>
       </defs>
 
@@ -183,196 +197,219 @@ function ArtisticLearnIllustration({ className = 'w-full h-auto' }) {
         </text>
       </g>
 
-      {/* 5. Central Character: The Happy Duolingo-Style ISL Learner */}
-      <g id="duo-learner-character" transform="translate(112, 38)">
-        {/* Character Torso / Cozy Hoodie (Duolingo Purple) */}
-        {/* Hoodie Drop Shadow */}
+      {/* 5. Central Character: Mitra the ISL Otter Learner (Anatomically Polished Mascot) */}
+      <g id="duo-learner-character">
+        {/* Curved Otter Tail resting on right */}
         <path
-          d="M 28 142 C 28 116, 44 98, 70 98 C 96 98, 112 116, 112 142 Z"
+          d="M 218 140 C 236 142, 248 150, 249 160 C 250 168, 240 173, 226 170 C 218 168, 212 160, 214 150 Z"
+          fill="#522C0E"
+          stroke="#18181B"
+          strokeWidth="2.5"
+          strokeLinejoin="round"
+        />
+
+        {/* Natural Seated Otter Torso in Cozy Purple Hoodie (Seamless Silhouette, No Donut!) */}
+        <path
+          d="M 160 88 C 146 96, 140 114, 138 132 C 136 150, 134 164, 140 171 C 146 176, 214 176, 220 171 C 226 164, 224 150, 222 132 C 220 114, 214 96, 200 88 Z"
           fill="#18181B"
         />
-        {/* Hoodie Body */}
         <path
-          d="M 26 138 C 26 112, 42 95, 68 95 C 94 95, 110 112, 110 138 Z"
-          fill="#CE82FF"
+          d="M 160 86 C 146 94, 140 112, 138 130 C 136 148, 134 162, 140 169 C 146 174, 214 174, 220 169 C 226 162, 224 148, 222 130 C 220 112, 214 94, 200 86 Z"
+          fill="#8B5CF6"
           stroke="#18181B"
           strokeWidth="2.8"
           strokeLinejoin="round"
         />
-        {/* Hoodie Bottom Hem Shade */}
+
+        {/* Hoodie Bottom Ribbed Hem */}
         <path
-          d="M 27 132 C 40 136, 96 136, 109 132 L 110 138 C 94 142, 42 142, 26 138 Z"
-          fill="#A559D9"
+          d="M 140 160 C 152 165, 208 165, 220 160 L 220 168 C 210 173, 150 173, 140 168 Z"
+          fill="#7C3AED"
+          stroke="#18181B"
+          strokeWidth="2"
         />
-        {/* Hoodie Strings */}
-        <path d="M 60 102 C 60 114, 57 122, 57 124" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" />
-        <circle cx="57" cy="125" r="2" fill="#FFC800" stroke="#18181B" strokeWidth="1" />
-        <path d="M 76 102 C 76 114, 79 122, 79 124" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" />
-        <circle cx="79" cy="125" r="2" fill="#FFC800" stroke="#18181B" strokeWidth="1" />
 
-        {/* Neck */}
-        <rect x="61" y="86" width="14" height="12" rx="3" fill="#FFE2CD" stroke="#18181B" strokeWidth="2.4" />
+        {/* Hoodie Kangaroo Pocket */}
+        <path
+          d="M 158 144 C 168 140, 192 140, 202 144 C 205 158, 203 162, 200 163 C 188 165, 172 165, 160 163 C 157 162, 155 158, 158 144 Z"
+          fill="#EDE9FE"
+          stroke="#18181B"
+          strokeWidth="2"
+          strokeLinejoin="round"
+        />
 
-        {/* Head Base */}
-        <ellipse cx="68" cy="58" rx="30" ry="32" fill="#FFE2CD" stroke="#18181B" strokeWidth="2.8" />
+        {/* Hoodie Drawstring V & Collar */}
+        <path d="M 172 88 L 180 102 L 188 88" stroke="#6D28D9" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <circle cx="178" cy="107" r="1.5" fill="#FFFFFF" />
+        <circle cx="182" cy="107" r="1.5" fill="#FFFFFF" />
 
-        {/* Cute Ears */}
-        <circle cx="37" cy="58" r="6.5" fill="#FFE2CD" stroke="#18181B" strokeWidth="2.4" />
-        <circle cx="99" cy="58" r="6.5" fill="#FFE2CD" stroke="#18181B" strokeWidth="2.4" />
+        {/* Natural Arms Extending from Shoulders to Center Chest */}
+        {/* Left Sleeve */}
+        <path
+          d="M 144 104 C 138 116, 142 128, 154 136 C 158 139, 164 138, 166 134 C 168 130, 162 122, 156 114 C 152 108, 148 104, 144 104 Z"
+          fill="#7C3AED"
+          stroke="#18181B"
+          strokeWidth="2.4"
+          strokeLinejoin="round"
+        />
+        {/* Right Sleeve */}
+        <path
+          d="M 216 104 C 222 116, 218 128, 206 136 C 202 139, 196 138, 194 134 C 192 130, 198 122, 204 114 C 208 108, 212 104, 216 104 Z"
+          fill="#7C3AED"
+          stroke="#18181B"
+          strokeWidth="2.4"
+          strokeLinejoin="round"
+        />
+
+        {/* Otter Head Base */}
+        <ellipse cx="180" cy="62" rx="36" ry="29" fill="#18181B" />
+        <ellipse cx="180" cy="60" rx="36" ry="28" fill="url(#otterFurMain)" stroke="#18181B" strokeWidth="2.8" />
+
+        {/* Rounded Otter Ears */}
+        <g>
+          <path d="M 145 50 C 137 45, 137 32, 149 35 C 156 37, 158 48, 153 54 Z" fill="#7A451E" stroke="#18181B" strokeWidth="2.4" strokeLinejoin="round" />
+          <path d="M 144 47 C 140 43, 141 36, 148 38 C 152 39, 153 44, 150 48 Z" fill="#FCE2C4" />
+        </g>
+        <g>
+          <path d="M 215 50 C 223 45, 223 32, 211 35 C 204 37, 202 48, 207 54 Z" fill="#7A451E" stroke="#18181B" strokeWidth="2.4" strokeLinejoin="round" />
+          <path d="M 216 47 C 220 43, 219 36, 212 38 C 208 39, 207 44, 210 48 Z" fill="#FCE2C4" />
+        </g>
 
         {/* Playful Snapback Cap (Duolingo Gold) */}
-        {/* Cap Shadow */}
-        <path d="M 38 48 C 38 28, 50 18, 68 18 C 86 18, 98 28, 98 48 Z" fill="#18181B" />
-        {/* Cap Dome */}
-        <path d="M 37 46 C 37 26, 49 16, 68 16 C 87 16, 99 26, 99 46 Z" fill="#FFC800" stroke="#18181B" strokeWidth="2.6" />
-        {/* Cap Button */}
-        <circle cx="68" cy="15" r="3.5" fill="#58CC02" stroke="#18181B" strokeWidth="1.8" />
-        {/* Cap Visor / Brim */}
-        <path d="M 30 46 C 45 42, 91 42, 106 46 C 104 52, 98 54, 68 53 C 38 54, 32 52, 30 46 Z" fill="#E5A500" stroke="#18181B" strokeWidth="2.6" strokeLinejoin="round" />
+        <path d="M 152 44 C 152 26, 164 16, 180 16 C 196 16, 208 26, 208 44 Z" fill="#18181B" />
+        <path d="M 151 42 C 151 24, 163 14, 180 14 C 197 14, 209 24, 209 42 Z" fill="#FFC800" stroke="#18181B" strokeWidth="2.6" />
+        <circle cx="180" cy="13" r="3.5" fill="#58CC02" stroke="#18181B" strokeWidth="1.8" />
+        <path d="M 144 43 C 159 39, 201 39, 216 43 C 214 49, 208 51, 180 50 C 152 51, 146 49, 144 43 Z" fill="#E5A500" stroke="#18181B" strokeWidth="2.6" strokeLinejoin="round" />
 
-        {/* Stylized Hair Tufts peeking under cap */}
-        <path d="M 40 47 C 44 54, 46 56, 48 49" stroke="#18181B" strokeWidth="2.4" strokeLinecap="round" fill="#18181B" />
-        <path d="M 88 49 C 90 56, 92 54, 96 47" stroke="#18181B" strokeWidth="2.4" strokeLinecap="round" fill="#18181B" />
+        {/* Broad Cream Muzzle */}
+        <path
+          d="M 156 65 C 156 55, 167 52, 175 56 C 177 57, 183 57, 185 56 C 193 52, 204 55, 204 65 C 206 77, 195 83, 180 83 C 165 83, 154 77, 156 65 Z"
+          fill="url(#otterBibMain)"
+          stroke="#18181B"
+          strokeWidth="2.4"
+          strokeLinejoin="round"
+        />
 
-        {/* Rosy Cheerful Blushing Cheeks */}
-        <circle cx="48" cy="68" r="5.5" fill="#FFAA8A" opacity="0.85" />
-        <circle cx="88" cy="68" r="5.5" fill="#FFAA8A" opacity="0.85" />
+        {/* Rosy Cheeks */}
+        <ellipse cx="152" cy="68" rx="6" ry="4.5" fill="#FFA58C" opacity="0.85" />
+        <ellipse cx="208" cy="68" rx="6" ry="4.5" fill="#FFAA8A" opacity="0.85" />
 
-        {/* Duolingo Big Sparkling Expressive Eyes */}
-        {/* Left Eye */}
-        <ellipse cx="53" cy="58" rx="6.5" ry="8" fill="#18181B" />
-        <circle cx="51.5" cy="55.5" r="2.8" fill="#FFFFFF" />
-        <circle cx="55.5" cy="60.5" r="1.2" fill="#FFFFFF" />
+        {/* Big Sparkling Expressive Eyes */}
+        <ellipse cx="164" cy="54" rx="7.5" ry="9" fill="#18181B" />
+        <circle cx="162.5" cy="51.5" r="3.2" fill="#FFFFFF" />
+        <circle cx="166.5" cy="57" r="1.4" fill="#FFFFFF" />
 
-        {/* Right Eye */}
-        <ellipse cx="83" cy="58" rx="6.5" ry="8" fill="#18181B" />
-        <circle cx="81.5" cy="55.5" r="2.8" fill="#FFFFFF" />
-        <circle cx="85.5" cy="60.5" r="1.2" fill="#FFFFFF" />
+        <ellipse cx="196" cy="54" rx="7.5" ry="9" fill="#18181B" />
+        <circle cx="194.5" cy="51.5" r="3.2" fill="#FFFFFF" />
+        <circle cx="198.5" cy="57" r="1.4" fill="#FFFFFF" />
 
-        {/* Friendly Curved Eyebrows */}
-        <path d="M 47 48 C 51 45, 57 46, 59 48" stroke="#18181B" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-        <path d="M 77 48 C 79 46, 85 45, 89 48" stroke="#18181B" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+        {/* Otter Button Nose */}
+        <path
+          d="M 174 63 C 174 58.5, 186 58.5, 186 63 C 186 68, 182 70.5, 180 70.5 C 178 70.5, 174 68, 174 63 Z"
+          fill="#1F1713"
+          stroke="#18181B"
+          strokeWidth="1.8"
+        />
+        <ellipse cx="178" cy="61.5" rx="2.5" ry="1.2" fill="#FFFFFF" opacity="0.85" />
 
-        {/* Cute Open Beaming Smile */}
-        <path d="M 60 69 C 60 77, 76 77, 76 69 Z" fill="#FF4B4B" stroke="#18181B" strokeWidth="2.4" strokeLinejoin="round" />
-        <path d="M 64 73 C 65 71, 71 71, 72 73 Z" fill="#FFAA8A" />
-      </g>
+        {/* Cheerful Smile */}
+        <path d="M 180 70.5 L 180 73.5" stroke="#18181B" strokeWidth="2" strokeLinecap="round" />
+        <path d="M 173 73.5 C 176 76.5, 180 76.5, 180 73.5 C 180 76.5, 184 76.5, 187 73.5" stroke="#18181B" strokeWidth="2" strokeLinecap="round" fill="none" />
 
-      {/* 6. Main Signing Hands in Authentic ISL Posture (Namaste / Cupped "A") */}
-      {/* Hand Group with Drop Shadows & Outlines */}
-      <g id="duo-signing-hands">
-        {/* Left Hand (Mirrored Viewer Left - Handshape A / Open Support) */}
-        <g transform="translate(126, 96)">
-          {/* Shadow */}
+        {/* Cute Whiskers */}
+        <path d="M 160 70 C 150 69, 142 72, 136 75" stroke="#4A260F" strokeWidth="1.2" strokeLinecap="round" opacity="0.85" />
+        <path d="M 161 74 C 151 75, 143 80, 138 84" stroke="#4A260F" strokeWidth="1.2" strokeLinecap="round" opacity="0.85" />
+        <path d="M 200 70 C 210 69, 218 72, 224 75" stroke="#4A260F" strokeWidth="1.2" strokeLinecap="round" opacity="0.85" />
+        <path d="M 199 74 C 209 75, 217 80, 222 84" stroke="#4A260F" strokeWidth="1.2" strokeLinecap="round" opacity="0.85" />
+
+        {/* 6. Adorable, Proportionate Otter Paws in Authentic ISL Posture */}
+        {/* Left Paw (Mirrored Viewer Left) */}
+        <g id="learner-left-paw">
+          {/* Fur wrist cuff */}
+          <ellipse cx="164" cy="132" rx="7" ry="4" fill="#643613" stroke="#18181B" strokeWidth="2" />
+          {/* Paw Palm & Fingers */}
           <path
-            d="M 12 56 C 8 48, 4 36, 7 24 C 9 16, 17 15, 20 22 C 22 28, 22 36, 21 42 C 24 34, 27 22, 31 16 C 34 11, 41 12, 42 18 C 44 26, 42 36, 41 42 C 45 36, 50 28, 54 26 C 58 24, 63 27, 62 33 C 61 42, 57 52, 52 60 C 46 68, 38 72, 28 72 L 12 66 Z"
-            fill="#18181B"
-          />
-          {/* Hand Body */}
-          <path
-            d="M 10 53 C 6 45, 2 33, 5 21 C 7 13, 15 12, 18 19 C 20 25, 20 33, 19 39 C 22 31, 25 19, 29 13 C 32 8, 39 9, 40 15 C 42 23, 40 33, 39 39 C 43 33, 48 25, 52 23 C 56 21, 61 24, 60 30 C 59 39, 55 49, 50 57 C 44 65, 36 69, 26 69 L 10 63 Z"
+            d="M 158 132 C 156 122, 157 114, 161 107 C 163 103, 168 104, 169 108 C 170 112, 170 118, 171 122 C 173 117, 175 110, 178 111 C 181 112, 181 117, 179 122 C 180 126, 178 134, 170 135 Z"
             fill="#FFEAD8"
             stroke="#18181B"
-            strokeWidth="2.6"
+            strokeWidth="2.2"
             strokeLinejoin="round"
-            strokeLinecap="round"
           />
-          {/* Thumb */}
-          <path
-            d="M 18 42 C 12 40, 6 46, 7 52 C 8 57, 14 60, 22 58"
-            fill="#FFEAD8"
-            stroke="#18181B"
-            strokeWidth="2.4"
-            strokeLinecap="round"
-          />
-          {/* Yellow Wrist Cuff */}
-          <rect x="12" y="60" width="28" height="7" rx="3" fill="#FFC800" stroke="#18181B" strokeWidth="2.2" />
+          {/* Soft Paw Pad accent */}
+          <ellipse cx="166" cy="126" rx="3.5" ry="4" fill="#FCE2C4" />
         </g>
 
-        {/* Right Hand (Viewer Right - Dominant Handshape forming Authentic ISL letter / gesture) */}
-        <g transform="translate(182, 92)">
-          {/* Shadow */}
+        {/* Right Paw (Viewer Right) */}
+        <g id="learner-right-paw">
+          {/* Fur wrist cuff */}
+          <ellipse cx="196" cy="132" rx="7" ry="4" fill="#643613" stroke="#18181B" strokeWidth="2" />
+          {/* Paw Palm & Fingers */}
           <path
-            d="M 14 62 C 10 50, 6 36, 9 20 C 11 12, 19 12, 21 19 C 23 27, 23 38, 22 45 C 26 36, 30 20, 34 14 C 37 8, 45 9, 46 16 C 48 26, 45 38, 44 46 C 48 39, 54 28, 58 26 C 62 24, 68 28, 66 35 C 64 46, 59 58, 52 68 C 45 76, 35 80, 24 80 L 14 72 Z"
-            fill="#18181B"
-          />
-          {/* Hand Body */}
-          <path
-            d="M 11 58 C 7 46, 3 32, 6 16 C 8 8, 16 8, 18 15 C 20 23, 20 34, 19 41 C 23 32, 27 16, 31 10 C 34 4, 42 5, 43 12 C 45 22, 42 34, 41 42 C 45 35, 51 24, 55 22 C 59 20, 65 24, 63 31 C 61 42, 56 54, 49 64 C 42 72, 32 76, 21 76 L 11 68 Z"
+            d="M 202 132 C 204 122, 203 114, 199 107 C 197 103, 192 104, 191 108 C 190 112, 190 118, 189 122 C 187 117, 185 110, 182 111 C 179 112, 179 117, 181 122 C 180 126, 182 134, 190 135 Z"
             fill="#FFEAD8"
             stroke="#18181B"
-            strokeWidth="2.6"
+            strokeWidth="2.2"
             strokeLinejoin="round"
-            strokeLinecap="round"
           />
-          {/* Thumb Curled in Authentic Gesture */}
-          <path
-            d="M 16 38 C 10 36, 4 44, 6 52 C 8 58, 16 62, 26 59"
-            fill="#FFEAD8"
-            stroke="#18181B"
-            strokeWidth="2.4"
-            strokeLinecap="round"
-          />
-          {/* Yellow Wrist Cuff */}
-          <rect x="14" y="66" width="30" height="7" rx="3" fill="#FFC800" stroke="#18181B" strokeWidth="2.2" />
+          {/* Soft Paw Pad accent */}
+          <ellipse cx="194" cy="126" rx="3.5" ry="4" fill="#FCE2C4" />
         </g>
-      </g>
 
-      {/* 7. MediaPipe AI Landmark Overlay & Target Constellation */}
-      <g id="ai-vision-skeleton">
-        {/* Palm Linkages (Wrist to Knuckles) */}
-        {/* Left Hand Palm */}
-        <line x1="140" y1="152" x2="142" y2="134" stroke="#22C55E" strokeWidth="1.8" strokeDasharray="3 3" />
-        <line x1="140" y1="152" x2="152" y2="130" stroke="#22C55E" strokeWidth="1.8" strokeDasharray="3 3" />
-        <line x1="140" y1="152" x2="162" y2="132" stroke="#22C55E" strokeWidth="1.8" strokeDasharray="3 3" />
-        {/* Right Hand Palm */}
-        <line x1="210" y1="156" x2="198" y2="132" stroke="#22C55E" strokeWidth="1.8" strokeDasharray="3 3" />
-        <line x1="210" y1="156" x2="212" y2="126" stroke="#22C55E" strokeWidth="1.8" strokeDasharray="3 3" />
-        <line x1="210" y1="156" x2="228" y2="132" stroke="#22C55E" strokeWidth="1.8" strokeDasharray="3 3" />
+        {/* 7. MediaPipe AI Vision Skeleton (Precision Scaled to Otter Paws) */}
+        <g id="ai-vision-skeleton">
+          {/* Palm Linkages (Wrist to Knuckles) */}
+          <line x1="164" y1="132" x2="162" y2="122" stroke="#22C55E" strokeWidth="1.6" strokeDasharray="2 2" />
+          <line x1="164" y1="132" x2="168" y2="120" stroke="#22C55E" strokeWidth="1.6" strokeDasharray="2 2" />
+          <line x1="164" y1="132" x2="174" y2="122" stroke="#22C55E" strokeWidth="1.6" strokeDasharray="2 2" />
 
-        {/* Finger Bones (Cyan Dotted Links to Tips) */}
-        <line x1="142" y1="134" x2="144" y2="115" stroke="#0284C7" strokeWidth="1.8" strokeDasharray="3 3" />
-        <line x1="152" y1="130" x2="155" y2="109" stroke="#0284C7" strokeWidth="1.8" strokeDasharray="3 3" />
-        <line x1="162" y1="132" x2="168" y2="114" stroke="#0284C7" strokeWidth="1.8" strokeDasharray="3 3" />
+          <line x1="196" y1="132" x2="198" y2="122" stroke="#22C55E" strokeWidth="1.6" strokeDasharray="2 2" />
+          <line x1="196" y1="132" x2="192" y2="120" stroke="#22C55E" strokeWidth="1.6" strokeDasharray="2 2" />
+          <line x1="196" y1="132" x2="186" y2="122" stroke="#22C55E" strokeWidth="1.6" strokeDasharray="2 2" />
 
-        <line x1="198" y1="132" x2="200" y2="107" stroke="#0284C7" strokeWidth="1.8" strokeDasharray="3 3" />
-        <line x1="212" y1="126" x2="213" y2="102" stroke="#0284C7" strokeWidth="1.8" strokeDasharray="3 3" />
-        <line x1="228" y1="132" x2="236" y2="114" stroke="#0284C7" strokeWidth="1.8" strokeDasharray="3 3" />
+          {/* Finger Bones (Cyan Dotted Links to Tips) */}
+          <line x1="162" y1="122" x2="161" y2="108" stroke="#0284C7" strokeWidth="1.6" strokeDasharray="2 2" />
+          <line x1="168" y1="120" x2="169" y2="106" stroke="#0284C7" strokeWidth="1.6" strokeDasharray="2 2" />
+          <line x1="174" y1="122" x2="177" y2="111" stroke="#0284C7" strokeWidth="1.6" strokeDasharray="2 2" />
 
-        {/* Wrist & Knuckle Hub Nodes */}
-        <circle cx="140" cy="152" r="3.8" fill="#22C55E" stroke="#18181B" strokeWidth="1.6" />
-        <circle cx="210" cy="156" r="3.8" fill="#22C55E" stroke="#18181B" strokeWidth="1.6" />
-        <circle cx="142" cy="134" r="2.8" fill="#FFC800" stroke="#18181B" strokeWidth="1.4" />
-        <circle cx="152" cy="130" r="2.8" fill="#FFC800" stroke="#18181B" strokeWidth="1.4" />
-        <circle cx="162" cy="132" r="2.8" fill="#FFC800" stroke="#18181B" strokeWidth="1.4" />
-        <circle cx="198" cy="132" r="2.8" fill="#FFC800" stroke="#18181B" strokeWidth="1.4" />
-        <circle cx="212" cy="126" r="2.8" fill="#FFC800" stroke="#18181B" strokeWidth="1.4" />
-        <circle cx="228" cy="132" r="2.8" fill="#FFC800" stroke="#18181B" strokeWidth="1.4" />
+          <line x1="198" y1="122" x2="199" y2="108" stroke="#0284C7" strokeWidth="1.6" strokeDasharray="2 2" />
+          <line x1="192" y1="120" x2="191" y2="106" stroke="#0284C7" strokeWidth="1.6" strokeDasharray="2 2" />
+          <line x1="186" y1="122" x2="183" y2="111" stroke="#0284C7" strokeWidth="1.6" strokeDasharray="2 2" />
 
-        {/* Fingertip Reticles (High-Tech Glowing Cyan Target Rings) */}
-        {/* Left Index */}
-        <circle cx="144" cy="115" r="5.5" stroke="#38BDF8" strokeWidth="1.2" strokeDasharray="2 2" />
-        <circle cx="144" cy="115" r="3.4" fill="#38BDF8" stroke="#18181B" strokeWidth="1.5" />
-        <circle cx="144" cy="115" r="1.3" fill="#FFFFFF" />
+          {/* Wrist Hub Nodes */}
+          <circle cx="164" cy="132" r="3.2" fill="#22C55E" stroke="#18181B" strokeWidth="1.4" />
+          <circle cx="196" cy="132" r="3.2" fill="#22C55E" stroke="#18181B" strokeWidth="1.4" />
 
-        {/* Left Middle */}
-        <circle cx="155" cy="109" r="5.5" stroke="#38BDF8" strokeWidth="1.2" strokeDasharray="2 2" />
-        <circle cx="155" cy="109" r="3.4" fill="#38BDF8" stroke="#18181B" strokeWidth="1.5" />
-        <circle cx="155" cy="109" r="1.3" fill="#FFFFFF" />
+          {/* Knuckle Hub Nodes */}
+          <circle cx="162" cy="122" r="2.2" fill="#FFC800" stroke="#18181B" strokeWidth="1.2" />
+          <circle cx="168" cy="120" r="2.2" fill="#FFC800" stroke="#18181B" strokeWidth="1.2" />
+          <circle cx="174" cy="122" r="2.2" fill="#FFC800" stroke="#18181B" strokeWidth="1.2" />
 
-        {/* Right Index (Primary Tracking Reticle with Crosshairs) */}
-        <circle cx="200" cy="107" r="7" stroke="#38BDF8" strokeWidth="1.4" strokeDasharray="2 2" />
-        <circle cx="200" cy="107" r="4" fill="#38BDF8" stroke="#18181B" strokeWidth="1.8" />
-        <circle cx="200" cy="107" r="1.5" fill="#FFFFFF" />
-        <line x1="191" y1="107" x2="195" y2="107" stroke="#0284C7" strokeWidth="1.4" />
-        <line x1="205" y1="107" x2="209" y2="107" stroke="#0284C7" strokeWidth="1.4" />
-        <line x1="200" y1="98" x2="200" y2="102" stroke="#0284C7" strokeWidth="1.4" />
-        <line x1="200" y1="112" x2="200" y2="116" stroke="#0284C7" strokeWidth="1.4" />
+          <circle cx="198" cy="122" r="2.2" fill="#FFC800" stroke="#18181B" strokeWidth="1.2" />
+          <circle cx="192" cy="120" r="2.2" fill="#FFC800" stroke="#18181B" strokeWidth="1.2" />
+          <circle cx="186" cy="122" r="2.2" fill="#FFC800" stroke="#18181B" strokeWidth="1.2" />
 
-        {/* Right Middle */}
-        <circle cx="213" cy="102" r="5.5" stroke="#38BDF8" strokeWidth="1.2" strokeDasharray="2 2" />
-        <circle cx="213" cy="102" r="3.4" fill="#38BDF8" stroke="#18181B" strokeWidth="1.5" />
-        <circle cx="213" cy="102" r="1.3" fill="#FFFFFF" />
+          {/* Fingertip Reticles (High-Tech Glowing Cyan Target Rings) */}
+          <circle cx="161" cy="108" r="4.5" stroke="#38BDF8" strokeWidth="1" strokeDasharray="2 2" />
+          <circle cx="161" cy="108" r="2.6" fill="#38BDF8" stroke="#18181B" strokeWidth="1.2" />
+          <circle cx="161" cy="108" r="1" fill="#FFFFFF" />
+
+          <circle cx="169" cy="106" r="4.5" stroke="#38BDF8" strokeWidth="1" strokeDasharray="2 2" />
+          <circle cx="169" cy="106" r="2.6" fill="#38BDF8" stroke="#18181B" strokeWidth="1.2" />
+          <circle cx="169" cy="106" r="1" fill="#FFFFFF" />
+
+          <circle cx="199" cy="108" r="4.5" stroke="#38BDF8" strokeWidth="1" strokeDasharray="2 2" />
+          <circle cx="199" cy="108" r="2.6" fill="#38BDF8" stroke="#18181B" strokeWidth="1.2" />
+          <circle cx="199" cy="108" r="1" fill="#FFFFFF" />
+
+          {/* Primary Crosshair Target Reticle on Right Index */}
+          <circle cx="191" cy="106" r="6" stroke="#38BDF8" strokeWidth="1.4" strokeDasharray="2 2" />
+          <circle cx="191" cy="106" r="3.2" fill="#38BDF8" stroke="#18181B" strokeWidth="1.4" />
+          <circle cx="191" cy="106" r="1.2" fill="#FFFFFF" />
+          <line x1="183" y1="106" x2="187" y2="106" stroke="#0284C7" strokeWidth="1.2" />
+          <line x1="195" y1="106" x2="199" y2="106" stroke="#0284C7" strokeWidth="1.2" />
+          <line x1="191" y1="98" x2="191" y2="102" stroke="#0284C7" strokeWidth="1.2" />
+          <line x1="191" y1="110" x2="191" y2="114" stroke="#0284C7" strokeWidth="1.2" />
+        </g>
       </g>
 
       {/* 8. Duolingo Sparkles & Gamification Accents */}
@@ -395,7 +432,7 @@ function ArtisticLearnIllustration({ className = 'w-full h-auto' }) {
  * 1. An expressive ISL signer with on-device AI landmark tracking nodes on their hands.
  * 2. A smiling hearing peer framed within a video call tablet with live voice soundwaves.
  * Connected by a real-time P2P bridge with live translated subtitle speech bubble
- * and lightning speed badge ("⚡ < 20ms").
+ * and speed badge ("< 20ms").
  */
 function ArtisticCallIllustration({ className = 'w-full h-auto' }) {
   return (
@@ -414,9 +451,22 @@ function ArtisticCallIllustration({ className = 'w-full h-auto' }) {
           <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
         </radialGradient>
         {/* Screen Bevel Gradient */}
+        <clipPath id="screenViewportClip"><rect x="5" y="16" width="92" height="92" rx="10" /></clipPath>
         <linearGradient id="duoScreenFacet" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#F0F9FF" />
           <stop offset="100%" stopColor="#E0F2FE" />
+        </linearGradient>
+        {/* Otter Coat Rich Gradients (Otter's Natural Colors) */}
+        <linearGradient id="otterFurMain" x1="50%" y1="10%" x2="50%" y2="100%">
+          <stop offset="0%" stopColor="#9E6439" />
+          <stop offset="48%" stopColor="#844F27" />
+          <stop offset="100%" stopColor="#643613" />
+        </linearGradient>
+
+        <linearGradient id="otterBibMain" x1="50%" y1="0%" x2="50%" y2="100%">
+          <stop offset="0%" stopColor="#FFFDF7" />
+          <stop offset="45%" stopColor="#FFF4DF" />
+          <stop offset="100%" stopColor="#F5DFBD" />
         </linearGradient>
       </defs>
 
@@ -490,111 +540,223 @@ function ArtisticCallIllustration({ className = 'w-full h-auto' }) {
         <polygon points="77,39 84,47 91,39" fill="#F0FDF4" />
       </g>
 
-      {/* 3. Left Side: The ISL Signer Character (Duolingo Style) */}
-      <g id="duo-signer" transform="translate(18, 56)">
-        {/* Signer Torso / Jersey (Duolingo Macaw Blue) */}
-        <path d="M 12 118 C 12 96, 26 84, 48 84 C 70 84, 84 96, 84 118 Z" fill="#18181B" />
-        <path d="M 10 115 C 10 93, 24 81, 46 81 C 68 81, 82 93, 82 115 Z" fill="#1CB0F6" stroke="#18181B" strokeWidth="2.6" />
-        <path d="M 11 110 C 24 114, 68 114, 81 110 L 82 115 C 68 119, 24 119, 10 115 Z" fill="#1899D6" />
+      {/* 3. Left Side: Mitra the ISL Otter Signer (Anatomically Polished Mascot) */}
+      <g id="duo-signer">
+        {/* Curved Otter Tail peeking out on left */}
+        <path
+          d="M 36 142 C 22 145, 12 153, 10 162 C 9 168, 16 171, 26 168 C 34 165, 40 156, 40 148 Z"
+          fill="#522C0E"
+          stroke="#18181B"
+          strokeWidth="2.4"
+          strokeLinejoin="round"
+        />
 
-        {/* Neck */}
-        <rect x="40" y="73" width="12" height="10" rx="2" fill="#FFE2CD" stroke="#18181B" strokeWidth="2.2" />
+        {/* Signer Torso / Sporty Jersey (Duolingo Macaw Blue) - Natural Pear-Shaped Body, No Donut! */}
+        <path
+          d="M 52 82 C 40 90, 36 104, 34 122 C 32 140, 30 154, 36 160 C 42 165, 92 165, 98 160 C 102 154, 100 140, 98 122 C 96 104, 92 90, 80 82 Z"
+          fill="#18181B"
+        />
+        <path
+          d="M 52 80 C 40 88, 36 102, 34 120 C 32 138, 30 152, 36 158 C 42 163, 92 163, 98 158 C 102 152, 100 138, 98 120 C 96 102, 92 88, 80 80 Z"
+          fill="#1CB0F6"
+          stroke="#18181B"
+          strokeWidth="2.6"
+          strokeLinejoin="round"
+        />
+        {/* Sporty Jersey Accent Stripe & Collar */}
+        <path d="M 33 138 C 45 142, 87 142, 99 138 L 99 146 C 87 150, 45 150, 33 146 Z" fill="#1899D6" />
+        <path d="M 58 80 L 66 94 L 74 80" stroke="#FFFFFF" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
 
-        {/* Head */}
-        <ellipse cx="46" cy="52" rx="22" ry="24" fill="#FFE2CD" stroke="#18181B" strokeWidth="2.5" />
+        {/* Left Arm Resting at side */}
+        <path
+          d="M 40 98 C 33 108, 32 120, 35 130 C 37 136, 42 136, 44 132 C 45 124, 46 112, 48 104 Z"
+          fill="#1899D6"
+          stroke="#18181B"
+          strokeWidth="2.2"
+          strokeLinejoin="round"
+        />
 
-        {/* Curly Stylized Hair (Duolingo Character Dark) */}
-        <path d="M 24 48 C 24 30, 36 24, 48 24 C 60 24, 68 32, 68 48 C 65 42, 58 44, 48 44 C 38 44, 30 42, 24 48 Z" fill="#18181B" stroke="#18181B" strokeWidth="2" />
+        {/* Right Arm Actively Raised in Signing Gesture */}
+        <path
+          d="M 88 98 C 96 104, 104 110, 110 114 C 114 117, 118 115, 118 110 C 116 103, 108 97, 98 90 Z"
+          fill="#1899D6"
+          stroke="#18181B"
+          strokeWidth="2.2"
+          strokeLinejoin="round"
+        />
 
-        {/* Rosy Cheek */}
-        <circle cx="34" cy="58" r="4.5" fill="#FFAA8A" opacity="0.85" />
-        <circle cx="58" cy="58" r="4.5" fill="#FFAA8A" opacity="0.85" />
+        {/* Otter Head */}
+        <ellipse cx="66" cy="56" rx="28" ry="24" fill="#18181B" />
+        <ellipse cx="66" cy="54" rx="28" ry="23" fill="url(#otterFurMain)" stroke="#18181B" strokeWidth="2.6" />
 
-        {/* Sparkle Eyes */}
-        <ellipse cx="37" cy="50" rx="4.5" ry="6" fill="#18181B" />
-        <circle cx="36" cy="48" r="2" fill="#FFFFFF" />
-        <ellipse cx="55" cy="50" rx="4.5" ry="6" fill="#18181B" />
-        <circle cx="54" cy="48" r="2" fill="#FFFFFF" />
+        {/* Rounded Otter Ears */}
+        <g>
+          <path d="M 38 46 C 31 41, 31 30, 41 32 C 47 34, 48 44, 44 49 Z" fill="#7A451E" stroke="#18181B" strokeWidth="2.2" strokeLinejoin="round" />
+          <path d="M 37 44 C 34 41, 35 35, 40 37 C 43 38, 44 42, 41 45 Z" fill="#FCE2C4" />
+        </g>
+        <g>
+          <path d="M 94 46 C 101 41, 101 30, 91 32 C 85 34, 84 44, 88 49 Z" fill="#7A451E" stroke="#18181B" strokeWidth="2.2" strokeLinejoin="round" />
+          <path d="M 95 44 C 98 41, 97 35, 92 37 C 89 38, 88 42, 91 45 Z" fill="#FCE2C4" />
+        </g>
+
+        {/* Broad Cream Muzzle */}
+        <path
+          d="M 48 58 C 48 50, 56 47, 63 51 C 64 52, 68 52, 69 51 C 76 47, 84 50, 84 58 C 86 68, 77 73, 66 73 C 55 73, 46 68, 48 58 Z"
+          fill="url(#otterBibMain)"
+          stroke="#18181B"
+          strokeWidth="2.2"
+          strokeLinejoin="round"
+        />
+
+        {/* Rosy Cheeks */}
+        <circle cx="45" cy="61" r="4.5" fill="#FFAA8A" opacity="0.85" />
+        <circle cx="87" cy="61" r="4.5" fill="#FFAA8A" opacity="0.85" />
+
+        {/* Sparkling Expressive Eyes (Looking toward the Video Call) */}
+        <ellipse cx="55" cy="50" rx="5.5" ry="7" fill="#18181B" />
+        <circle cx="56" cy="48" r="2.4" fill="#FFFFFF" />
+        <circle cx="58" cy="52" r="1.1" fill="#FFFFFF" />
+
+        <ellipse cx="77" cy="50" rx="5.5" ry="7" fill="#18181B" />
+        <circle cx="78" cy="48" r="2.4" fill="#FFFFFF" />
+        <circle cx="80" cy="52" r="1.1" fill="#FFFFFF" />
+
+        {/* Otter Button Nose */}
+        <path
+          d="M 62 57 C 62 53, 70 53, 70 57 C 70 61, 67 63, 66 63 C 65 63, 62 61, 62 57 Z"
+          fill="#1F1713"
+          stroke="#18181B"
+          strokeWidth="1.6"
+        />
+        <circle cx="65" cy="55.5" r="1.2" fill="#FFFFFF" opacity="0.85" />
 
         {/* Cheerful Smile */}
-        <path d="M 40 59 C 40 65, 52 65, 52 59 Z" fill="#FF4B4B" stroke="#18181B" strokeWidth="2" />
+        <path d="M 66 63 L 66 65.5" stroke="#18181B" strokeWidth="1.8" strokeLinecap="round" />
+        <path d="M 60 65.5 C 63 68, 66 68, 66 65.5 C 66 68, 69 68, 72 65.5" stroke="#18181B" strokeWidth="1.8" strokeLinecap="round" fill="none" />
 
-        {/* Raised Expressive Signing Hands */}
-        {/* Hand 1 (Front Hand with Landmark Vision Reticle) */}
-        <g transform="translate(52, 68)">
+        {/* Cute Whiskers */}
+        <path d="M 50 62 L 38 63" stroke="#4A260F" strokeWidth="1" strokeLinecap="round" opacity="0.8" />
+        <path d="M 51 66 L 39 69" stroke="#4A260F" strokeWidth="1" strokeLinecap="round" opacity="0.8" />
+        <path d="M 82 62 L 94 63" stroke="#4A260F" strokeWidth="1" strokeLinecap="round" opacity="0.8" />
+        <path d="M 81 66 L 93 69" stroke="#4A260F" strokeWidth="1" strokeLinecap="round" opacity="0.8" />
+
+        {/* Raised Expressive Otter Signing Paw (Proportionate & Cute) */}
+        <g id="signer-signing-paw">
+          {/* Fur wrist cuff */}
+          <ellipse cx="114" cy="112" rx="5" ry="3" fill="#643613" stroke="#18181B" strokeWidth="1.8" />
+          {/* Paw palm & signing digits */}
           <path
-            d="M 8 36 C 4 28, 2 18, 5 10 C 7 5, 13 5, 15 11 C 17 16, 17 22, 16 26 C 19 20, 22 11, 26 7 C 29 3, 35 4, 35 9 C 36 15, 33 22, 31 27 C 34 23, 38 18, 42 17 C 46 16, 50 19, 49 24 C 47 31, 41 38, 34 42 L 18 45 Z"
+            d="M 112 112 C 108 104, 107 96, 110 90 C 112 86, 117 87, 118 91 C 119 95, 119 100, 120 104 C 122 99, 125 93, 128 94 C 131 95, 131 100, 129 105 C 130 108, 128 114, 122 115 Z"
             fill="#FFEAD8"
             stroke="#18181B"
-            strokeWidth="2.2"
+            strokeWidth="2"
             strokeLinejoin="round"
           />
-          {/* Thumb */}
-          <path d="M 12 28 C 8 28, 4 33, 6 38 C 7 41, 12 43, 18 41" fill="#FFEAD8" stroke="#18181B" strokeWidth="2" />
-          {/* Wrist Cuff */}
-          <rect x="8" y="42" width="18" height="5" rx="2" fill="#FFC800" stroke="#18181B" strokeWidth="1.8" />
+          {/* Soft Paw Pad */}
+          <ellipse cx="117" cy="106" rx="2.8" ry="3.5" fill="#FCE2C4" />
 
-          {/* AI Vision Landmark Overlay on Signer's Hand */}
-          <line x1="16" y1="42" x2="16" y2="28" stroke="#22C55E" strokeWidth="1.5" strokeDasharray="2.5 2.5" />
-          <line x1="16" y1="28" x2="15" y2="11" stroke="#0284C7" strokeWidth="1.5" strokeDasharray="2.5 2.5" />
-          <line x1="16" y1="28" x2="26" y2="7" stroke="#0284C7" strokeWidth="1.5" strokeDasharray="2.5 2.5" />
-          <line x1="16" y1="28" x2="35" y2="9" stroke="#0284C7" strokeWidth="1.5" strokeDasharray="2.5 2.5" />
+          {/* AI Vision Landmark Overlay on Otter's Paw */}
+          <line x1="114" y1="112" x2="112" y2="103" stroke="#22C55E" strokeWidth="1.4" strokeDasharray="2 2" />
+          <line x1="114" y1="112" x2="119" y2="102" stroke="#22C55E" strokeWidth="1.4" strokeDasharray="2 2" />
+          <line x1="114" y1="112" x2="125" y2="104" stroke="#22C55E" strokeWidth="1.4" strokeDasharray="2 2" />
 
-          <circle cx="16" cy="42" r="3" fill="#22C55E" stroke="#18181B" strokeWidth="1.2" />
-          <circle cx="16" cy="28" r="2.5" fill="#FFC800" stroke="#18181B" strokeWidth="1.2" />
+          <line x1="112" y1="103" x2="110" y2="90" stroke="#0284C7" strokeWidth="1.4" strokeDasharray="2 2" />
+          <line x1="119" y1="102" x2="118" y2="88" stroke="#0284C7" strokeWidth="1.4" strokeDasharray="2 2" />
+          <line x1="125" y1="104" x2="128" y2="93" stroke="#0284C7" strokeWidth="1.4" strokeDasharray="2 2" />
+
+          <circle cx="114" cy="112" r="2.8" fill="#22C55E" stroke="#18181B" strokeWidth="1.2" />
+          <circle cx="112" cy="103" r="2" fill="#FFC800" stroke="#18181B" strokeWidth="1.2" />
+          <circle cx="119" cy="102" r="2" fill="#FFC800" stroke="#18181B" strokeWidth="1.2" />
+          <circle cx="125" cy="104" r="2" fill="#FFC800" stroke="#18181B" strokeWidth="1.2" />
+
           {/* Fingertips Reticles */}
-          <circle cx="15" cy="11" r="3.2" fill="#38BDF8" stroke="#18181B" strokeWidth="1.4" />
-          <circle cx="15" cy="11" r="1.2" fill="#FFFFFF" />
-          <circle cx="26" cy="7" r="3.2" fill="#38BDF8" stroke="#18181B" strokeWidth="1.4" />
-          <circle cx="26" cy="7" r="1.2" fill="#FFFFFF" />
-          <circle cx="35" cy="9" r="3.2" fill="#38BDF8" stroke="#18181B" strokeWidth="1.4" />
-          <circle cx="35" cy="9" r="1.2" fill="#FFFFFF" />
+          <circle cx="110" cy="90" r="3" fill="#38BDF8" stroke="#18181B" strokeWidth="1.2" />
+          <circle cx="110" cy="90" r="1" fill="#FFFFFF" />
+          <circle cx="128" cy="93" r="3" fill="#38BDF8" stroke="#18181B" strokeWidth="1.2" />
+          <circle cx="128" cy="93" r="1" fill="#FFFFFF" />
+
+          {/* Main Target Reticle on Index */}
+          <circle cx="118" cy="88" r="5" stroke="#38BDF8" strokeWidth="1.2" strokeDasharray="2 2" />
+          <circle cx="118" cy="88" r="3" fill="#38BDF8" stroke="#18181B" strokeWidth="1.4" />
+          <circle cx="118" cy="88" r="1.1" fill="#FFFFFF" />
         </g>
       </g>
 
-      {/* 4. Right Side: The Hearing Video Partner inside Video Call Screen */}
+      {/* 4. Right Side: The Otter Hearing Partner inside Video Call Screen */}
       <g id="duo-partner-screen" transform="translate(230, 54)">
         {/* Video Tablet / Screen Frame */}
-        {/* Drop Shadow */}
         <rect x="4" y="4" width="102" height="116" rx="14" fill="#18181B" />
-        {/* Beveled Bottom Depth */}
         <rect x="0" y="2" width="102" height="116" rx="14" fill="#E5E5E5" stroke="#18181B" strokeWidth="2.6" />
-        {/* Screen Bezel Body */}
         <rect x="0" y="0" width="102" height="114" rx="14" fill="#FFFFFF" stroke="#18181B" strokeWidth="2.6" />
-        {/* Screen Display Inset */}
         <rect x="5" y="16" width="92" height="92" rx="10" fill="url(#duoScreenFacet)" stroke="#18181B" strokeWidth="1.8" />
+
+        {/* Clipped video viewport content */}
+        <g clipPath="url(#screenViewportClip)">
+          {/* Partner Torso wearing cozy amber sweater - Natural shoulders grounded in frame, No Donut! */}
+          <path
+            d="M 34 82 C 26 88, 20 96, 16 108 L 86 108 C 82 96, 76 88, 68 82 Z"
+            fill="#18181B"
+          />
+          <path
+            d="M 34 80 C 26 86, 20 94, 16 106 L 86 106 C 82 94, 76 86, 68 80 Z"
+            fill="#FFC800"
+            stroke="#18181B"
+            strokeWidth="2.2"
+          />
+          {/* Sweater Ribbed Neckband */}
+          <path d="M 43 80 C 47 84, 55 84, 59 80" stroke="#D97706" strokeWidth="2.4" strokeLinecap="round" fill="none" />
+
+          {/* Otter Head */}
+          <ellipse cx="51" cy="58" rx="22" ry="19" fill="#18181B" />
+          <ellipse cx="51" cy="56" rx="22" ry="18" fill="url(#otterFurMain)" stroke="#18181B" strokeWidth="2.2" />
+
+          {/* Broad Cream Muzzle */}
+          <path
+            d="M 37 60 C 37 53, 43 51, 49 54 C 50 55, 52 55, 53 54 C 59 51, 65 53, 65 60 C 67 68, 59 72, 51 72 C 43 72, 35 68, 37 60 Z"
+            fill="url(#otterBibMain)"
+            stroke="#18181B"
+            strokeWidth="1.8"
+            strokeLinejoin="round"
+          />
+
+          {/* Rosy Cheeks */}
+          <circle cx="35" cy="62" r="3.5" fill="#FFAA8A" opacity="0.85" />
+          <circle cx="67" cy="62" r="3.5" fill="#FFAA8A" opacity="0.85" />
+
+          {/* Sparkling Eyes */}
+          <ellipse cx="43" cy="53" rx="4" ry="5.5" fill="#18181B" />
+          <circle cx="42" cy="51.5" r="1.8" fill="#FFFFFF" />
+          <ellipse cx="59" cy="53" rx="4" ry="5.5" fill="#18181B" />
+          <circle cx="58" cy="51.5" r="1.8" fill="#FFFFFF" />
+
+          {/* Button Nose */}
+          <ellipse cx="51" cy="59" rx="2" ry="1.5" fill="#1F1713" />
+          <circle cx="50.2" cy="58.2" r="0.7" fill="#FFFFFF" />
+
+          {/* Smile */}
+          <path d="M 47 65 Q 51 68 55 65" stroke="#18181B" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+
+          {/* Whiskers */}
+          <path d="M 38 63 L 30 63" stroke="#4A260F" strokeWidth="0.8" strokeLinecap="round" />
+          <path d="M 39 66 L 31 68" stroke="#4A260F" strokeWidth="0.8" strokeLinecap="round" />
+          <path d="M 64 63 L 72 63" stroke="#4A260F" strokeWidth="0.8" strokeLinecap="round" />
+          <path d="M 63 66 L 71 68" stroke="#4A260F" strokeWidth="0.8" strokeLinecap="round" />
+
+          {/* Audio Headset / Headphones over Otter Ears */}
+          <path d="M 30 56 C 30 36, 40 32, 51 32 C 62 32, 72 36, 72 56" stroke="#FF4B4B" strokeWidth="3.4" strokeLinecap="round" fill="none" />
+          {/* Ear Cups */}
+          <rect x="26" y="50" width="7" height="14" rx="3.5" fill="#FF4B4B" stroke="#18181B" strokeWidth="1.8" />
+          <rect x="69" y="50" width="7" height="14" rx="3.5" fill="#FF4B4B" stroke="#18181B" strokeWidth="1.8" />
+          {/* Microphone Boom */}
+          <path d="M 30 62 C 30 69, 38 73, 45 73" stroke="#18181B" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+          <circle cx="46" cy="73" r="2.5" fill="#FFC800" stroke="#18181B" strokeWidth="1.2" />
+        </g>
 
         {/* Top Tablet Camera Dot */}
         <circle cx="51" cy="9" r="3" fill="#18181B" />
         <circle cx="51" cy="9" r="1.2" fill="#38BDF8" />
         {/* Live Green Screen LED */}
         <circle cx="62" cy="9" r="1.8" fill="#22C55E" />
-
-        {/* Video Call Partner Character */}
-        {/* Partner Torso */}
-        <path d="M 22 108 C 22 92, 34 84, 51 84 C 68 84, 80 92, 80 108 Z" fill="#FFC800" stroke="#18181B" strokeWidth="2.2" />
-
-        {/* Head */}
-        <ellipse cx="51" cy="58" rx="18" ry="20" fill="#FFE2CD" stroke="#18181B" strokeWidth="2.2" />
-
-        {/* Friendly Hair */}
-        <path d="M 33 54 C 33 38, 43 34, 51 34 C 59 34, 69 38, 69 54 C 66 48, 60 50, 51 50 C 42 50, 36 48, 33 54 Z" fill="#78350F" stroke="#18181B" strokeWidth="1.8" />
-
-        {/* Audio Headset / Headphones (Hearing Partner) */}
-        <path d="M 31 56 C 31 40, 41 36, 51 36 C 61 36, 71 40, 71 56" stroke="#FF4B4B" strokeWidth="3" strokeLinecap="round" fill="none" />
-        {/* Ear Cups */}
-        <rect x="28" y="52" width="6" height="12" rx="3" fill="#FF4B4B" stroke="#18181B" strokeWidth="1.6" />
-        <rect x="68" y="52" width="6" height="12" rx="3" fill="#FF4B4B" stroke="#18181B" strokeWidth="1.6" />
-        {/* Microphone Boom */}
-        <path d="M 31 62 C 31 68, 38 72, 44 72" stroke="#18181B" strokeWidth="2" strokeLinecap="round" fill="none" />
-        <circle cx="45" cy="72" r="2.2" fill="#FFC800" stroke="#18181B" strokeWidth="1" />
-
-        {/* Eyes & Cheerful Smile */}
-        <ellipse cx="44" cy="57" rx="3.5" ry="5" fill="#18181B" />
-        <circle cx="43" cy="55.5" r="1.4" fill="#FFFFFF" />
-        <ellipse cx="58" cy="57" rx="3.5" ry="5" fill="#18181B" />
-        <circle cx="57" cy="55.5" r="1.4" fill="#FFFFFF" />
-        <path d="M 46 64 C 46 69, 56 69, 56 64 Z" fill="#FF4B4B" stroke="#18181B" strokeWidth="1.6" />
 
         {/* Active Equalizer Soundwaves Blooming from Peer */}
         <g transform="translate(10, 24)">
@@ -625,14 +787,16 @@ function ArtisticCallIllustration({ className = 'w-full h-auto' }) {
         <circle cx="38" cy="8" r="2.8" fill="#EF4444" />
       </g>
 
-      {/* 6. Latency Speed Tag below Camera (⚡ < 20ms) */}
+      {/* 6. Latency Speed Tag below Camera (< 20ms) */}
       <g transform="translate(150, 142)">
         <rect x="2" y="2" width="58" height="20" rx="6" fill="#18181B" />
         <rect x="0" y="1" width="58" height="20" rx="6" fill="#46A302" stroke="#18181B" strokeWidth="1.8" />
         <rect x="0" y="0" width="58" height="19" rx="6" fill="#FFFFFF" stroke="#18181B" strokeWidth="1.8" />
-        <circle cx="10" cy="9.5" r="3" fill="#22C55E" />
+        <circle cx="9" cy="9.5" r="3" fill="#22C55E" />
+        {/* SVG Lightning Bolt Icon */}
+        <path d="M 17 4 L 14 9.5 L 17 9.5 L 15 15 L 20 8.5 L 17 8.5 Z" fill="#EAB308" />
         <text
-          x="18"
+          x="23"
           y="13"
           fontSize="8.5"
           fontWeight="900"
@@ -640,7 +804,7 @@ function ArtisticCallIllustration({ className = 'w-full h-auto' }) {
           fill="#15803D"
           letterSpacing="0.04em"
         >
-          ⚡ &lt; 20ms
+          &lt; 20ms
         </text>
       </g>
 
@@ -664,9 +828,9 @@ function ArtisticCallIllustration({ className = 'w-full h-auto' }) {
 
 
 /**
- * Duolingo-Style Hero Mascot: "Mitra" the ISL Owl Companion
- * Adorable, expressive mascot greeting learners with the authentic ISL "NAMASTE",
- * accompanied by an interactive speech bubble, streak flame, and AI status.
+ * Hero Mascot: "Mitra" the ISL Otter Companion
+ * Expressive, adorable otter mascot in natural warm otter tones, greeting
+ * learners with the authentic ISL "NAMASTE" prayer paws.
  */
 function HeroMascotArt({ className = 'w-20 h-20 sm:w-24 sm:h-24' }) {
   return (
@@ -683,94 +847,227 @@ function HeroMascotArt({ className = 'w-20 h-20 sm:w-24 sm:h-24' }) {
           <stop offset="0%" stopColor="#FEF3C7" stopOpacity="0.9" />
           <stop offset="100%" stopColor="#FEF3C7" stopOpacity="0" />
         </radialGradient>
+
+        {/* Otter Coat Rich Gradients (Otter's Natural Colors) */}
+        <linearGradient id="otterFurMain" x1="50%" y1="10%" x2="50%" y2="100%">
+          <stop offset="0%" stopColor="#9E6439" />
+          <stop offset="48%" stopColor="#844F27" />
+          <stop offset="100%" stopColor="#643613" />
+        </linearGradient>
+
+        <linearGradient id="otterBib" x1="50%" y1="0%" x2="50%" y2="100%">
+          <stop offset="0%" stopColor="#FFFDF7" />
+          <stop offset="45%" stopColor="#FFF4DF" />
+          <stop offset="100%" stopColor="#F5DFBD" />
+        </linearGradient>
+        {/* Otter Coat Rich Gradients (Otter's Natural Colors) */}
+        <linearGradient id="otterFurMain" x1="50%" y1="10%" x2="50%" y2="100%">
+          <stop offset="0%" stopColor="#9E6439" />
+          <stop offset="48%" stopColor="#844F27" />
+          <stop offset="100%" stopColor="#643613" />
+        </linearGradient>
+
+        <linearGradient id="otterBibMain" x1="50%" y1="0%" x2="50%" y2="100%">
+          <stop offset="0%" stopColor="#FFFDF7" />
+          <stop offset="45%" stopColor="#FFF4DF" />
+          <stop offset="100%" stopColor="#F5DFBD" />
+        </linearGradient>
       </defs>
 
-      {/* Ambient Glow */}
+      {/* Ambient Glow Aura */}
       <circle cx="80" cy="85" r="58" fill="url(#mascotAura)" />
       <circle cx="80" cy="85" r="50" stroke="#FDE68A" strokeWidth="1.6" strokeDasharray="4 4" opacity="0.8" />
 
-      {/* Floating Sparkles & Streak Star */}
-      <g transform="translate(14, 24)">
-        <path d="M5 0 L6 3.5 L9.5 5 L6 6.5 L5 10 L4 6.5 L0.5 5 L4 3.5 Z" fill="#FFC800" />
+      {/* Floating Sparkles & Stars */}
+      <g transform="translate(14, 22)">
+        <path d="M5 0 L6.2 3.5 L9.5 5 L6.2 6.5 L5 10 L3.8 6.5 L0.5 5 L3.8 3.5 Z" fill="#FFC800" />
       </g>
-      <g transform="translate(136, 32)">
-        <path d="M4 0 L5 3 L8 4 L5 5 L4 8 L3 5 L0 4 L3 3 Z" fill="#58CC02" />
+      <g transform="translate(136, 28)">
+        <path d="M4 0 L5 2.8 L8 4 L5 5.2 L4 8 L3 5.2 L0 4 L3 2.8 Z" fill="#58CC02" />
       </g>
-      <g transform="translate(130, 105)">
-        <path d="M4 0 L5 3 L8 4 L5 5 L4 8 L3 5 L0 4 L3 3 Z" fill="#38BDF8" />
+      <g transform="translate(132, 108)">
+        <path d="M4 0 L5 2.8 L8 4 L5 5.2 L4 8 L3 5.2 L0 4 L3 2.8 Z" fill="#38BDF8" />
       </g>
 
-      {/* Mascot Body: Round, Plump Duolingo Green Owl / Buddy */}
-      {/* Body Shadow */}
-      <ellipse cx="80" cy="94" rx="42" ry="46" fill="#18181B" />
+      {/* Cute Curved Otter Tail on Lower Right */}
+      <path
+        d="M 112 108 C 128 110, 142 116, 144 125 C 145 132, 137 137, 126 135 C 115 133, 106 124, 104 118 Z"
+        fill="#522C0E"
+        stroke="#18181B"
+        strokeWidth="2.6"
+        strokeLinejoin="round"
+      />
+
+      {/* Otter Ears (Cute, rounded, characteristic otter ears on sides of head) */}
+      {/* Left Ear */}
+      <g>
+        <path
+          d="M 43 49 C 34 44, 34 29, 47 32 C 55 35, 57 47, 52 54 Z"
+          fill="#7A451E"
+          stroke="#18181B"
+          strokeWidth="2.6"
+          strokeLinejoin="round"
+        />
+        <path d="M 42 46 C 37 42, 38 34, 46 36 C 50 37, 51 43, 47 48 Z" fill="#FCE2C4" />
+      </g>
+      {/* Right Ear */}
+      <g>
+        <path
+          d="M 117 49 C 126 44, 126 29, 113 32 C 105 35, 103 47, 108 54 Z"
+          fill="#7A451E"
+          stroke="#18181B"
+          strokeWidth="2.6"
+          strokeLinejoin="round"
+        />
+        <path d="M 118 46 C 123 42, 122 34, 114 36 C 110 37, 109 43, 113 48 Z" fill="#FCE2C4" />
+      </g>
+
+      {/* Plump Otter Body / Silhouette */}
+      {/* Drop 3D Shadow */}
+      <ellipse cx="80" cy="98" rx="43" ry="44" fill="#18181B" />
       {/* 3D Bottom Shade */}
-      <ellipse cx="80" cy="91" rx="42" ry="46" fill="#46A302" />
-      {/* Main Feather Green Body */}
-      <ellipse cx="80" cy="88" rx="42" ry="45" fill="#58CC02" stroke="#18181B" strokeWidth="2.8" />
+      <ellipse cx="80" cy="94" rx="43" ry="43" fill="#522C0E" />
+      {/* Main Body Fur */}
+      <ellipse cx="80" cy="90" rx="43" ry="42" fill="url(#otterFurMain)" stroke="#18181B" strokeWidth="2.8" />
 
-      {/* Cute Little Feather Ear Tufts */}
-      <path d="M 44 52 C 40 38, 48 30, 56 42 Z" fill="#58CC02" stroke="#18181B" strokeWidth="2.4" strokeLinejoin="round" />
-      <path d="M 116 52 C 120 38, 112 30, 104 42 Z" fill="#58CC02" stroke="#18181B" strokeWidth="2.4" strokeLinejoin="round" />
+      {/* Broad Cream Belly & Chest Fur (High Contrast Bib) */}
+      <path
+        d="M 60 82 C 60 76, 100 76, 100 82 C 108 94, 106 117, 98 124 C 90 130, 70 130, 62 124 C 54 117, 52 94, 60 82 Z"
+        fill="url(#otterBib)"
+        stroke="#18181B"
+        strokeWidth="2.2"
+        strokeLinejoin="round"
+      />
+      {/* Subtle Belly Fur Accents */}
+      <path d="M 74 108 C 77 111, 83 111, 86 108" stroke="#E2BF95" strokeWidth="2" strokeLinecap="round" fill="none" />
+      <path d="M 72 117 C 76 121, 84 121, 88 117" stroke="#E2BF95" strokeWidth="2" strokeLinecap="round" fill="none" />
 
-      {/* Cheerful Golden Tummy Patch */}
-      <ellipse cx="80" cy="98" rx="26" ry="25" fill="#FFF4D0" stroke="#18181B" strokeWidth="2.2" />
-      {/* Subtle Tummy Feather Chevrons */}
-      <path d="M 74 92 C 77 95, 83 95, 86 92" stroke="#FFC800" strokeWidth="2" strokeLinecap="round" fill="none" />
-      <path d="M 72 102 C 76 106, 84 106, 88 102" stroke="#FFC800" strokeWidth="2" strokeLinecap="round" fill="none" />
+      {/* Otter Head */}
+      {/* Head 3D Depth */}
+      <ellipse cx="80" cy="65" rx="39" ry="33" fill="#18181B" />
+      <ellipse cx="80" cy="63" rx="39" ry="32" fill="#5A3110" />
+      <ellipse cx="80" cy="61" rx="39" ry="31" fill="url(#otterFurMain)" stroke="#18181B" strokeWidth="2.8" />
+      {/* Forehead Warm Sheen */}
+      <ellipse cx="80" cy="46" rx="18" ry="9" fill="#B37542" opacity="0.6" />
+
+      {/* Adorable Broad Otter Muzzle (Cheeks & Chin) */}
+      <path
+        d="M 54 66 C 54 55, 66 52, 75 56 C 77 57, 83 57, 85 56 C 94 52, 106 55, 106 66 C 108 79, 96 85, 80 85 C 64 85, 52 79, 54 66 Z"
+        fill="url(#otterBib)"
+        stroke="#18181B"
+        strokeWidth="2.4"
+        strokeLinejoin="round"
+      />
 
       {/* Rosy Blushing Cheeks */}
-      <ellipse cx="49" cy="86" rx="6.5" ry="4.5" fill="#FFAA8A" opacity="0.9" />
-      <ellipse cx="111" cy="86" rx="6.5" ry="4.5" fill="#FFAA8A" opacity="0.9" />
+      <ellipse cx="49" cy="69" rx="6.5" ry="4.5" fill="#FFA58C" opacity="0.85" />
+      <ellipse cx="111" cy="69" rx="6.5" ry="4.5" fill="#FFA58C" opacity="0.85" />
 
-      {/* Iconic Duolingo Big Sparkling Eyes */}
+      {/* Big Sparkling Otter Eyes */}
       {/* Left Eye */}
-      <ellipse cx="58" cy="72" rx="14" ry="16" fill="#FFFFFF" stroke="#18181B" strokeWidth="2.6" />
-      <ellipse cx="61" cy="72" rx="8" ry="10" fill="#18181B" />
-      <circle cx="58" cy="68" r="3.5" fill="#FFFFFF" />
-      <circle cx="64" cy="76" r="1.5" fill="#FFFFFF" />
+      <ellipse cx="58" cy="53" rx="12.5" ry="14" fill="#FFFFFF" stroke="#18181B" strokeWidth="2.6" />
+      <ellipse cx="60.5" cy="53" rx="8" ry="9.5" fill="#29180E" />
+      <ellipse cx="61" cy="54" rx="5" ry="6.5" fill="#140A04" />
+      <circle cx="58" cy="49" r="3.4" fill="#FFFFFF" />
+      <circle cx="63.5" cy="56.5" r="1.5" fill="#FFFFFF" />
 
       {/* Right Eye */}
-      <ellipse cx="102" cy="72" rx="14" ry="16" fill="#FFFFFF" stroke="#18181B" strokeWidth="2.6" />
-      <ellipse cx="99" cy="72" rx="8" ry="10" fill="#18181B" />
-      <circle cx="96" cy="68" r="3.5" fill="#FFFFFF" />
-      <circle cx="102" cy="76" r="1.5" fill="#FFFFFF" />
+      <ellipse cx="102" cy="53" rx="12.5" ry="14" fill="#FFFFFF" stroke="#18181B" strokeWidth="2.6" />
+      <ellipse cx="99.5" cy="53" rx="8" ry="9.5" fill="#29180E" />
+      <ellipse cx="99" cy="54" rx="5" ry="6.5" fill="#140A04" />
+      <circle cx="97" cy="49" r="3.4" fill="#FFFFFF" />
+      <circle cx="102.5" cy="56.5" r="1.5" fill="#FFFFFF" />
 
-      {/* Cute Curved Orange Beak */}
-      <path d="M 73 78 C 73 72, 87 72, 87 78 C 87 88, 80 92, 80 92 C 80 92, 73 88, 73 78 Z" fill="#FF8C00" stroke="#18181B" strokeWidth="2.4" strokeLinejoin="round" />
-      <circle cx="78" cy="80" r="1" fill="#FFFFFF" />
-
-      {/* Authentic ISL "NAMASTE" Prayer Wings / Hands in Front */}
-      {/* Left Wing */}
+      {/* Distinctive Otter Button Nose (Glossy Charcoal/Black) */}
       <path
-        d="M 44 98 C 42 110, 54 120, 68 116 C 74 114, 78 106, 78 98 C 70 96, 52 92, 44 98 Z"
-        fill="#58CC02"
+        d="M 73 63 C 73 58, 87 58, 87 63 C 87 68.5, 82 71.5, 80 71.5 C 78 71.5, 73 68.5, 73 63 Z"
+        fill="#1F1713"
         stroke="#18181B"
-        strokeWidth="2.4"
+        strokeWidth="2"
         strokeLinejoin="round"
       />
-      {/* Right Wing */}
+      <ellipse cx="77.5" cy="61.5" rx="3" ry="1.5" fill="#FFFFFF" opacity="0.85" />
+
+      {/* Philtrum & Cheerful Otter Mouth */}
+      <path d="M 80 71.5 L 80 75" stroke="#18181B" strokeWidth="2" strokeLinecap="round" />
       <path
-        d="M 116 98 C 118 110, 106 120, 92 116 C 86 114, 82 106, 82 98 C 90 96, 108 92, 116 98 Z"
-        fill="#58CC02"
+        d="M 72 75 C 75.5 78.5, 80 78.5, 80 75 C 80 78.5, 84.5 78.5, 88 75"
         stroke="#18181B"
-        strokeWidth="2.4"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        fill="none"
+      />
+
+      {/* Whisker Dots on Puffy Muzzle */}
+      <circle cx="67" cy="71" r="1.1" fill="#7A451E" />
+      <circle cx="63" cy="74.5" r="1.1" fill="#7A451E" />
+      <circle cx="67.5" cy="77" r="1.1" fill="#7A451E" />
+      <circle cx="93" cy="71" r="1.1" fill="#7A451E" />
+      <circle cx="97" cy="74.5" r="1.1" fill="#7A451E" />
+      <circle cx="92.5" cy="77" r="1.1" fill="#7A451E" />
+
+      {/* Delicate Whiskers */}
+      <path d="M 61 72 C 49 70, 39 74, 32 78" stroke="#4A260F" strokeWidth="1.3" strokeLinecap="round" opacity="0.85" />
+      <path d="M 62 76 C 49 78, 40 84, 34 89" stroke="#4A260F" strokeWidth="1.3" strokeLinecap="round" opacity="0.85" />
+      <path d="M 99 72 C 111 70, 121 74, 128 78" stroke="#4A260F" strokeWidth="1.3" strokeLinecap="round" opacity="0.85" />
+      <path d="M 98 76 C 111 78, 120 84, 126 89" stroke="#4A260F" strokeWidth="1.3" strokeLinecap="round" opacity="0.85" />
+
+      {/* Authentic ISL "NAMASTE" Forearms & Otter Paws */}
+      {/* Left Forearm */}
+      <path
+        d="M 43 96 C 40 108, 52 118, 66 114 C 72 112, 78 104, 78 96 C 69 94, 51 89, 43 96 Z"
+        fill="#844F27"
+        stroke="#18181B"
+        strokeWidth="2.5"
+        strokeLinejoin="round"
+      />
+      {/* Right Forearm */}
+      <path
+        d="M 117 96 C 120 108, 108 118, 94 114 C 88 112, 82 104, 82 96 C 91 94, 109 89, 117 96 Z"
+        fill="#844F27"
+        stroke="#18181B"
+        strokeWidth="2.5"
         strokeLinejoin="round"
       />
 
-      {/* Center Pressed Palms (Namaste Seam) */}
-      <g transform="translate(71, 95)">
-        {/* Left Hand Tip */}
-        <path d="M 4 20 L 7 4 C 7.5 1, 9 1, 9 4 L 9 20 Z" fill="#FFE2CD" stroke="#18181B" strokeWidth="2" />
-        {/* Right Hand Tip */}
-        <path d="M 14 20 L 11 4 C 10.5 1, 9 1, 9 4 L 9 20 Z" fill="#FFE2CD" stroke="#18181B" strokeWidth="2" />
-        {/* Tiny AI Vision Reticle on the Prayer Hands */}
-        <circle cx="9" cy="4" r="3" stroke="#22C55E" strokeWidth="1" strokeDasharray="1.5 1.5" />
-        <circle cx="9" cy="4" r="1.5" fill="#22C55E" />
+      {/* Center Pressed Otter Paws (Hands In Authentic Namaste) */}
+      <g transform="translate(71, 93)">
+        {/* Left Paw / Digits */}
+        <path
+          d="M 4 21 L 7 3.5 C 7.5 1, 9 1, 9 3.5 L 9 21 Z"
+          fill="#FFF4DF"
+          stroke="#18181B"
+          strokeWidth="1.9"
+          strokeLinejoin="round"
+        />
+        {/* Right Paw / Digits */}
+        <path
+          d="M 14 21 L 11 3.5 C 10.5 1, 9 1, 9 3.5 L 9 21 Z"
+          fill="#FFF4DF"
+          stroke="#18181B"
+          strokeWidth="1.9"
+          strokeLinejoin="round"
+        />
+
+        {/* Cute Paw Finger Separator Lines */}
+        <path d="M 6.5 13 L 6.5 19" stroke="#E2BF95" strokeWidth="1.4" strokeLinecap="round" />
+        <path d="M 11.5 13 L 11.5 19" stroke="#E2BF95" strokeWidth="1.4" strokeLinecap="round" />
+
+        {/* Tiny AI Vision Reticle on the Prayer Paws */}
+        <circle cx="9" cy="3.5" r="3" stroke="#22C55E" strokeWidth="1" strokeDasharray="1.5 1.5" />
+        <circle cx="9" cy="3.5" r="1.4" fill="#22C55E" />
       </g>
 
-      {/* Cute Little Orange Feet */}
-      <ellipse cx="64" cy="133" rx="8" ry="4" fill="#FF8C00" stroke="#18181B" strokeWidth="2" />
-      <ellipse cx="96" cy="133" rx="8" ry="4" fill="#FF8C00" stroke="#18181B" strokeWidth="2" />
+      {/* Cute Webbed Otter Back Paws / Feet */}
+      <ellipse cx="63" cy="133" rx="8.5" ry="4.5" fill="#522C0E" stroke="#18181B" strokeWidth="2.2" />
+      <circle cx="58.5" cy="134" r="1.2" fill="#FFF4DF" />
+      <circle cx="63" cy="135" r="1.2" fill="#FFF4DF" />
+      <circle cx="67.5" cy="134" r="1.2" fill="#FFF4DF" />
+
+      <ellipse cx="97" cy="133" rx="8.5" ry="4.5" fill="#522C0E" stroke="#18181B" strokeWidth="2.2" />
+      <circle cx="92.5" cy="134" r="1.2" fill="#FFF4DF" />
+      <circle cx="97" cy="135" r="1.2" fill="#FFF4DF" />
+      <circle cx="101.5" cy="134" r="1.2" fill="#FFF4DF" />
     </svg>
   );
 }
@@ -806,14 +1103,14 @@ export function HomePage({
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto my-auto flex flex-col items-center px-3 sm:px-6 py-3 sm:py-5">
+    <div className="w-full max-w-5xl mx-auto my-1 sm:my-auto flex flex-col items-center px-2.5 sm:px-6 py-2 sm:py-5">
       {/* 1. Header Minimal Branding & Duolingo Mascot Welcome */}
       <div className="w-full max-w-4xl mb-4 sm:mb-5 flex flex-col sm:flex-row items-center justify-between gap-3 bg-white/95 p-3 sm:p-4 rounded-3xl border-2 border-[#E5E5E5] border-b-[4px] shadow-sm">
-        {/* Left: Mascot & Headline */}
+        {/* Left: 24 FPS Animated Mascot (10 dynamic states) & Clean Minimal Headline */}
         <div className="flex items-center gap-3 sm:gap-4 text-left w-full sm:w-auto min-w-0">
-          {/* Mitra Mascot */}
-          <div className="relative flex-shrink-0 cursor-pointer hover:scale-105 active:scale-95 transition-transform">
-            <HeroMascotArt className="w-13 h-13 sm:w-16 sm:h-16" />
+          {/* Mitra 24 FPS Mascot */}
+          <div className="relative flex-shrink-0">
+            <AnimatedHeroOtter className="w-13 h-13 sm:w-16 sm:h-16" />
             <span className="absolute -bottom-1 -right-0.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-white border border-[#18181B] text-[8px] font-black text-[#15803D] shadow-xs">
               <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] animate-pulse" />
               <span>AI</span>
@@ -821,18 +1118,7 @@ export function HomePage({
           </div>
 
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="inline-flex items-center gap-1 text-[10.5px] font-black text-[#58CC02] bg-[#EEFDE5] px-2.5 py-0.5 rounded-full border border-[#58CC02]/30">
-                <Sparkles className="w-3 h-3 fill-[#58CC02]" /> 100% Free Edge AI
-              </span>
-              <span className="text-xs font-bold text-zinc-400 font-mono hidden min-[480px]:inline">
-                संकेत • SANKET ISL
-              </span>
-              <span className="text-xs font-bold text-zinc-600 hidden min-[600px]:inline">
-                👋 Namaste!
-              </span>
-            </div>
-            <h1 className="text-lg sm:text-2xl font-black text-[#3C3C3C] tracking-tight leading-tight mt-0.5">
+            <h1 className="text-lg sm:text-2xl font-black text-[#18181B] tracking-tight leading-tight">
               Indian Sign Language,{' '}
               <span className="text-[#58CC02] relative inline-block">
                 <span>made simple.</span>
@@ -842,9 +1128,6 @@ export function HomePage({
                 />
               </span>
             </h1>
-            <p className="text-xs sm:text-[13px] text-zinc-600 font-bold max-w-xl">
-              Learn 1,000+ signs with live AI feedback or start a real-time translated video call.
-            </p>
           </div>
         </div>
 
@@ -866,13 +1149,10 @@ export function HomePage({
             type="button"
             onClick={onOpenChatbot}
             className="duo-btn bg-white hover:bg-[#FFF9E5] border-2 border-zinc-900 text-zinc-900 !py-2 !px-3 sm:!px-4 text-xs font-black shadow-sm flex items-center gap-1.5 transition-all flex-shrink-0"
-            title="Open Sanket AI Chatbot (BYOK)"
+            title="Open Sanket AI Chatbot"
           >
             <Sparkles className="w-4 h-4 text-amber-500 fill-amber-500" />
             <span>Ask AI Guide</span>
-            <span className="text-[9px] font-black uppercase px-1 py-0.5 rounded bg-amber-200 text-amber-950 border border-amber-600/60 leading-none">
-              BYOK
-            </span>
           </button>
         </div>
       </div>
@@ -1065,66 +1345,6 @@ export function HomePage({
               </form>
             )}
           </div>
-        </div>
-      </div>
-
-      {/* 3. Bottom Trust & Technical Credentials */}
-      <div className="mt-5 pt-3 flex-shrink-0 w-full max-w-4xl flex flex-col sm:flex-row items-center justify-between gap-2.5 text-zinc-500 text-xs font-semibold border-t border-zinc-200/80">
-        <div className="flex items-center gap-3 sm:gap-5 flex-wrap justify-center sm:justify-start">
-          <span className="flex items-center gap-1.5 text-zinc-700">
-            <Zap className="w-3.5 h-3.5 text-[#FFD15C] fill-[#FFD15C] flex-shrink-0" />
-            <span>100% In-Browser Edge AI</span>
-          </span>
-          <span className="flex items-center gap-1.5 text-zinc-700">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#22C55E] flex-shrink-0" />
-            <span>Zero Video Saved</span>
-          </span>
-          <span className="flex items-center gap-1.5 text-zinc-700">
-            <Globe className="w-3.5 h-3.5 text-[#38BDF8] flex-shrink-0" />
-            <span>Direct P2P WebRTC</span>
-          </span>
-        </div>
-
-        <div className="flex items-center gap-3 sm:gap-4 text-xs flex-wrap justify-center sm:justify-end">
-          <button
-            onClick={onOpenChatbot}
-            className="hover:text-zinc-900 underline underline-offset-2 transition-colors font-bold text-amber-700 flex items-center gap-1"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-500 flex-shrink-0" />
-            <span>AI Chatbot</span>
-          </button>
-          {onOpenDictionary && (
-            <button
-              onClick={onOpenDictionary}
-              className="hover:text-zinc-900 underline underline-offset-2 transition-colors font-bold text-zinc-600 hover:text-zinc-900"
-            >
-              Dictionary
-            </button>
-          )}
-          {onOpenGuide && (
-            <button
-              onClick={onOpenGuide}
-              className="hover:text-zinc-900 underline underline-offset-2 transition-colors font-bold text-zinc-600 hover:text-zinc-900"
-            >
-              How It Works
-            </button>
-          )}
-          {onOpenAbout && (
-            <button
-              onClick={onOpenAbout}
-              className="hover:text-zinc-900 underline underline-offset-2 transition-colors font-bold text-zinc-600 hover:text-zinc-900"
-            >
-              About
-            </button>
-          )}
-          {onOpenFeedback && (
-            <button
-              onClick={onOpenFeedback}
-              className="hover:text-zinc-900 underline underline-offset-2 transition-colors font-bold text-zinc-600 hover:text-zinc-900"
-            >
-              Report Issue
-            </button>
-          )}
         </div>
       </div>
     </div>

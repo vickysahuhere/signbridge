@@ -36,16 +36,17 @@ export function LiveGlossBar({
   return (
     <div className="duo-card w-full flex-shrink-0 flex flex-col overflow-hidden bg-white">
       {/* 1. Header Toolbar */}
-      <div className="px-3.5 py-2.5 bg-[#EAF6E8] border-b-2 border-[#D6EBD3] flex items-center justify-between gap-2 flex-shrink-0 flex-wrap">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-lg bg-[#58CC02] flex items-center justify-center text-white">
-            <MessageSquare className="w-3.5 h-3.5 stroke-[2.5]" />
+      <div className="px-2.5 py-1.5 sm:px-3.5 sm:py-2 bg-[#EAF6E8] border-b-2 border-[#D6EBD3] flex items-center justify-between gap-1.5 flex-shrink-0">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-[#58CC02] flex items-center justify-center text-white flex-shrink-0">
+            <MessageSquare className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
           </div>
-          <span className="font-black text-sm sm:text-base text-[#2C3E28]">
-            Sign Buffer &amp; Auto-Converter
+          <span className="font-black text-xs sm:text-base text-[#2C3E28] truncate">
+            <span className="sm:hidden">Buffer</span>
+            <span className="hidden sm:inline">Sign Buffer &amp; Auto-Converter</span>
           </span>
-          <span className="duo-badge !py-0.5 !px-2 text-xs bg-white text-zinc-700 font-black">
-            {glosses.length} {glosses.length === 1 ? 'sign' : 'signs'}
+          <span className="duo-badge !py-0.2 !px-1.5 text-[10px] sm:text-xs bg-white text-zinc-700 font-black flex-shrink-0">
+            {glosses.length}
           </span>
         </div>
 
@@ -57,7 +58,7 @@ export function LiveGlossBar({
             className="duo-btn !py-1 !px-2 sm:!px-2.5 text-xs sm:text-sm font-black text-zinc-700 hover:text-zinc-900 bg-white flex-shrink-0"
             title="Undo last sign"
           >
-            <Undo2 className="w-3.5 h-3.5 stroke-[2.5]" />
+            <Undo2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
             <span className="hidden sm:inline">Undo</span>
           </button>
 
@@ -67,39 +68,40 @@ export function LiveGlossBar({
             className="duo-btn !py-1 !px-2 sm:!px-2.5 text-xs sm:text-sm font-black text-zinc-700 hover:text-[#FF4B4B] bg-white flex-shrink-0"
             title="Clear all signs"
           >
-            <Trash2 className="w-3.5 h-3.5 stroke-[2.5]" />
+            <Trash2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
             <span className="hidden sm:inline">Clear</span>
           </button>
 
           <button
             onClick={onCommit}
             disabled={!hasGlosses}
-            className="duo-btn duo-btn-green font-black !py-1.5 !px-2.5 sm:!px-3.5 text-xs sm:text-sm flex-shrink-0"
+            className="duo-btn duo-btn-green font-black !py-1 !px-2 sm:!py-1.5 sm:!px-3 text-xs sm:text-sm flex-shrink-0"
             title="Instant commit now (or simply rest hands to auto-commit)"
           >
-            <Send className="w-3.5 h-3.5 stroke-[2.5]" />
+            <Send className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
             <span className="hidden sm:inline">Commit Now</span>
-            <span className="sm:hidden">Commit</span>
+            <span className="sm:hidden">Send</span>
           </button>
         </div>
       </div>
 
       {/* 2. Optional Quick Candidate Suggestion Strip */}
       {candidates && candidates.length > 0 && (
-        <div className="px-3.5 py-2 bg-[#FFF5D1] border-b border-[#E5A500]/30 flex items-center gap-2 text-xs sm:text-sm overflow-x-auto flex-shrink-0 select-none">
-          <span className="font-black text-[#78350F] flex items-center gap-1 whitespace-nowrap text-xs uppercase font-mono flex-shrink-0">
-            <span>💡 Suggested:</span>
+        <div className="px-2.5 py-1.5 sm:px-3.5 sm:py-2 bg-[#FFF5D1] border-b border-[#E5A500]/30 flex items-center gap-1.5 text-xs overflow-x-auto flex-shrink-0 select-none">
+          <span className="font-black text-[#78350F] flex items-center gap-1 whitespace-nowrap text-[10px] sm:text-xs uppercase font-mono flex-shrink-0">
+            <Sparkles className="w-3 h-3 text-amber-600 fill-amber-600" />
+            <span>Suggested:</span>
           </span>
-          <div className="flex items-center gap-1.5 overflow-x-auto">
+          <div className="flex items-center gap-1 overflow-x-auto">
             {candidates.map((c) => (
               <button
                 key={c.label}
                 onClick={() => onSelectCandidate && onSelectCandidate(c.label, 'smart')}
-                className="duo-badge !py-1 !px-3 text-xs sm:text-sm font-black bg-white hover:bg-[#58CC02] hover:text-white hover:border-[#46A302] transition-all flex items-center gap-1.5 cursor-pointer"
+                className="duo-badge !py-0.5 !px-2 text-[10px] sm:text-xs font-black bg-white hover:bg-[#58CC02] hover:text-white hover:border-[#46A302] transition-all flex items-center gap-1 cursor-pointer flex-shrink-0"
                 title={`Confidence: ${Math.round(c.confidence * 100)}% - Tap to add`}
               >
                 <span>{c.label}</span>
-                <span className="text-[#58CC02] group-hover:text-white font-mono text-xs font-black">
+                <span className="text-[#58CC02] group-hover:text-white font-mono text-[9px] font-black">
                   {Math.round(c.confidence * 100)}%
                 </span>
                 <span className="font-black">+</span>
@@ -110,15 +112,15 @@ export function LiveGlossBar({
       )}
 
       {/* 3. Middle: Token Chips Stream */}
-      <div className="p-2.5 sm:p-3 flex flex-col gap-2">
-        <div className="min-h-[54px] p-2 rounded-2xl bg-[#F3FAF2] border-2 border-[#D6EBD3] flex items-center justify-between gap-2 overflow-hidden">
+      <div className="p-1.5 sm:p-2.5 flex flex-col gap-1.5">
+        <div className="min-h-[44px] sm:min-h-[50px] p-1.5 rounded-xl bg-[#F3FAF2] border-2 border-[#D6EBD3] flex items-center justify-between gap-1.5 overflow-hidden">
           {/* Scrollable list of tokens */}
-          <div className="flex-1 min-w-0 flex items-center gap-2 overflow-x-auto py-1 scrollbar-thin">
+          <div className="flex-1 min-w-0 flex items-center gap-1.5 overflow-x-auto py-0.5 scrollbar-thin">
             {hasGlosses ? (
               glosses.map((gloss, idx) => (
                 <React.Fragment key={`${gloss}-${idx}`}>
-                  <div className="duo-token animate-duo-pop group relative inline-flex items-center gap-2 pl-3.5 pr-2.5 py-1.5 select-none flex-shrink-0">
-                    <span className="font-mono font-black tracking-wide text-sm sm:text-base">{gloss}</span>
+                  <div className="duo-token animate-duo-pop group relative inline-flex items-center gap-1.5 pl-2.5 pr-1.5 py-1 select-none flex-shrink-0">
+                    <span className="font-mono font-black tracking-wide text-xs sm:text-sm">{gloss}</span>
                     {onRemoveAt && (
                       <button
                         type="button"
@@ -126,7 +128,7 @@ export function LiveGlossBar({
                           e.stopPropagation();
                           onRemoveAt(idx);
                         }}
-                        className="w-4 h-4 rounded-full bg-[#46A302] hover:bg-[#FF4B4B] text-white flex items-center justify-center transition-colors cursor-pointer flex-shrink-0"
+                        className="w-4 h-4 rounded-full bg-[#46A302] hover:bg-[#FF4B4B] text-white flex items-center justify-center transition-colors cursor-pointer flex-shrink-0 ml-0.5"
                         title={`Remove "${gloss}" (1-click)`}
                         aria-label={`Remove sign ${gloss}`}
                       >
@@ -135,50 +137,26 @@ export function LiveGlossBar({
                     )}
                   </div>
                   {idx < glosses.length - 1 && (
-                    <ArrowRight className="w-3.5 h-3.5 text-zinc-300 flex-shrink-0 stroke-[3]" />
+                    <ArrowRight className="w-3 h-3 text-zinc-300 flex-shrink-0 stroke-[3]" />
                   )}
                 </React.Fragment>
               ))
             ) : (
-              <p className="text-xs text-zinc-400 italic select-none flex items-center gap-1.5 px-1 font-bold">
-                <span>Sign gestures in front of camera • Hands stationary for 1.2s auto-sends sentence</span>
+              <p className="text-[11px] sm:text-xs text-zinc-400 italic select-none flex items-center gap-1 px-1 font-bold">
+                <span>Sign in front of camera • Stationary 1.2s auto-converts</span>
               </p>
             )}
           </div>
-
-          {/* Direct 1-Click Undo and Remove All Buttons right inside this bar */}
-          {hasGlosses && (
-            <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0 pl-1.5 sm:pl-2 border-l-2 border-[#D6EBD3]">
-              <button
-                type="button"
-                onClick={onUndo}
-                className="duo-btn !py-1 !px-2 sm:!px-2.5 text-xs sm:text-sm font-black bg-white hover:bg-zinc-100 text-zinc-800 flex items-center gap-1 flex-shrink-0"
-                title="Undo last sign (1-click)"
-              >
-                <Undo2 className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span className="hidden sm:inline">Undo</span>
-              </button>
-              <button
-                type="button"
-                onClick={onClear}
-                className="duo-btn !py-1 !px-2 sm:!px-2.5 text-xs sm:text-sm font-black bg-white hover:bg-red-50 text-zinc-800 hover:text-[#FF4B4B] flex items-center gap-1 flex-shrink-0"
-                title="Clear all signs (1-click)"
-              >
-                <Trash2 className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span className="hidden sm:inline">Clear</span>
-              </button>
-            </div>
-          )}
         </div>
 
         {/* 4. Bottom: English Translation Preview & Auto-send Meter */}
-        <div className="p-3 rounded-2xl bg-[#EEFDE5] border-2 border-[#58CC02] border-b-[3px] border-b-[#46A302] flex items-center justify-between gap-2 text-sm flex-wrap">
-          <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-[200px]">
-            <div className="duo-badge bg-[#58CC02] text-white flex items-center gap-1 !py-0.5 border-[#46A302] flex-shrink-0">
-              <Sparkles className="w-3 h-3 stroke-[2.5]" />
-              <span className="text-xs uppercase font-mono font-black">English:</span>
+        <div className="p-2 sm:p-2.5 rounded-xl bg-[#EEFDE5] border-2 border-[#58CC02] border-b-[3px] border-b-[#46A302] flex items-center justify-between gap-1.5 text-xs sm:text-sm flex-wrap">
+          <div className="flex items-center gap-1.5 overflow-hidden flex-1 min-w-[160px]">
+            <div className="duo-badge bg-[#58CC02] text-white flex items-center gap-1 !py-0.2 !px-1.5 border-[#46A302] flex-shrink-0 text-[10px]">
+              <Sparkles className="w-2.5 h-2.5 stroke-[2.5]" />
+              <span className="uppercase font-mono font-black">EN:</span>
             </div>
-            <p className="font-black text-[#2F7202] text-sm sm:text-base truncate">
+            <p className="font-black text-[#2F7202] text-xs sm:text-sm truncate">
               {previewText ? (
                 `"${previewText}"`
               ) : (
@@ -189,12 +167,12 @@ export function LiveGlossBar({
               <button
                 type="button"
                 onClick={handleSpeak}
-                className={`duo-btn duo-btn-blue !py-1 !px-2.5 text-xs font-black flex items-center gap-1 ${
+                className={`duo-btn duo-btn-blue !py-0.5 !px-2 text-[10px] font-black flex items-center gap-1 ${
                   isSpeaking ? 'animate-pulse' : ''
                 }`}
                 title="Speak sentence aloud"
               >
-                <Volume2 className="w-3.5 h-3.5 stroke-[2.5]" />
+                <Volume2 className="w-3 h-3 stroke-[2.5]" />
                 <span>Speak</span>
               </button>
             )}
@@ -202,16 +180,16 @@ export function LiveGlossBar({
 
           {/* Pause Countdown Progress Meter */}
           {(isPausing || isCommitted) && hasGlosses && (
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-center gap-1.5 flex-shrink-0">
               {isCommitted ? (
-                <span className="duo-badge bg-[#58CC02] text-white flex items-center gap-1 border-[#46A302] text-xs font-black">
-                  <CheckCircle2 className="w-3.5 h-3.5 stroke-[2.5]" />
-                  <span>Auto-Converted!</span>
+                <span className="duo-badge bg-[#58CC02] text-white flex items-center gap-1 border-[#46A302] text-[10px] font-black">
+                  <CheckCircle2 className="w-3 h-3 stroke-[2.5]" />
+                  <span>Converted!</span>
                 </span>
               ) : (
-                <div className="flex items-center gap-2 text-xs font-black text-[#2F7202]">
-                  <span>Auto-converting in {remainingSeconds}s</span>
-                  <div className="w-20 h-2.5 bg-white rounded-full overflow-hidden border border-[#58CC02]/40">
+                <div className="flex items-center gap-1.5 text-[10px] font-black text-[#2F7202]">
+                  <span>{remainingSeconds}s</span>
+                  <div className="w-14 h-2 bg-white rounded-full overflow-hidden border border-[#58CC02]/40">
                     <div
                       className="bg-[#58CC02] h-full rounded-full transition-all duration-100"
                       style={{ width: `${percent}%` }}

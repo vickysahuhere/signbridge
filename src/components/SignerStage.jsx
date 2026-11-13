@@ -21,7 +21,8 @@ import {
   ExternalLink,
   Users,
   Radio,
-  Hash
+  Hash,
+  SwitchCamera
 } from 'lucide-react';
 import { startCameraLoop } from '../vision/cameraLoop.js';
 import { drawSkeleton, checkBoundaryAlert } from '../vision/drawSkeleton.js';
@@ -68,6 +69,7 @@ export function SignerStage({
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState(null);
   const [isLoadingCamera, setIsLoadingCamera] = useState(false);
+  const [facingMode, setFacingMode] = useState('user'); // 'user' | 'environment'
   const [showSkeleton, setShowSkeleton] = useState(true);
   const [boundaryAlert, setBoundaryAlert] = useState({ isOutOfFrame: false, message: '' });
   const [layoutMode, setLayoutMode] = useState('grid'); // 'grid' | 'local-focus' | 'remote-focus'
@@ -154,9 +156,10 @@ export function SignerStage({
   }, []);
 
   // Start local camera media stream
-  const startCamera = useCallback(async () => {
+  const startCamera = useCallback(async (overrideFacing) => {
     setIsLoadingCamera(true);
     setCameraError(null);
+    const activeFacing = overrideFacing || facingMode;
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -165,7 +168,7 @@ export function SignerStage({
           height: { ideal: 720, min: 480 },
           aspectRatio: { ideal: 1.7777777778 },
           frameRate: { ideal: 30 },
-          facingMode: 'user'
+          facingMode: activeFacing
         },
         audio: false
       });
@@ -195,7 +198,20 @@ export function SignerStage({
     } finally {
       setIsLoadingCamera(false);
     }
-  }, [onStreamChange, syncCanvasDimensions]);
+  }, [facingMode, onStreamChange, syncCanvasDimensions]);
+
+  // Toggle between front (user) and rear (environment) cameras on mobile devices
+  const toggleCameraFacing = useCallback(() => {
+    const nextFacing = facingMode === 'user' ? 'environment' : 'user';
+    setFacingMode(nextFacing);
+    if (isCameraActive) {
+      if (videoRef.current && videoRef.current.srcObject) {
+        const tracks = videoRef.current.srcObject.getTracks();
+        tracks.forEach(track => track.stop());
+      }
+      startCamera(nextFacing);
+    }
+  }, [facingMode, isCameraActive, startCamera]);
 
   // Stop local camera media stream
   const stopCamera = useCallback(() => {
@@ -484,12 +500,53 @@ export function SignerStage({
                 </div>
               )}
 
-              {/* Floating Candidate Suggestions Card */}
+              {/* Mobile Non-Blocking Sign Detection HUD Pill (< md) */}
+              {isCameraActive && displayList && displayList.length > 0 && layoutMode !== 'remote-focus' && (
+                <div
+                  className="md:hidden absolute top-2 inset-x-2 z-20 flex items-center justify-center pointer-events-auto"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="bg-white/95 backdrop-blur-md border-2 border-zinc-900 px-2.5 py-1 rounded-xl shadow-cartoon-sm flex items-center gap-1.5 max-w-[96%]">
+                    <span className="w-2 h-2 rounded-full bg-[#58CC02] animate-ping flex-shrink-0" />
+                    <span className="text-[11px] font-black text-zinc-900 truncate">
+                      {displayList[0].label}
+                    </span>
+                    <span className="text-[9px] font-mono font-bold text-zinc-500">
+                      {Math.round(displayList[0].confidence * 100)}%
+                    </span>
+                    {onSelectCandidate && (
+                      <button
+                        type="button"
+                        onClick={() => onSelectCandidate(displayList[0].label, 'smart')}
+                        className="duo-btn duo-btn-green !py-0.5 !px-2 text-[10px] font-black flex-shrink-0 ml-1"
+                      >
+                        + Add
+                      </button>
+                    )}
+                    {displayList.length > 1 && (
+                      <div className="flex items-center gap-1 overflow-x-auto pl-1 border-l border-zinc-300">
+                        {displayList.slice(1, 3).map((cand) => (
+                          <button
+                            key={cand.label}
+                            type="button"
+                            onClick={() => onSelectCandidate && onSelectCandidate(cand.label, 'smart')}
+                            className="text-[9px] font-bold px-1.5 py-0.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 rounded border border-zinc-300 whitespace-nowrap"
+                          >
+                            {cand.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Desktop Floating Candidate Suggestions Card (>= md) */}
               {isCameraActive && displayList && displayList.length > 0 && layoutMode !== 'remote-focus' && (
                 <div
                   onMouseEnter={() => onSetInteracting && onSetInteracting(true)}
                   onMouseLeave={() => onSetInteracting && onSetInteracting(false)}
-                  className="absolute top-2.5 right-2.5 z-20 cartoon-card bg-white p-2.5 border-2 border-zinc-900 shadow-cartoon w-[210px] max-w-[85%] select-none animate-in fade-in duration-150"
+                  className="hidden md:block absolute top-2.5 right-2.5 z-20 cartoon-card bg-white p-2.5 border-2 border-zinc-900 shadow-cartoon w-[210px] max-w-[85%] select-none animate-in fade-in duration-150"
                 >
                   <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-zinc-200">
                     <div className="flex items-center gap-1.5">
@@ -792,7 +849,7 @@ export function SignerStage({
         </div>
 
         {/* 3. Bottom Controls Bar */}
-        <div className="flex items-center justify-between gap-1.5 sm:gap-2 mt-2 pt-1 flex-shrink-0 flex-wrap">
+        <div className="flex items-center justify-between gap-1 sm:gap-2 mt-1.5 sm:mt-2 pt-1 flex-shrink-0 flex-wrap">
           <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
             {isCameraActive ? (
               <button
@@ -800,16 +857,31 @@ export function SignerStage({
                 className="cartoon-btn cartoon-btn-coral !py-1 !px-2 sm:!px-2.5 text-xs font-bold flex-shrink-0"
               >
                 <CameraOff className="w-3.5 h-3.5 stroke-[2.2]" />
-                <span>Stop Camera</span>
+                <span className="sm:hidden">Stop</span>
+                <span className="hidden sm:inline">Stop Camera</span>
               </button>
             ) : (
               <button
-                onClick={startCamera}
+                onClick={() => startCamera()}
                 disabled={isLoadingCamera}
                 className="cartoon-btn cartoon-btn-mint !py-1 !px-2 sm:!px-2.5 text-xs font-bold flex-shrink-0"
               >
                 <Camera className="w-3.5 h-3.5 stroke-[2.2]" />
-                <span>Start Camera</span>
+                <span className="sm:hidden">{isLoadingCamera ? 'Starting...' : 'Start'}</span>
+                <span className="hidden sm:inline">{isLoadingCamera ? 'Starting Camera...' : 'Start Camera'}</span>
+              </button>
+            )}
+
+            {/* Mobile Front/Rear Camera Flip Trigger */}
+            {isCameraActive && (
+              <button
+                type="button"
+                onClick={toggleCameraFacing}
+                className="cartoon-btn !py-1 !px-2 text-xs font-bold bg-white text-zinc-800 flex items-center gap-1 flex-shrink-0"
+                title={`Switch Camera (Currently: ${facingMode})`}
+              >
+                <SwitchCamera className="w-3.5 h-3.5 stroke-[2.2]" />
+                <span className="hidden sm:inline">Flip</span>
               </button>
             )}
 
@@ -822,7 +894,8 @@ export function SignerStage({
                 title="Toggle skeleton landmarks overlay"
               >
                 <Activity className="w-3.5 h-3.5 stroke-[2.2]" />
-                <span>Skeleton {showSkeleton ? 'On' : 'Off'}</span>
+                <span className="sm:hidden">{showSkeleton ? 'Skel On' : 'Skel Off'}</span>
+                <span className="hidden sm:inline">Skeleton {showSkeleton ? 'On' : 'Off'}</span>
               </button>
             )}
 
@@ -833,7 +906,8 @@ export function SignerStage({
               }`}
               title="Toggle Pipeline Latency HUD"
             >
-              <span>Telemetry</span>
+              <span className="sm:hidden">Stats</span>
+              <span className="hidden sm:inline">Telemetry</span>
             </button>
 
             {currentGlosses && currentGlosses.length > 0 && onUndo && (

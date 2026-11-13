@@ -91,7 +91,7 @@ export function LearnGuessPanel({
 
           {/* Live Guess Info */}
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5 flex-wrap">
+            <div className="flex items-center gap-1.5 whitespace-nowrap">
               <span className="text-[10px] sm:text-xs uppercase font-black text-zinc-500 font-mono tracking-wider">
                 {isMatched ? 'Sign Passed' : 'Live AI Vision Guess'}
               </span>
@@ -100,10 +100,13 @@ export function LearnGuessPanel({
               </span>
             </div>
 
-            <div className="flex items-center gap-2 mt-0.5 min-w-0">
-              <span className={`font-black text-base sm:text-lg tracking-tight truncate ${
-                guessMatchesTarget || isMatched ? 'text-[#2F7202]' : 'text-[#2C3E28]'
-              }`}>
+            <div className="flex items-center gap-2 mt-0.5 min-w-0 h-7">
+              <span
+                className={`font-black text-base sm:text-lg tracking-tight truncate min-w-0 ${
+                  guessMatchesTarget || isMatched ? 'text-[#2F7202]' : 'text-[#2C3E28]'
+                }`}
+                title={isMatched ? `${selectedItem?.name || targetLabel} Mastered!` : activeGuess}
+              >
                 {isMatched ? `${selectedItem?.name || targetLabel} Mastered!` : activeGuess}
               </span>
 
@@ -120,48 +123,59 @@ export function LearnGuessPanel({
           </div>
         </div>
 
-        {/* 1b. Middle Section: Top 3 Candidate Confidence Bars (or Celebration Message) */}
+        {/* 1b. Middle Section: Fixed-size Candidate Rankings (hidden on ultra-small mobile to prevent vertical overflow) */}
         {isMatched ? (
-          <div className="w-full sm:w-60 lg:w-72 flex items-center gap-2 bg-white/80 p-2 rounded-xl border-2 border-[#58CC02]/40 flex-shrink-0">
+          <div className="hidden sm:flex w-full sm:w-64 lg:w-72 h-[76px] items-center gap-2 bg-white/80 p-2 rounded-xl border-2 border-[#58CC02]/40 flex-shrink-0 overflow-hidden">
             <CheckCircle2 className="w-4 h-4 text-[#58CC02] stroke-[3] flex-shrink-0" />
             <span className="text-xs font-black text-[#2F7202] leading-tight">
               Nicely done! You nailed this sign 3 times in a row!
             </span>
           </div>
         ) : (
-          <div className="w-full sm:w-60 lg:w-72 flex flex-col gap-1 bg-[#F4FAF2] p-2 rounded-xl border-2 border-[#D6EBD3] flex-shrink-0">
-            <div className="flex items-center justify-between text-[10px] font-black text-zinc-600 font-mono">
-              <span>Candidate Rankings</span>
-              <span className="truncate max-w-[140px] text-[#2F7202]">
+          <div className="hidden sm:flex w-full sm:w-64 lg:w-72 h-[76px] flex-col justify-between bg-[#F4FAF2] p-2 rounded-xl border-2 border-[#D6EBD3] flex-shrink-0 overflow-hidden">
+            <div className="flex items-center justify-between text-[10px] font-black text-zinc-600 font-mono leading-none flex-shrink-0">
+              <span className="shrink-0">Candidate Rankings</span>
+              <span
+                className="truncate max-w-[120px] text-[#2F7202]"
+                title={activeStep ? activeStep.title : targetLabel}
+              >
                 L{currentLevel.levelNumber}: {activeStep ? activeStep.title : targetLabel}
               </span>
             </div>
 
-            <div className="space-y-0.5">
-              {candidates.slice(0, 3).map((cand, idx) => {
-                const isTarget = cand.label?.toUpperCase() === targetLabel;
-                const pct = Math.round(cand.confidence * 100);
-                return (
-                  <div key={cand.label || idx} className="flex items-center gap-1.5 text-xs">
-                    <span className={`w-18 font-black truncate text-[11px] sm:text-xs ${isTarget ? 'text-[#2F7202]' : 'text-zinc-800'}`}>
-                      {cand.label}
-                    </span>
-                    <div className="flex-1 h-1.5 bg-zinc-200 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full transition-all duration-200 rounded-full ${
-                          isTarget ? 'bg-[#58CC02]' : 'bg-[#FFC800]'
-                        }`}
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                    <span className="font-mono text-zinc-500 w-7 text-right text-[10px] font-black">
-                      {pct}%
-                    </span>
-                  </div>
-                );
-              })}
-              {candidates.length === 0 && (
-                <div className="text-[10px] text-zinc-400 font-bold text-center py-0.5">
+            <div className="flex-1 flex flex-col justify-center min-h-0 overflow-hidden">
+              {candidates.length > 0 ? (
+                <div className="flex flex-col gap-1 justify-center min-h-0">
+                  {candidates.slice(0, 2).map((cand, idx) => {
+                    const isTarget = cand.label?.toUpperCase() === targetLabel;
+                    const pct = Math.round(cand.confidence * 100);
+                    return (
+                      <div key={cand.label || idx} className="flex items-center gap-1.5 text-xs h-4 flex-shrink-0 min-w-0">
+                        <span
+                          className={`w-20 shrink-0 font-black truncate text-[11px] sm:text-xs ${
+                            isTarget ? 'text-[#2F7202]' : 'text-zinc-800'
+                          }`}
+                          title={cand.label}
+                        >
+                          {cand.label}
+                        </span>
+                        <div className="flex-1 min-w-0 h-1.5 bg-zinc-200 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full transition-all duration-150 rounded-full ${
+                              isTarget ? 'bg-[#58CC02]' : 'bg-[#FFC800]'
+                            }`}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <span className="font-mono text-zinc-500 w-7 shrink-0 text-right text-[10px] font-black">
+                          {pct}%
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-[10px] text-zinc-400 font-bold text-center truncate py-1">
                   Show your hands to the camera...
                 </div>
               )}
@@ -171,10 +185,10 @@ export function LearnGuessPanel({
       </div>
 
       {/* 2. Action Controls: Reps Goal + Streak counter + Retry + CONTINUE button */}
-      <div className="flex items-center gap-1.5 sm:gap-2 justify-between sm:justify-end flex-wrap flex-shrink-0 pt-1.5 2xl:pt-0 border-t 2xl:border-t-0 border-zinc-200/60 min-w-0">
-        {/* Repetition Progress Pill */}
+      <div className="flex items-center gap-1 sm:gap-2 justify-between sm:justify-end flex-wrap flex-shrink-0 pt-1 2xl:pt-0 border-t 2xl:border-t-0 border-zinc-200/60 min-w-0">
+        {/* Repetition Progress Pill (hidden on ultra-small mobile since Top HUD already displays it) */}
         <div
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl border-2 transition-all flex-shrink-0 ${
+          className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl border-2 transition-all flex-shrink-0 ${
             isMatched
               ? 'bg-white border-[#58CC02] border-b-[3px]'
               : 'bg-[#F4FAF2] border-[#D6EBD3]'
@@ -207,7 +221,7 @@ export function LearnGuessPanel({
         <button
           type="button"
           onClick={onOpenAcademy}
-          className="duo-btn duo-btn-gold !py-1.5 !px-2.5 sm:!px-3 text-xs font-black flex-shrink-0"
+          className="duo-btn duo-btn-gold !py-1 !px-2 sm:!py-1.5 sm:!px-3 text-xs font-black flex-shrink-0"
           title="Click to open Sign Academy"
         >
           <Flame className="w-3.5 h-3.5 text-[#78350F] fill-[#78350F] flex-shrink-0" />
@@ -218,7 +232,7 @@ export function LearnGuessPanel({
         <button
           type="button"
           onClick={onResetPractice}
-          className="duo-btn !py-1.5 !px-2.5 sm:!px-3 text-xs font-black flex-shrink-0"
+          className="duo-btn !py-1 !px-2 sm:!py-1.5 sm:!px-3 text-xs font-black flex-shrink-0"
           title="Reset practice and try this sign again"
         >
           <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -228,12 +242,12 @@ export function LearnGuessPanel({
         {/* Next Sign Button (CONTINUE) */}
         <button
           onClick={onNextSign}
-          className={`duo-btn !py-1.5 !px-3 sm:!px-4 text-xs font-black flex items-center gap-1 flex-shrink-0 ${
+          className={`duo-btn !py-1 !px-2.5 sm:!py-1.5 sm:!px-4 text-xs font-black flex items-center gap-1 flex-shrink-0 ${
             isMatched ? 'duo-btn-green animate-subtle-bounce' : 'duo-btn-blue'
           }`}
           title="Advance to next sign on course path"
         >
-          <span>{isMatched ? 'CONTINUE' : 'NEXT SIGN'}</span>
+          <span>{isMatched ? 'CONTINUE' : 'NEXT'}</span>
           <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
         </button>
       </div>

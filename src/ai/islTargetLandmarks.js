@@ -204,7 +204,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'fingers_up',
         label: 'Fingers pointing upward',
         status: fingersUp ? 'pass' : 'fail',
-        current: fingersUp ? 'Vertical (✔)' : 'Tilted down or sideways',
+        current: fingersUp ? 'Vertical (OK)' : 'Tilted down or sideways',
         target: 'Vertical tips',
         hint: 'Point your fingertips straight up towards your chin.'
       });
@@ -216,7 +216,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'chest_zone',
         label: 'Positioned at chest level',
         status: chestZone ? 'pass' : 'fail',
-        current: left.wrist.y < 0.40 ? 'Too high' : (left.wrist.y > 0.75 ? 'Too low' : 'Chest height (✔)'),
+        current: left.wrist.y < 0.40 ? 'Too high' : (left.wrist.y > 0.75 ? 'Too low' : 'Chest height (OK)'),
         target: 'Center chest',
         hint: 'Hold your hands at mid-chest height.'
       });
@@ -285,7 +285,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'hand_raised',
         label: 'Hand raised near head level',
         status: isRaised ? 'pass' : 'fail',
-        current: isRaised ? 'Near head (✔)' : 'Too low (below shoulder)',
+        current: isRaised ? 'Near head (OK)' : 'Too low (below shoulder)',
         target: 'Above shoulder',
         hint: 'Raise your hand higher, near your ear or temple.'
       });
@@ -310,7 +310,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'near_head',
         label: 'Positioned beside temple',
         status: nearHead ? 'pass' : 'warn',
-        current: nearHead ? 'Good position (✔)' : 'Move closer to face',
+        current: nearHead ? 'Good position (OK)' : 'Move closer to face',
         target: '< 35 cm from nose',
         hint: 'Keep your hand near your temple.'
       });
@@ -371,7 +371,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'thumb_extended',
         label: 'Thumb extended outward',
         status: thumbExt ? 'pass' : 'fail',
-        current: thumbExt ? 'Extended (✔)' : 'Tucked in',
+        current: thumbExt ? 'Extended (OK)' : 'Tucked in',
         target: 'Extended',
         hint: 'Stick your thumb out.'
       });
@@ -383,7 +383,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'thumb_up',
         label: 'Thumb pointing upward',
         status: thumbUp ? 'pass' : 'fail',
-        current: thumbUp ? 'Pointing up (✔)' : 'Sideways or down',
+        current: thumbUp ? 'Pointing up (OK)' : 'Sideways or down',
         target: 'Vertical UP',
         hint: 'Point your thumb straight up.'
       });
@@ -470,7 +470,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
             id: 'hand',
             label: 'Hand visible',
             status: 'pass',
-            current: '1 hand (✔)',
+            current: '1 hand (OK)',
             target: '1 hand',
             hint: ''
           });
@@ -481,7 +481,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
             id: 'thumb_up',
             label: 'Thumb pointing upward',
             status: thumbUp ? 'pass' : 'fail',
-            current: thumbUp ? 'Pointing up (✔)' : 'Thumb not upright',
+            current: thumbUp ? 'Pointing up (OK)' : 'Thumb not upright',
             target: 'Upward',
             hint: 'Point thumb straight up.'
           });
@@ -492,7 +492,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
             id: 'fingers_curled',
             label: 'Other 4 fingers curled into fist',
             status: fingersCurled ? 'pass' : 'fail',
-            current: fingersCurled ? 'Curled into fist (✔)' : 'Curl fingers',
+            current: fingersCurled ? 'Curled into fist (OK)' : 'Curl fingers',
             target: 'Fist',
             hint: 'Curl index, middle, ring, pinky.'
           });
@@ -503,7 +503,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
             id: 'zone',
             label: 'Hand at chest height',
             status: inZone ? 'pass' : 'fail',
-            current: inZone ? 'Chest level (✔)' : (h.wrist.y < 0.38 ? 'Too high' : 'Too low'),
+            current: inZone ? 'Chest level (OK)' : (h.wrist.y < 0.38 ? 'Too high' : 'Too low'),
             target: 'Chest level',
             hint: 'Hold hand at chest height.'
           });
@@ -516,7 +516,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
             isPostureAligned: isMatched,
             checklist,
             primaryGuidance: isMatched
-              ? 'Part 1 Good aligned! (✔) Now do Part 2 (Morning sunrise).'
+              ? 'Part 1 Good aligned! (OK) Now do Part 2 (Morning sunrise).'
               : 'Part 1: Hold a thumbs-up in front of your chest.'
           };
         }
@@ -563,7 +563,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
             id: 'hand',
             label: 'Hand visible',
             status: 'pass',
-            current: '1 hand (✔)',
+            current: '1 hand (OK)',
             target: '1 hand',
             hint: ''
           });
@@ -574,7 +574,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
             id: 'open_hand',
             label: 'Open palm (sun rays)',
             status: isOpen ? 'pass' : 'fail',
-            current: isOpen ? 'Palm open (✔)' : 'Open your fingers',
+            current: isOpen ? 'Palm open (OK)' : 'Open your fingers',
             target: 'Open palm',
             hint: 'Spread fingers open like morning sun rays.'
           });
@@ -585,7 +585,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
             id: 'fingers_up',
             label: 'Fingers pointing upward',
             status: fingersUp ? 'pass' : 'fail',
-            current: fingersUp ? 'Pointing upward (✔)' : 'Point fingers up',
+            current: fingersUp ? 'Pointing upward (OK)' : 'Point fingers up',
             target: 'Fingers up',
             hint: 'Keep fingers directed upward.'
           });
@@ -596,7 +596,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
             id: 'zone',
             label: 'Hand lifted to sunrise height (chin/upper chest)',
             status: inZone ? 'pass' : 'fail',
-            current: inZone ? 'Sunrise height (✔)' : (h.wrist.y < 0.22 ? 'Too high' : 'Raise hand higher'),
+            current: inZone ? 'Sunrise height (OK)' : (h.wrist.y < 0.22 ? 'Too high' : 'Raise hand higher'),
             target: 'Upper chest / Chin',
             hint: 'Lift hand upward toward chin height.'
           });
@@ -609,7 +609,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
             isPostureAligned: isMatched,
             checklist,
             primaryGuidance: isMatched
-              ? 'Part 2 Sunrise aligned! (✔) Good Morning complete!'
+              ? 'Part 2 Sunrise aligned! (OK) Good Morning complete!'
               : 'Part 2: Raise your open palm upward like sunrise.'
           };
         }
@@ -688,7 +688,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         };
       }
       score += 25;
-      checklist.push({ id: 'hand', label: 'Hand detected', status: 'pass', current: 'Detected (✔)', target: '1 hand', hint: '' });
+      checklist.push({ id: 'hand', label: 'Hand detected', status: 'pass', current: 'Detected (OK)', target: '1 hand', hint: '' });
 
       // Near chin
       const dChin = dist2D(h.points[12], { x: nose.x, y: chinY });
@@ -721,7 +721,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'wrist_below',
         label: 'Wrist below chin',
         status: wristBelow ? 'pass' : 'fail',
-        current: wristBelow ? 'Good height (✔)' : 'Too high',
+        current: wristBelow ? 'Good height (OK)' : 'Too high',
         target: 'Wrist below chin',
         hint: 'Rest fingertips on chin, wrist lower.'
       });
@@ -782,7 +782,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'fist_and_palm',
         label: 'One fist + one flat palm',
         status: (hasFist && hasPalm) ? 'pass' : 'warn',
-        current: hasFist && hasPalm ? 'Fist on Palm (✔)' : 'Check hand shapes',
+        current: hasFist && hasPalm ? 'Fist on Palm (OK)' : 'Check hand shapes',
         target: '1 Fist + 1 Palm',
         hint: 'Close one hand into a fist, open the other flat.'
       });
@@ -840,7 +840,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
       let score = 0;
       if (!h) return { matchScore: 0, isMatched: false, checklist: [], primaryGuidance: 'Hold your open palm forward.' };
 
-      checklist.push({ id: 'hand', label: 'Hand detected', status: 'pass', current: 'Detected (✔)', target: '1 hand', hint: '' });
+      checklist.push({ id: 'hand', label: 'Hand detected', status: 'pass', current: 'Detected (OK)', target: '1 hand', hint: '' });
       score += 20;
 
       // Open palm 5 fingers
@@ -861,7 +861,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'vertical',
         label: 'Fingers pointing straight up',
         status: vertical ? 'pass' : 'warn',
-        current: vertical ? 'Vertical (✔)' : 'Angle fingers upward',
+        current: vertical ? 'Vertical (OK)' : 'Angle fingers upward',
         target: 'Pointing up',
         hint: 'Point your fingers toward ceiling.'
       });
@@ -873,7 +873,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'chest_zone',
         label: 'Centered in front of body',
         status: chestZone ? 'pass' : 'fail',
-        current: chestZone ? 'Good height (✔)' : 'Adjust height',
+        current: chestZone ? 'Good height (OK)' : 'Adjust height',
         target: 'Chest height',
         hint: 'Hold palm in front of chest.'
       });
@@ -938,7 +938,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'index_extended',
         label: 'Index finger extended',
         status: hasIndex ? 'pass' : 'fail',
-        current: hasIndex ? 'Extended (✔)' : 'Fist / curled',
+        current: hasIndex ? 'Extended (OK)' : 'Fist / curled',
         target: 'Point index',
         hint: 'Extend your index finger to tap.'
       });
@@ -981,7 +981,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
       let score = 0;
       if (!h) return { matchScore: 0, isMatched: false, checklist: [], primaryGuidance: 'Form phone hand and hold near ear.' };
 
-      checklist.push({ id: 'hand', label: 'Hand in view', status: 'pass', current: 'Detected (✔)', target: '1 hand', hint: '' });
+      checklist.push({ id: 'hand', label: 'Hand in view', status: 'pass', current: 'Detected (OK)', target: '1 hand', hint: '' });
       score += 20;
 
       // Thumb & Pinky extended
@@ -990,7 +990,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'thumb_pinky',
         label: 'Thumb and Pinky extended (Phone shape)',
         status: thumbPinky ? 'pass' : 'fail',
-        current: thumbPinky ? 'Y-Shape (✔)' : 'Extend thumb & pinky',
+        current: thumbPinky ? 'Y-Shape (OK)' : 'Extend thumb & pinky',
         target: 'Thumb + Pinky',
         hint: 'Stick thumb and pinky out, curl middle 3 fingers.'
       });
@@ -1002,7 +1002,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'middle_curled',
         label: 'Index, Middle, Ring curled',
         status: middleCurled ? 'pass' : 'warn',
-        current: middleCurled ? 'Curled (✔)' : 'Curl them in',
+        current: middleCurled ? 'Curled (OK)' : 'Curl them in',
         target: 'Curled fingers',
         hint: 'Curl middle fingers tightly into palm.'
       });
@@ -1014,7 +1014,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'near_ear',
         label: 'Held near ear height',
         status: nearEar ? 'pass' : 'fail',
-        current: nearEar ? 'Ear level (✔)' : 'Raise higher',
+        current: nearEar ? 'Ear level (OK)' : 'Raise higher',
         target: 'Above shoulder',
         hint: 'Hold your hand up by your ear like a phone.'
       });
@@ -1063,7 +1063,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'three_fingers',
         label: 'Thumb, Index & Pinky extended',
         status: ily ? 'pass' : 'fail',
-        current: ily ? 'ILY fingers (✔)' : 'Extend Thumb, Index, Pinky',
+        current: ily ? 'ILY fingers (OK)' : 'Extend Thumb, Index, Pinky',
         target: '3 fingers up',
         hint: 'Extend your thumb, index, and pinky finger.'
       });
@@ -1074,7 +1074,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'two_folded',
         label: 'Middle & Ring fingers folded',
         status: twoFolded ? 'pass' : 'warn',
-        current: twoFolded ? 'Folded (✔)' : 'Fold middle & ring',
+        current: twoFolded ? 'Folded (OK)' : 'Fold middle & ring',
         target: '2 fingers curled',
         hint: 'Tuck your middle and ring fingers down.'
       });
@@ -1124,7 +1124,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'fist',
         label: 'Tightly closed fist',
         status: isSolidFist ? 'pass' : 'fail',
-        current: isSolidFist ? 'Solid fist (✔)' : (h.curledCount < 4 ? 'Curl all 4 fingers' : 'Fold thumb over fingers'),
+        current: isSolidFist ? 'Solid fist (OK)' : (h.curledCount < 4 ? 'Curl all 4 fingers' : 'Fold thumb over fingers'),
         target: 'Closed fist',
         hint: 'Form a tight, firm fist with all fingers and thumb curled.'
       });
@@ -1136,7 +1136,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'chest',
         label: 'Held in front of chest',
         status: inChest ? 'pass' : 'fail',
-        current: inChest ? 'Chest level (✔)' : (h.wrist.y < 0.44 ? 'Lower hand to chest' : 'Raise hand to chest'),
+        current: inChest ? 'Chest level (OK)' : (h.wrist.y < 0.44 ? 'Lower hand to chest' : 'Raise hand to chest'),
         target: 'Chest height',
         hint: 'Center your fist directly in front of your chest.'
       });
@@ -1148,7 +1148,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'orientation',
         label: 'Knuckles facing forward/up',
         status: isUpright ? 'pass' : 'fail',
-        current: isUpright ? 'Upright (✔)' : 'Keep wrist straight',
+        current: isUpright ? 'Upright (OK)' : 'Keep wrist straight',
         target: 'Upright knuckles',
         hint: 'Hold wrist straight with knuckles pointing forward/up.'
       });
@@ -1206,7 +1206,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'snap',
         label: 'Index & Middle touching Thumb tip',
         status: touching ? 'pass' : 'fail',
-        current: touching ? 'Touching (✔)' : 'Bring tips together',
+        current: touching ? 'Touching (OK)' : 'Bring tips together',
         target: '< 10 cm apart',
         hint: 'Touch index and middle fingertips to thumb.'
       });
@@ -1217,7 +1217,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'others_curled',
         label: 'Ring and Pinky tucked away',
         status: othersCurled ? 'pass' : 'warn',
-        current: othersCurled ? 'Tucked (✔)' : 'Tuck them in',
+        current: othersCurled ? 'Tucked (OK)' : 'Tuck them in',
         target: 'Curled in',
         hint: 'Keep ring and pinky fingers folded.'
       });
@@ -1266,7 +1266,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'thumb_ext',
         label: 'Thumb extended outward',
         status: thumbExt ? 'pass' : 'fail',
-        current: thumbExt ? 'Extended (✔)' : 'Tucked in',
+        current: thumbExt ? 'Extended (OK)' : 'Tucked in',
         target: 'Extended',
         hint: 'Stick thumb outward.'
       });
@@ -1277,7 +1277,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'thumb_down',
         label: 'Thumb pointing downward',
         status: thumbDown ? 'pass' : 'fail',
-        current: thumbDown ? 'Pointing down (✔)' : 'Sideways or up',
+        current: thumbDown ? 'Pointing down (OK)' : 'Sideways or up',
         target: 'Vertical DOWN',
         hint: 'Point your thumb straight down.'
       });
@@ -1341,7 +1341,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'pinched',
         label: 'Fingertips pinched to thumb',
         status: isPinched ? 'pass' : 'fail',
-        current: isPinched ? 'Pinched (✔)' : 'Open fingers',
+        current: isPinched ? 'Pinched (OK)' : 'Open fingers',
         target: 'Pinch tips',
         hint: 'Touch fingertips to thumb pad.'
       });
@@ -1352,7 +1352,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'near_mouth',
         label: 'Hand placed at mouth/lips',
         status: nearMouth ? 'pass' : 'fail',
-        current: nearMouth ? 'At mouth (✔)' : 'Move closer to mouth',
+        current: nearMouth ? 'At mouth (OK)' : 'Move closer to mouth',
         target: '< 15 cm from lips',
         hint: 'Bring your pinched hand right to your mouth.'
       });
@@ -1404,7 +1404,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'cupped',
         label: 'C-handshape (holding cup)',
         status: isCupped ? 'pass' : 'fail',
-        current: isCupped ? 'Cupped C-shape (✔)' : 'Curv fingers like a cup',
+        current: isCupped ? 'Cupped C-shape (OK)' : 'Curv fingers like a cup',
         target: 'C-shape',
         hint: 'Curve fingers and thumb as if holding a small cup.'
       });
@@ -1415,7 +1415,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'mouth',
         label: 'Positioned at mouth',
         status: nearMouth ? 'pass' : 'fail',
-        current: nearMouth ? 'At mouth (✔)' : 'Bring to mouth',
+        current: nearMouth ? 'At mouth (OK)' : 'Bring to mouth',
         target: 'Near lips',
         hint: 'Bring hand up to mouth level.'
       });
@@ -1426,7 +1426,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'tilt',
         label: 'Tilted upward towards mouth',
         status: isTiltedUp ? 'pass' : 'warn',
-        current: isTiltedUp ? 'Tilted (✔)' : 'Tilt up',
+        current: isTiltedUp ? 'Tilted (OK)' : 'Tilt up',
         target: 'Tilted cup',
         hint: 'Tilt your hand upward as if taking a drink.'
       });
@@ -1475,7 +1475,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'index_ext',
         label: 'Index finger extended',
         status: idxExt ? 'pass' : 'fail',
-        current: idxExt ? 'Extended (✔)' : 'Extend index',
+        current: idxExt ? 'Extended (OK)' : 'Extend index',
         target: 'Extended index',
         hint: 'Point your index finger out.'
       });
@@ -1497,7 +1497,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'pointing_fwd',
         label: 'Pointing forward at partner',
         status: pointingFwd ? 'pass' : 'warn',
-        current: pointingFwd ? 'Forward (✔)' : 'Aim forward',
+        current: pointingFwd ? 'Forward (OK)' : 'Aim forward',
         target: 'Forward',
         hint: 'Aim your index finger forward.'
       });
@@ -1550,7 +1550,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'index_ext',
         label: 'Index finger extended',
         status: idxExt ? 'pass' : 'fail',
-        current: idxExt ? 'Extended (✔)' : 'Extend index',
+        current: idxExt ? 'Extended (OK)' : 'Extend index',
         target: 'Extended index',
         hint: 'Extend your index finger.'
       });
@@ -1561,7 +1561,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'near_chest',
         label: 'Index pointing to chest center',
         status: nearChest ? 'pass' : 'fail',
-        current: nearChest ? 'At chest (✔)' : 'Aim at chest',
+        current: nearChest ? 'At chest (OK)' : 'Aim at chest',
         target: 'Center chest',
         hint: 'Point your index finger at the center of your chest.'
       });
@@ -1614,7 +1614,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'open_palm',
         label: 'Open flat hand',
         status: isOpen ? 'pass' : 'fail',
-        current: isOpen ? 'Flat palm (✔)' : 'Open your hand',
+        current: isOpen ? 'Flat palm (OK)' : 'Open your hand',
         target: 'Open palm',
         hint: 'Open your hand flat.'
       });
@@ -1625,7 +1625,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'on_chest',
         label: 'Positioned on chest center',
         status: onChest ? 'pass' : 'fail',
-        current: onChest ? 'On chest (✔)' : 'Place on chest',
+        current: onChest ? 'On chest (OK)' : 'Place on chest',
         target: 'Center chest',
         hint: 'Place your flat palm over your chest.'
       });
@@ -1678,7 +1678,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'fist',
         label: 'Closed fist formed',
         status: isFist ? 'pass' : 'fail',
-        current: isFist ? 'Fist formed (✔)' : 'Close hand into fist',
+        current: isFist ? 'Fist formed (OK)' : 'Close hand into fist',
         target: 'Closed fist',
         hint: 'Close your hand into a fist.'
       });
@@ -1689,7 +1689,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'on_chest',
         label: 'Placed on chest/heart zone',
         status: onChest ? 'pass' : 'fail',
-        current: onChest ? 'On chest (✔)' : 'Place over chest',
+        current: onChest ? 'On chest (OK)' : 'Place over chest',
         target: 'Chest center',
         hint: 'Hold your fist over your chest/heart.'
       });
@@ -1736,7 +1736,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         };
       }
 
-      checklist.push({ id: 'both', label: 'Both hands detected', status: 'pass', current: '2 hands (✔)', target: '2 hands', hint: '' });
+      checklist.push({ id: 'both', label: 'Both hands detected', status: 'pass', current: '2 hands (OK)', target: '2 hands', hint: '' });
       score += 30;
 
       const bothOpen = (left.isOpenPalm || left.extendedCount >= 4) && (right.isOpenPalm || right.extendedCount >= 4);
@@ -1744,7 +1744,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'open',
         label: 'Both palms open flat',
         status: bothOpen ? 'pass' : 'fail',
-        current: bothOpen ? 'Open palms (✔)' : 'Open both palms',
+        current: bothOpen ? 'Open palms (OK)' : 'Open both palms',
         target: 'Both open',
         hint: 'Open both hands flat.'
       });
@@ -1756,7 +1756,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'spacing',
         label: 'Hands spaced at torso width',
         status: spaced ? 'pass' : 'fail',
-        current: spaced ? 'Torso width (✔)' : 'Adjust hand distance',
+        current: spaced ? 'Torso width (OK)' : 'Adjust hand distance',
         target: 'Torso width',
         hint: 'Hold both palms about shoulder width apart.'
       });
@@ -1807,7 +1807,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'rubbing_tips',
         label: 'Thumb touching index and middle tips',
         status: touching ? 'pass' : 'fail',
-        current: touching ? 'Touching (✔)' : 'Bring tips together',
+        current: touching ? 'Touching (OK)' : 'Bring tips together',
         target: 'Tips touching',
         hint: 'Touch thumb pad to index and middle fingertips.'
       });
@@ -1818,7 +1818,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'curled',
         label: 'Ring and Pinky curled in',
         status: curled ? 'pass' : 'warn',
-        current: curled ? 'Curled (✔)' : 'Fold ring & pinky',
+        current: curled ? 'Curled (OK)' : 'Fold ring & pinky',
         target: 'Folded',
         hint: 'Curl ring and pinky into your palm.'
       });
@@ -1865,7 +1865,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         };
       }
 
-      checklist.push({ id: 'both', label: 'Both hands detected', status: 'pass', current: '2 hands (✔)', target: '2 hands', hint: '' });
+      checklist.push({ id: 'both', label: 'Both hands detected', status: 'pass', current: '2 hands (OK)', target: '2 hands', hint: '' });
       score += 25;
 
       const indicesExt = left.index.isExtended && right.index.isExtended;
@@ -1873,7 +1873,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'index_ext',
         label: 'Both index fingers extended',
         status: indicesExt ? 'pass' : 'fail',
-        current: indicesExt ? 'Extended (✔)' : 'Extend both index fingers',
+        current: indicesExt ? 'Extended (OK)' : 'Extend both index fingers',
         target: 'Both index out',
         hint: 'Extend index on both hands.'
       });
@@ -1885,7 +1885,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'tips_facing',
         label: 'Index tips pointing towards each other',
         status: tipsFacing ? 'pass' : 'fail',
-        current: tipsFacing ? 'Tips aligned (✔)' : 'Bring tips closer',
+        current: tipsFacing ? 'Tips aligned (OK)' : 'Bring tips closer',
         target: '< 22 cm apart',
         hint: 'Point both index fingertips towards each other at chest.'
       });
@@ -1936,7 +1936,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'near_head',
         label: 'Hand placed on forehead',
         status: nearHead ? 'pass' : 'fail',
-        current: nearHead ? 'On forehead (✔)' : 'Touch forehead',
+        current: nearHead ? 'On forehead (OK)' : 'Touch forehead',
         target: 'Forehead center',
         hint: 'Place your hand against your forehead.'
       });
@@ -1947,7 +1947,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'height',
         label: 'Hand at head height',
         status: aboveNose ? 'pass' : 'warn',
-        current: aboveNose ? 'Head height (✔)' : 'Raise higher',
+        current: aboveNose ? 'Head height (OK)' : 'Raise higher',
         target: 'Brow height',
         hint: 'Raise your hand up to your brow.'
       });
@@ -1994,7 +1994,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         };
       }
 
-      checklist.push({ id: 'both', label: 'Both hands detected', status: 'pass', current: '2 hands (✔)', target: '2 hands', hint: '' });
+      checklist.push({ id: 'both', label: 'Both hands detected', status: 'pass', current: '2 hands (OK)', target: '2 hands', hint: '' });
       score += 25;
 
       const claws = !left.isOpenPalm && !right.isOpenPalm && left.curledCount >= 2 && right.curledCount >= 2;
@@ -2002,7 +2002,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'claw_hands',
         label: 'Both hands clawed / cupped palms-up',
         status: claws ? 'pass' : 'fail',
-        current: claws ? 'Clawed hands (✔)' : 'Curve fingers upward',
+        current: claws ? 'Clawed hands (OK)' : 'Curve fingers upward',
         target: 'Curved claw shape',
         hint: 'Curve your fingers like claws facing upward.'
       });
@@ -2013,7 +2013,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
         id: 'lower_chest',
         label: 'Positioned at lower chest / waist',
         status: lowerChest ? 'pass' : 'warn',
-        current: lowerChest ? 'Lower chest (✔)' : 'Lower your hands',
+        current: lowerChest ? 'Lower chest (OK)' : 'Lower your hands',
         target: 'Lower chest level',
         hint: 'Hold hands at lower chest or abdomen level.'
       });
@@ -2070,7 +2070,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
       // 2. Specific Biomechanical Verification
 
       if (left && right) {
-        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (✔)', target: '2 hands', hint: '' });
+        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (OK)', target: '2 hands', hint: '' });
         score += 25;
         const d = Math.min(dist3D(left.points[8], right.points[4]), dist3D(right.points[8], left.points[4]));
         const ok = d < 0.16;
@@ -2080,7 +2080,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
       } else {
         const h = right || left;
         if (h && h.isFist && h.thumb.isExtended) {
-          checklist.push({ id: 'single_a', label: 'Fist with thumb up (Single-hand)', status: 'pass', current: 'Fist + Thumb (✔)', target: 'Fist + Thumb', hint: '' });
+          checklist.push({ id: 'single_a', label: 'Fist with thumb up (Single-hand)', status: 'pass', current: 'Fist + Thumb (OK)', target: 'Fist + Thumb', hint: '' });
           score += 55;
         } else {
           checklist.push({ id: 'hands', label: 'Hand detected', status: h ? 'warn' : 'fail', current: h ? '1 hand' : 'No hands', target: '2 hands', hint: 'Bring both hands into view.' });
@@ -2135,7 +2135,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
       // 2. Specific Biomechanical Verification
 
       if (left && right) {
-        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (✔)', target: '2 hands', hint: '' });
+        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (OK)', target: '2 hands', hint: '' });
         score += 25;
         const d = dist3D(left.points[8], right.points[8]);
         const ok = d < 0.16;
@@ -2194,7 +2194,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
 
       const h = right || left;
       if (h) {
-        checklist.push({ id: 'hand', label: 'Hand active', status: 'pass', current: '1 hand (✔)', target: '1 hand', hint: '' });
+        checklist.push({ id: 'hand', label: 'Hand active', status: 'pass', current: '1 hand (OK)', target: '1 hand', hint: '' });
         score += 25;
         const d = dist3D(h.points[4], h.points[8]);
         const handScale = Math.max(0.06, dist3D(h.wrist, h.palmCenter));
@@ -2252,7 +2252,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
       // 2. Specific Biomechanical Verification
 
       if (left && right) {
-        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (✔)', target: '2 hands', hint: '' });
+        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (OK)', target: '2 hands', hint: '' });
         score += 25;
         const d = Math.min(dist3D(left.points[8], right.points[8]), dist3D(right.points[8], left.points[8]));
         const ok = d < 0.18;
@@ -2308,7 +2308,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
       // 2. Specific Biomechanical Verification
 
       if (left && right) {
-        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (✔)', target: '2 hands', hint: '' });
+        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (OK)', target: '2 hands', hint: '' });
         score += 25;
         const d = dist3D(left.points[8], right.points[8]);
         const ok = d < 0.16;
@@ -2364,7 +2364,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
       // 2. Specific Biomechanical Verification
 
       if (left && right) {
-        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (✔)', target: '2 hands', hint: '' });
+        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (OK)', target: '2 hands', hint: '' });
         score += 25;
         const d = dist3D(left.points[8], right.points[8]);
         const ok = d < 0.16;
@@ -2420,7 +2420,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
       // 2. Specific Biomechanical Verification
 
       if (left && right) {
-        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (✔)', target: '2 hands', hint: '' });
+        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (OK)', target: '2 hands', hint: '' });
         score += 25;
         const d = dist3D(left.wrist, right.wrist);
         const ok = d < 0.22 && (left.isFist || right.isFist);
@@ -2476,7 +2476,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
       // 2. Specific Biomechanical Verification
 
       if (left && right) {
-        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (✔)', target: '2 hands', hint: '' });
+        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (OK)', target: '2 hands', hint: '' });
         score += 25;
         const d = Math.min(dist3D(left.wrist, right.palmCenter), dist3D(right.wrist, left.palmCenter));
         const ok = d < 0.18;
@@ -2532,7 +2532,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
       // 2. Specific Biomechanical Verification
 
       if (left && right) {
-        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (✔)', target: '2 hands', hint: '' });
+        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (OK)', target: '2 hands', hint: '' });
         score += 25;
         const d = Math.min(dist3D(left.points[8], right.points[12]), dist3D(right.points[8], left.points[12]));
         const ok = d < 0.16;
@@ -2541,7 +2541,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
       } else {
         const h = right || left;
         if (h && h.pinky.isExtended && h.curledCount >= 3) {
-          checklist.push({ id: 'pinky_up', label: 'Pinky extended upright', status: 'pass', current: 'Pinky Up (✔)', target: 'Pinky up', hint: '' });
+          checklist.push({ id: 'pinky_up', label: 'Pinky extended upright', status: 'pass', current: 'Pinky Up (OK)', target: 'Pinky up', hint: '' });
           score += 55;
         }
       }
@@ -2594,7 +2594,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
       // 2. Specific Biomechanical Verification
 
       if (left && right) {
-        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (✔)', target: '2 hands', hint: '' });
+        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (OK)', target: '2 hands', hint: '' });
         score += 25;
         const d = Math.min(dist3D(left.points[8], right.palmCenter), dist3D(right.points[8], left.palmCenter));
         const ok = d < 0.18;
@@ -2650,7 +2650,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
       // 2. Specific Biomechanical Verification
 
       if (left && right) {
-        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (✔)', target: '2 hands', hint: '' });
+        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (OK)', target: '2 hands', hint: '' });
         score += 25;
         const d = Math.min(dist3D(left.points[8], right.points[6]), dist3D(right.points[8], left.points[6]));
         const ok = d < 0.16;
@@ -2707,10 +2707,10 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
 
       const h = right || left;
       if (h) {
-        checklist.push({ id: 'hand', label: 'Hand active', status: 'pass', current: '1 hand (✔)', target: '1 hand', hint: '' });
+        checklist.push({ id: 'hand', label: 'Hand active', status: 'pass', current: '1 hand (OK)', target: '1 hand', hint: '' });
         score += 25;
         const ok = h.thumb.isExtended && h.index.isExtended;
-        checklist.push({ id: 'l_shape', label: 'Thumb + Index extended', status: ok ? 'pass' : 'fail', current: ok ? 'L-shape (✔)' : 'Extend thumb & index', target: '90 deg angle', hint: 'Extend thumb and index.' });
+        checklist.push({ id: 'l_shape', label: 'Thumb + Index extended', status: ok ? 'pass' : 'fail', current: ok ? 'L-shape (OK)' : 'Extend thumb & index', target: '90 deg angle', hint: 'Extend thumb and index.' });
         if (ok) score += 35;
       }
     
@@ -2762,7 +2762,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
       // 2. Specific Biomechanical Verification
 
       if (left && right) {
-        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (✔)', target: '2 hands', hint: '' });
+        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (OK)', target: '2 hands', hint: '' });
         score += 25;
         const d = Math.min(dist3D(left.points[12], right.palmCenter), dist3D(right.points[12], left.palmCenter));
         const ok = d < 0.18;
@@ -2818,7 +2818,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
       // 2. Specific Biomechanical Verification
 
       if (left && right) {
-        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (✔)', target: '2 hands', hint: '' });
+        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (OK)', target: '2 hands', hint: '' });
         score += 25;
         const d = Math.min(dist3D(left.points[8], right.palmCenter), dist3D(right.points[8], left.palmCenter));
         const ok = d < 0.18;
@@ -2874,7 +2874,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
       // 2. Specific Biomechanical Verification
 
       if (left && right) {
-        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (✔)', target: '2 hands', hint: '' });
+        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (OK)', target: '2 hands', hint: '' });
         score += 25;
         const d = Math.min(dist3D(left.points[8], right.points[16]), dist3D(right.points[8], left.points[16]));
         const ok = d < 0.16;
@@ -2930,7 +2930,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
       // 2. Specific Biomechanical Verification
 
       if (left && right) {
-        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (✔)', target: '2 hands', hint: '' });
+        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (OK)', target: '2 hands', hint: '' });
         score += 25;
         const d = Math.min(dist3D(left.points[8], right.points[8]), dist3D(right.points[8], left.points[8]));
         const ok = d < 0.16;
@@ -2986,7 +2986,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
       // 2. Specific Biomechanical Verification
 
       if (left && right) {
-        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (✔)', target: '2 hands', hint: '' });
+        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (OK)', target: '2 hands', hint: '' });
         score += 25;
         const d = Math.min(dist3D(left.points[8], right.points[4]), dist3D(right.points[8], left.points[4]));
         const ok = d < 0.16;
@@ -3042,7 +3042,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
       // 2. Specific Biomechanical Verification
 
       if (left && right) {
-        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (✔)', target: '2 hands', hint: '' });
+        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (OK)', target: '2 hands', hint: '' });
         score += 25;
         const d = Math.min(dist3D(left.points[8], right.palmCenter), dist3D(right.points[8], left.palmCenter));
         const ok = d < 0.18;
@@ -3098,7 +3098,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
       // 2. Specific Biomechanical Verification
 
       if (left && right) {
-        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (✔)', target: '2 hands', hint: '' });
+        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (OK)', target: '2 hands', hint: '' });
         score += 25;
         const d = dist3D(left.palmCenter, right.palmCenter);
         const ok = d < 0.20;
@@ -3154,7 +3154,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
       // 2. Specific Biomechanical Verification
 
       if (left && right) {
-        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (✔)', target: '2 hands', hint: '' });
+        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (OK)', target: '2 hands', hint: '' });
         score += 25;
         const d = Math.min(dist3D(left.points[8], right.points[17]), dist3D(right.points[8], left.points[17]));
         const ok = d < 0.16;
@@ -3210,7 +3210,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
       // 2. Specific Biomechanical Verification
 
       if (left && right) {
-        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (✔)', target: '2 hands', hint: '' });
+        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (OK)', target: '2 hands', hint: '' });
         score += 25;
         const d = Math.min(dist3D(left.points[8], right.points[20]), dist3D(right.points[8], left.points[20]));
         const ok = d < 0.16;
@@ -3267,10 +3267,10 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
 
       const h = right || left;
       if (h) {
-        checklist.push({ id: 'hand', label: 'Hand active', status: 'pass', current: '1 hand (✔)', target: '1 hand', hint: '' });
+        checklist.push({ id: 'hand', label: 'Hand active', status: 'pass', current: '1 hand (OK)', target: '1 hand', hint: '' });
         score += 25;
         const ok = h.index.isExtended && h.middle.isExtended && dist3D(h.points[8], h.points[12]) > 0.04;
-        checklist.push({ id: 'v_shape', label: 'Index + Middle in V shape', status: ok ? 'pass' : 'fail', current: ok ? 'V shape (✔)' : 'Spread V fingers', target: 'Spread V', hint: 'Extend index and middle in a V.' });
+        checklist.push({ id: 'v_shape', label: 'Index + Middle in V shape', status: ok ? 'pass' : 'fail', current: ok ? 'V shape (OK)' : 'Spread V fingers', target: 'Spread V', hint: 'Extend index and middle in a V.' });
         if (ok) score += 35;
       }
     
@@ -3322,7 +3322,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
       // 2. Specific Biomechanical Verification
 
       if (left && right) {
-        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (✔)', target: '2 hands', hint: '' });
+        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (OK)', target: '2 hands', hint: '' });
         score += 25;
         const d = dist3D(left.palmCenter, right.palmCenter);
         const ok = d < 0.18;
@@ -3331,7 +3331,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
       } else {
         const h = right || left;
         if (h && h.index.isExtended && h.middle.isExtended && h.ring.isExtended) {
-          checklist.push({ id: 'w_single', label: '3 fingers extended (Single-hand)', status: 'pass', current: '3 Fingers (✔)', target: '3 fingers', hint: '' });
+          checklist.push({ id: 'w_single', label: '3 fingers extended (Single-hand)', status: 'pass', current: '3 Fingers (OK)', target: '3 fingers', hint: '' });
           score += 55;
         }
       }
@@ -3384,7 +3384,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
       // 2. Specific Biomechanical Verification
 
       if (left && right) {
-        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (✔)', target: '2 hands', hint: '' });
+        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (OK)', target: '2 hands', hint: '' });
         score += 25;
         const d = dist3D(left.points[8], right.points[8]);
         const ok = d < 0.15;
@@ -3440,7 +3440,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
       // 2. Specific Biomechanical Verification
 
       if (left && right) {
-        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (✔)', target: '2 hands', hint: '' });
+        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (OK)', target: '2 hands', hint: '' });
         score += 25;
         const d = Math.min(dist3D(left.points[8], right.points[2]), dist3D(right.points[8], left.points[2]));
         const ok = d < 0.16;
@@ -3449,7 +3449,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
       } else {
         const h = right || left;
         if (h && h.thumb.isExtended && h.pinky.isExtended) {
-          checklist.push({ id: 'y_single', label: 'Y-Shape (Thumb+Pinky)', status: 'pass', current: 'Y-Hand (✔)', target: 'Thumb+Pinky', hint: '' });
+          checklist.push({ id: 'y_single', label: 'Y-Shape (Thumb+Pinky)', status: 'pass', current: 'Y-Hand (OK)', target: 'Thumb+Pinky', hint: '' });
           score += 55;
         }
       }
@@ -3502,7 +3502,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
       // 2. Specific Biomechanical Verification
 
       if (left && right) {
-        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (✔)', target: '2 hands', hint: '' });
+        checklist.push({ id: 'hands', label: 'Both hands active', status: 'pass', current: '2 hands (OK)', target: '2 hands', hint: '' });
         score += 25;
         const d = Math.min(dist3D(left.points[8], right.points[17]), dist3D(right.points[8], left.points[17]));
         const ok = d < 0.16;
@@ -3626,7 +3626,7 @@ export function synthesizeLearnItem(word) {
         id: 'both_hands',
         label: 'Both hands active',
         status: hasBoth ? 'pass' : 'fail',
-        current: hasBoth ? '2 hands (✔)' : '1 hand',
+        current: hasBoth ? '2 hands (OK)' : '1 hand',
         target: '2 hands',
         hint: 'Use both hands for this sign.'
       });
@@ -3637,7 +3637,7 @@ export function synthesizeLearnItem(word) {
         id: 'active_hand',
         label: 'Active hand in view',
         status: 'pass',
-        current: (right ? 'Right hand' : 'Left hand') + ' (✔)',
+        current: (right ? 'Right hand' : 'Left hand') + ' (OK)',
         target: '1 hand',
         hint: ''
       });
@@ -3652,7 +3652,7 @@ export function synthesizeLearnItem(word) {
       id: 'body_zone',
       label: `Hand height in ${zoneName}`,
       status: inZone ? 'pass' : 'fail',
-      current: inZone ? 'In zone (✔)' : (wristYPos < zoneYMin ? 'Too high' : 'Too low'),
+      current: inZone ? 'In zone (OK)' : (wristYPos < zoneYMin ? 'Too high' : 'Too low'),
       target: zoneName,
       hint: `Adjust hand height to ${zoneName.toLowerCase()}.`
     });
@@ -3672,7 +3672,7 @@ export function synthesizeLearnItem(word) {
       id: 'finger_posture',
       label: fingerRequirement,
       status: fingerMatch ? 'pass' : 'fail',
-      current: fingerMatch ? 'Shape aligned (✔)' : 'Adjust fingers',
+      current: fingerMatch ? 'Shape aligned (OK)' : 'Adjust fingers',
       target: fingerRequirement,
       hint: `Shape: ${fingerRequirement}.`
     });

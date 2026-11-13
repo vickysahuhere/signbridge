@@ -27,7 +27,8 @@ import {
   Pause,
   ExternalLink,
   RotateCcw,
-  X
+  X,
+  Lightbulb
 } from 'lucide-react';
 import { SignSvgIllustration, hasSvgIllustration } from './SignSvgIllustrations.jsx';
 import { ISL_LEARN_ITEMS, getLearnItemByLabel } from '../ai/islTargetLandmarks.js';
@@ -123,7 +124,10 @@ export function LearnSidebar({
 
   // Filtered items based on search, category and mastery status (Lexicon view)
   const filteredItems = useMemo(() => {
-    return ISL_LEARN_ITEMS.filter(item => {
+    const q = searchQuery.trim().toLowerCase();
+
+    // 1. Initial filter
+    const matches = ISL_LEARN_ITEMS.filter(item => {
       if (filterMasteredOnly && !masteredSet?.has(item.label)) {
         return false;
       }
@@ -132,15 +136,76 @@ export function LearnSidebar({
         selectedCategory === 'all' ||
         (selectedCategory === 'alphabet' ? item.type === 'alphabet' : item.category === selectedCategory);
 
-      const q = searchQuery.trim().toLowerCase();
-      const matchesSearch =
-        !q ||
-        item.label.toLowerCase().includes(q) ||
-        item.name.toLowerCase().includes(q) ||
-        item.english.toLowerCase().includes(q) ||
-        item.description.toLowerCase().includes(q);
+      if (!matchesCategory) return false;
+      if (!q) return true;
 
-      return matchesCategory && matchesSearch;
+      const label = item.label.toLowerCase();
+      const name = item.name.toLowerCase();
+      const english = (item.english || '').toLowerCase();
+
+      // Single character query (e.g. "a"):
+      // Strictly match exact letter, letter name, words starting with letter, or alphabet type.
+      // Do NOT search paragraph descriptions for 1-char queries to avoid matching all 1,000+ words!
+      if (q.length === 1) {
+        if (label === q) return true;
+        if (item.type === 'alphabet' && label === q) return true;
+        if (name === q || name === `letter ${q}`) return true;
+        if (label.startsWith(q)) return true;
+        if (name.startsWith(q)) return true;
+        const words = `${name} ${english}`.split(/[\s,()/-]+/);
+        return words.some(w => w.startsWith(q));
+      }
+
+      // Multi-character query:
+      if (label.includes(q) || name.includes(q) || english.includes(q)) return true;
+      // Only search long description text when query is at least 3 characters
+      if (q.length >= 3 && item.description.toLowerCase().includes(q)) return true;
+      return false;
+    });
+
+    if (!q) return matches;
+
+    // 2. Sort by match relevance so exact and prefix matches appear first!
+    return matches.sort((a, b) => {
+      const aLabel = a.label.toLowerCase();
+      const bLabel = b.label.toLowerCase();
+      const aName = a.name.toLowerCase();
+      const bName = b.name.toLowerCase();
+      const aEnglish = (a.english || '').toLowerCase();
+      const bEnglish = (b.english || '').toLowerCase();
+
+      const computeScore = (item, label, name, english) => {
+        // Highest priority: Exact match (e.g. searching "a" for Alphabet "A")
+        if (label === q) return 1000;
+        if (item.type === 'alphabet' && label === q) return 980;
+        if (name === q || name === `letter ${q}`) return 950;
+
+        // Starts with query
+        if (label.startsWith(q)) return 800;
+        if (name.startsWith(q)) return 700;
+
+        // Word in name starts with query
+        const nameWords = name.split(/[\s,()/-]+/);
+        if (nameWords.some(w => w.startsWith(q))) return 600;
+
+        // English description / gloss starts with query
+        if (english.startsWith(q)) return 500;
+
+        // Substring matches
+        if (label.includes(q)) return 400;
+        if (name.includes(q)) return 300;
+        if (english.includes(q)) return 200;
+
+        return 100;
+      };
+
+      const scoreA = computeScore(a, aLabel, aName, aEnglish);
+      const scoreB = computeScore(b, bLabel, bName, bEnglish);
+
+      if (scoreA !== scoreB) {
+        return scoreB - scoreA;
+      }
+      return a.label.localeCompare(b.label);
     });
   }, [searchQuery, selectedCategory, filterMasteredOnly, masteredSet]);
 
@@ -148,8 +213,8 @@ export function LearnSidebar({
     return filteredItems.slice(0, displayCount);
   }, [filteredItems, displayCount]);
 
-  const categories = [
-    { id: 'all', name: `All (${ISL_LEARN_ITEMS.length})` },
+  const categories = useMemo(() => [
+    { id: 'all', name: searchQuery ? `All (${filteredItems.length})` : `All (${ISL_LEARN_ITEMS.length})` },
     { id: 'greetings', name: 'Greetings' },
     { id: 'pronouns', name: 'People' },
     { id: 'questions', name: 'Questions' },
@@ -162,7 +227,7 @@ export function LearnSidebar({
     { id: 'time_calendar', name: 'Time & Dates' },
     { id: 'feelings_states', name: 'States' },
     { id: 'alphabet', name: 'A–Z Letters' }
-  ];
+  ], [searchQuery, filteredItems.length]);
 
   // Derive evaluation metrics
   const score = evaluationResult?.matchScore || 0;
@@ -202,96 +267,99 @@ export function LearnSidebar({
           onClick={openAcademy}
           className="cartoon-btn bg-white hover:bg-[#FFF9E5] border-2 border-zinc-900 p-2 sm:p-2.5 rounded-xl shadow-cartoon-sm flex items-center justify-between gap-2 w-full transition-all group flex-shrink-0 cursor-pointer"
         >
-          <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             <div className="w-7 h-7 rounded-lg bg-[#FFC800] border-2 border-zinc-900 flex items-center justify-center flex-shrink-0 shadow-sm group-hover:scale-105 transition-transform">
               <BookOpen className="w-3.5 h-3.5 text-zinc-900 stroke-[2.2]" />
             </div>
-            <div className="text-left min-w-0">
-              <div className="flex items-center gap-1.5">
-                <span className="font-black text-sm text-zinc-900">Sign Academy</span>
-                <span className="cartoon-badge !py-0.5 !px-2 text-xs bg-[#1CB0F6] text-zinc-900 font-bold border border-zinc-900">
+            <div className="text-left min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="font-black text-xs sm:text-sm text-zinc-900 truncate">Sign Academy</span>
+                <span className="text-[10px] font-black uppercase px-1.5 py-0.2 rounded-full bg-[#1CB0F6] text-zinc-900 border border-zinc-900 whitespace-nowrap flex-shrink-0 hidden xs:inline-block">
                   1,000+ Signs
                 </span>
               </div>
-              <span className="text-xs text-zinc-600 font-semibold block truncate">
-                Click to open course & curriculum
+              <span className="text-[11px] text-zinc-600 font-bold block truncate">
+                Course &amp; Curriculum
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <span className="cartoon-badge !py-0.5 !px-2 text-xs bg-[#58CC02] text-white font-bold flex items-center gap-1 border border-zinc-900">
-              <Award className="w-3.5 h-3.5 text-white stroke-[2.5]" />
-              {masteredSet ? masteredSet.size : 0} Mastered
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-[#58CC02] text-white border border-zinc-900 flex items-center gap-1 whitespace-nowrap shadow-sm">
+              <Award className="w-3 h-3 text-white stroke-[2.5]" />
+              <span>{masteredSet ? masteredSet.size : 0} Mastered</span>
             </span>
-            <ChevronRight className="w-4 h-4 text-zinc-500 group-hover:translate-x-0.5 transition-transform" />
+            <ChevronRight className="w-3.5 h-3.5 text-zinc-500 group-hover:translate-x-0.5 transition-transform flex-shrink-0" />
           </div>
         </button>
 
         {/* 1. Upper Card: Selected Sign Guide & Biomechanical Blueprint */}
         {selectedItem && (
-          <div className="cartoon-card bg-white p-3.5 flex flex-col gap-2 border-2 border-zinc-900 shadow-cartoon-sm flex-1 min-h-0 overflow-hidden justify-between">
+          <div className="cartoon-card bg-white p-3 sm:p-3.5 flex flex-col gap-2 border-2 border-zinc-900 shadow-cartoon-sm flex-[1.1] min-h-0 overflow-hidden">
             {/* Header: Level & Name */}
             <div className="flex items-start justify-between gap-2 flex-shrink-0">
               <div className="min-w-0 flex-1">
-                <span className="text-xs uppercase font-bold text-zinc-600 font-mono tracking-wider block">
+                <span className="text-[11px] uppercase font-bold text-zinc-500 font-mono tracking-wider block">
                   Level {currentSignLevel.levelNumber} • {currentSignLevel.badge || currentSignLevel.title}
                 </span>
-                <h3 className="font-black text-base sm:text-lg text-zinc-900 leading-tight truncate mt-0.5">
+                <h3 className="font-black text-sm sm:text-base text-zinc-900 leading-tight truncate mt-0.5">
                   {selectedItem.name} ({selectedItem.label})
                 </h3>
               </div>
-              <span className="cartoon-badge !py-1 !px-2.5 text-xs bg-[#1CB0F6] text-zinc-900 font-black truncate max-w-[140px] flex-shrink-0 border border-zinc-900 shadow-sm">
+              <span className="cartoon-badge !py-0.5 !px-2 text-[11px] bg-[#1CB0F6] text-zinc-900 font-black truncate max-w-[130px] flex-shrink-0 border border-zinc-900 shadow-sm">
                 {selectedItem.english}
               </span>
             </div>
 
-            {/* Visual Area: Directly Attached Teaching Demonstration GIF / Image */}
-            <div className="w-full flex-1 min-h-[150px] max-h-[230px] bg-white rounded-xl border-2 border-zinc-900 shadow-cartoon-sm flex items-center justify-center overflow-hidden p-1.5 relative group flex-shrink-0">
-              {selectedItem.image ? (
-                <img
-                  src={selectedItem.image}
-                  alt={`${selectedItem.name} demonstration`}
-                  className="w-full h-full object-contain rounded-lg transition-transform group-hover:scale-[1.02]"
-                  loading="eager"
-                />
-              ) : (
-                <div className="flex flex-col items-center justify-center text-zinc-700 gap-1.5 w-full text-center px-2">
-                  <div className="w-11 h-11 rounded-full bg-[#FFC800] border-2 border-zinc-900 flex items-center justify-center text-zinc-900 shadow-cartoon-sm">
-                    <Hand className="w-5 h-5 stroke-[2]" />
+            {/* Scrollable / Flexible Card Content so texts NEVER hide */}
+            <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-2 pr-0.5">
+              {/* Visual Area: Teaching Demonstration GIF / Image */}
+              <div className="w-full h-28 sm:h-36 max-h-[150px] bg-white rounded-xl border-2 border-zinc-900 shadow-cartoon-sm flex items-center justify-center overflow-hidden p-1.5 relative group flex-shrink-0">
+                {selectedItem.image ? (
+                  <img
+                    src={selectedItem.image}
+                    alt={`${selectedItem.name} demonstration`}
+                    className="w-full h-full object-contain rounded-lg transition-transform group-hover:scale-[1.02]"
+                    loading="eager"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center text-zinc-700 gap-1 w-full text-center px-2">
+                    <div className="w-9 h-9 rounded-full bg-[#FFC800] border-2 border-zinc-900 flex items-center justify-center text-zinc-900 shadow-cartoon-sm">
+                      <Hand className="w-4 h-4 stroke-[2]" />
+                    </div>
+                    <div className="text-xs sm:text-sm font-extrabold text-zinc-900">
+                      {selectedItem.blueprint?.requiredFingers || 'Clear handshape'}
+                    </div>
+                    <div className="text-[10px] font-mono text-zinc-500">
+                      Zone: {selectedItem.blueprint?.zone || 'Mid-chest level'}
+                    </div>
                   </div>
-                  <div className="text-xs sm:text-sm font-extrabold text-zinc-900">
-                    {selectedItem.blueprint?.requiredFingers || 'Clear handshape'}
-                  </div>
-                  <div className="text-[10px] font-mono text-zinc-500">
-                    Zone: {selectedItem.blueprint?.zone || 'Mid-chest level'}
-                  </div>
+                )}
+                <div className="absolute top-1.5 left-1.5 bg-zinc-900/90 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1.5 pointer-events-none">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#58CC02] animate-pulse" />
+                  {selectedItem.image?.endsWith('.gif') ? 'Authentic Motion GIF' : 'Authentic Demonstration'}
                 </div>
-              )}
-              <div className="absolute top-2 left-2 bg-zinc-900/90 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1.5 pointer-events-none">
-                <span className="w-2 h-2 rounded-full bg-[#58CC02] animate-pulse" />
-                {selectedItem.image?.endsWith('.gif') ? 'Authentic Motion GIF' : 'Authentic Photo Demonstration'}
-              </div>
-            </div>
-
-            {/* Easy-Going Step-by-Step Motion & Pacing Guidance */}
-            <div className="bg-[#EAF6E8] p-3 rounded-xl border border-[#D6EBD3] text-sm text-zinc-800 leading-relaxed font-medium flex-shrink-0 flex flex-col gap-1.5">
-              <div className="text-xs sm:text-sm text-zinc-800 leading-snug font-bold">
-                {selectedItem.description}
               </div>
 
-              {selectedItem.tip && (
-                <div className="text-xs font-bold text-[#16A34A] bg-[#EDFDF2] px-2.5 py-1.5 rounded-md border border-green-200 flex items-center gap-1.5">
-                  <span>💡</span>
-                  <span>{selectedItem.tip}</span>
+              {/* Step-by-Step Motion & Pacing Guidance - Fully Visible without cutoff */}
+              <div className="bg-[#EAF6E8] p-2.5 rounded-xl border border-[#D6EBD3] text-xs sm:text-sm text-zinc-800 leading-relaxed font-medium flex flex-col gap-1.5 flex-shrink-0">
+                <div className="text-xs sm:text-sm text-zinc-800 leading-snug font-bold">
+                  {selectedItem.description}
                 </div>
-              )}
+
+                {selectedItem.tip && (
+                  <div className="text-xs font-bold text-[#16A34A] bg-[#EDFDF2] px-2 py-1 rounded-md border border-green-200 flex items-start gap-1.5 leading-snug">
+                    <Lightbulb className="w-3.5 h-3.5 text-amber-500 flex-shrink-0 mt-0.5" />
+                    <span>{selectedItem.tip}</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
 
         {/* 2. Lower Card: Landmark Target Blueprint & Real-time Alignment Guide */}
-        <div className="cartoon-card bg-white p-3.5 flex flex-col gap-2 flex-1 min-h-0 border-2 border-zinc-900 shadow-cartoon-sm overflow-hidden justify-between">
+        <div className="cartoon-card bg-white p-3 sm:p-3.5 flex flex-col gap-2 flex-[0.9] min-h-0 border-2 border-zinc-900 shadow-cartoon-sm overflow-hidden justify-between">
           {/* Header Row */}
           <div className="flex items-center justify-between border-b border-zinc-200 pb-1.5 flex-shrink-0">
             <div className="flex items-center gap-1.5 min-w-0">
@@ -366,7 +434,12 @@ export function LearnSidebar({
                         : 'bg-white text-zinc-500 border-zinc-200'
                     }`}
                   >
-                    {isDone ? '✔ ' : `${idx + 1}. `}{st.title.split(':')[1]?.trim() || st.title}
+                    {isDone ? (
+                      <Check className="w-3.5 h-3.5 inline mr-1 stroke-[3]" />
+                    ) : (
+                      `${idx + 1}. `
+                    )}
+                    {st.title.split(':')[1]?.trim() || st.title}
                   </div>
                 );
               })}
@@ -631,7 +704,7 @@ export function LearnSidebar({
 
                                   return (
                                     <button
-                                      key={item.id}
+                                      key={`${item.id}-${idx}`}
                                       onClick={() => handleSelectAndClose(item)}
                                       className={`w-full text-left p-2 rounded-xl border transition-all flex items-center justify-between gap-2.5 ${
                                         isSelected
@@ -738,13 +811,13 @@ export function LearnSidebar({
 
                 {/* Interactive Sign List */}
                 <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-2">
-                  {displayedItems.map(item => {
+                  {displayedItems.map((item, idx) => {
                     const isSelected = selectedItem?.id === item.id;
                     const isMastered = masteredSet?.has(item.label);
 
                     return (
                       <button
-                        key={item.id}
+                        key={`${item.id}-${idx}`}
                         onClick={() => handleSelectAndClose(item)}
                         className={`w-full text-left p-2.5 rounded-xl border-2 transition-all flex items-center justify-between gap-3 ${
                           isSelected

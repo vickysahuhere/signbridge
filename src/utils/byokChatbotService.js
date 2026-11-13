@@ -30,12 +30,14 @@ export const PROVIDERS = [
     keyPlaceholder: 'AIzaSy...',
     keyUrl: 'https://aistudio.google.com/app/apikey',
     keyUrlLabel: 'Get Free Gemini Key',
-    defaultModel: 'gemini-1.5-flash',
+    defaultModel: 'gemini-2.5-flash',
     endpoint: 'https://generativelanguage.googleapis.com/v1beta',
     models: [
-      { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash (Fast & Free)' },
-      { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash (Latest Gen)' },
-      { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro (Deep Reasoning)' }
+      { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (Fast, Free & Multimodal)' },
+      { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash' },
+      { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash-Lite (Ultra Fast)' },
+      { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro (Deep Reasoning)' },
+      { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash' }
     ]
   },
   {
@@ -121,7 +123,13 @@ export const SUPPORTED_MODELS = PROVIDERS.flatMap(p =>
  * The system automatically cascades through these models until finding an active, responsive one.
  */
 export const PROVIDER_CANDIDATE_MODELS = {
-  gemini: ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro'],
+  gemini: [
+    'gemini-2.5-flash',
+    'gemini-2.0-flash',
+    'gemini-2.5-flash-lite',
+    'gemini-2.5-pro',
+    'gemini-1.5-flash'
+  ],
   groq: [
     'llama-3.3-70b-versatile',
     'llama-3.1-8b-instant',
@@ -249,7 +257,27 @@ export async function fetchLiveActiveModels(provider, apiKey) {
     let modelsUrl = '';
     const headers = { 'Authorization': `Bearer ${apiKey.trim()}` };
 
-    if (provider === 'groq') {
+    if (provider === 'gemini') {
+      modelsUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey.trim()}`;
+      const res = await fetch(modelsUrl);
+      if (res.ok) {
+        const data = await res.json();
+        const modelList = Array.isArray(data?.models) ? data.models : [];
+        const activeChatModels = modelList
+          .filter(m => {
+            const methods = m.supportedGenerationMethods || [];
+            return methods.includes('generateContent');
+          })
+          .map(m => (m.name || '').replace(/^models\//, ''))
+          .filter(Boolean);
+
+        if (activeChatModels.length > 0) {
+          fetchedModelsCache.set(cacheKey, activeChatModels);
+          return activeChatModels;
+        }
+      }
+      return null;
+    } else if (provider === 'groq') {
       modelsUrl = 'https://api.groq.com/openai/v1/models';
     } else if (provider === 'openrouter') {
       modelsUrl = 'https://openrouter.ai/api/v1/models';
@@ -320,7 +348,11 @@ export function getByokConfig() {
     const storage = getStorage();
     const apiKey = storage.getItem(STORAGE_KEYS.API_KEY) || '';
     const provider = storage.getItem(STORAGE_KEYS.PROVIDER) || 'gemini';
-    const model = storage.getItem(STORAGE_KEYS.MODEL) || 'gemini-1.5-flash';
+    let model = storage.getItem(STORAGE_KEYS.MODEL) || 'gemini-2.5-flash';
+    if (provider === 'gemini' && (model === 'gemini-1.5-pro' || model === 'gemini-1.0-pro')) {
+      model = 'gemini-2.5-flash';
+      storage.setItem(STORAGE_KEYS.MODEL, 'gemini-2.5-flash');
+    }
     const endpoint = storage.getItem(STORAGE_KEYS.ENDPOINT) || '';
 
     return {
@@ -334,14 +366,14 @@ export function getByokConfig() {
     return {
       apiKey: '',
       provider: 'gemini',
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.5-flash',
       endpoint: '',
       hasKey: false
     };
   }
 }
 
-export function saveByokConfig({ apiKey, provider = 'gemini', model = 'gemini-1.5-flash', endpoint = '' }) {
+export function saveByokConfig({ apiKey, provider = 'gemini', model = 'gemini-2.5-flash', endpoint = '' }) {
   try {
     const storage = getStorage();
     if (apiKey !== undefined) {
@@ -614,7 +646,7 @@ export function getLocalFallbackResponse(userPrompt, page = 'home', extraState =
     if (page === 'chat' || extraState.callMessages) {
       const messages = extraState.callMessages || [];
       if (messages.length === 0) {
-        return `📞 **Call Chat Status**:\nNo messages have been sent in this call yet. Perform signs in front of the camera or type a reply in the chat on the right to start communicating!`;
+        return `**Call Chat Status**:\nNo messages have been sent in this call yet. Perform signs in front of the camera or type a reply in the chat on the right to start communicating!`;
       }
 
       const formatted = messages.slice(-10).map((m, idx) => {
@@ -623,8 +655,53 @@ export function getLocalFallbackResponse(userPrompt, page = 'home', extraState =
         return `${idx + 1}. **${sender}** (${m.timestamp || 'Just now'}): "${text}"`;
       }).join('\n');
 
-      return `📞 **Recent Call Chat (${messages.length} total messages)**:\n\n${formatted}\n\n💡 *Ask me anything specific about these messages!*`;
+      return `**Recent Call Chat (${messages.length} total messages)**:\n\n${formatted}\n\n*Ask me anything specific about these messages!*`;
     }
+  }
+
+  // 1b. Live Screen Awareness & Visual Inspection
+  const isAskingScreen = query.includes('on my screen') ||
+    query.includes('on the screen') ||
+    query.includes('what do you see') ||
+    query.includes('look at my screen') ||
+    query.includes('look at screen') ||
+    query.includes('screen analysis') ||
+    query.includes('describe screen') ||
+    query.includes('whats on screen') ||
+    query.includes("what's on screen");
+
+  if (isAskingScreen) {
+    if (page === 'learn') {
+      const item = extraState.selectedLearnItem;
+      const signName = item?.name || 'Namaste';
+      const reps = extraState.successfulReps || 0;
+      const isMastered = Boolean(extraState.isSignMastered);
+      const stepInfo = item?.steps ? ` (Step ${Number(extraState.activeStepIndex || 0) + 1} of ${item.steps.length})` : '';
+      return `**Live Screen Analysis — Learn ISL Studio**:\n` +
+        `• **Active Sign on Screen**: **${signName}**${stepInfo} (${item?.category || 'General'})\n` +
+        `• **Camera & Skeleton Feed**: Real-time MediaPipe biometric skeleton overlay tracking hands and upper posture\n` +
+        `• **Repetition Counter**: **${reps} of 3 repetitions** completed ${isMastered ? '(Sign Mastered!)' : '(In Progress)'}\n` +
+        `• **Visible Layout**: Visual target guide on left, live webcam stage on center-right\n` +
+        `• **Next Step**: Hold posture steadily for ~500ms to register your repetition!`;
+    }
+    if (page === 'chat') {
+      const room = extraState.roomId || 'Direct P2P Room';
+      const glosses = Array.isArray(extraState.glosses) && extraState.glosses.length > 0 ? extraState.glosses.join(', ') : 'None (idle)';
+      const preview = extraState.previewText || 'Waiting for signing...';
+      const callMsgCount = Array.isArray(extraState.callMessages) ? extraState.callMessages.length : 0;
+      return `**Live Screen Analysis — Video Call & Sign Translator**:\n` +
+        `• **Active View**: Split-screen video call & live instant messenger\n` +
+        `• **Room Status**: \`${room}\` (${extraState.connectionMode || 'P2P WebRTC'})\n` +
+        `• **Live Token Composer**: [${glosses}]\n` +
+        `• **Formatted English Preview**: "${preview}"\n` +
+        `• **Call Messages on Screen**: ${callMsgCount} message(s) exchanged\n` +
+        `• **Subtitle HUD**: Active on webcam stage for heads-up translation.`;
+    }
+    return `**Live Screen Analysis — Home Portal**:\n` +
+      `• **Active View**: Sanket Gateway Portal\n` +
+      `• **Visible Modules**: "Learn ISL Studio" card, "Video Call & Live Chat" card, Room Join panel, Navigation bar\n` +
+      `• **System Status**: 100% On-Device Edge AI (zero server costs, video never uploaded)\n` +
+      `• **Available Options**: Click **Enter Learn Studio** to practice signs or **Start Video Call** to connect with a peer!`;
   }
 
   // 2. Step-by-Step Sign Performance Guide (Universal across all pages)
@@ -677,14 +754,14 @@ export function getLocalFallbackResponse(userPrompt, page = 'home', extraState =
     if (item) {
       const reps = extraState.successfulReps || 0;
       const isMastered = Boolean(extraState.isSignMastered);
-      return `🎯 **Current Learning Goal: ${item.name}**\n• Category: **${item.category || 'General'}**\n• Progress: **${reps} of 3 repetitions** (${isMastered ? 'Mastered! 🌟' : 'In Progress'})\n• Description: ${item.description || 'Standard ISL posture'}\n• Pro-Tip: ${item.tip || 'Keep hands visible in camera frame'}\n\nAsk me *"How do I sign ${item.name} step-by-step?"* for full anatomical guidance!`;
+      return `**Current Learning Goal: ${item.name}**\n• Category: **${item.category || 'General'}**\n• Progress: **${reps} of 3 repetitions** (${isMastered ? 'Mastered!' : 'In Progress'})\n• Description: ${item.description || 'Standard ISL posture'}\n• Pro-Tip: ${item.tip || 'Keep hands visible in camera frame'}\n\nAsk me *"How do I sign ${item.name} step-by-step?"* for full anatomical guidance!`;
     }
   }
 
   // 4. Page feature questions
   if (query.includes('what can i do') || query.includes('how to use') || query.includes('help') || query.includes('features')) {
     const bullets = pageDef.features.map(f => `• **${f.name}**: ${f.description}`).join('\n');
-    return `Welcome to **${pageDef.name}**! Here is what you can do on this page:\n\n${bullets}\n\n💡 *Tip: Add your free Google Gemini API key using the "BYOK Key" button above for open-ended conversation!*`;
+    return `Welcome to **${pageDef.name}**! Here is what you can do on this page:\n\n${bullets}\n\n*Tip: Add your free Google Gemini API key using the "Add Key" button above for open-ended conversation!*`;
   }
 
   if (query.includes('learn') || query.includes('practice') || query.includes('namaste') || query.includes('studio') || query.includes('level')) {
@@ -699,7 +776,7 @@ export function getLocalFallbackResponse(userPrompt, page = 'home', extraState =
   }
 
   if (query.includes('safe') || query.includes('privacy') || query.includes('server') || query.includes('camera') || query.includes('record')) {
-    return `🔒 **100% In-Browser Privacy Guarantee**:\n• Video frames and hand coordinates **NEVER** leave your device or touch a cloud server.\n• All AI computer vision runs locally in your browser using WebAssembly and WebGL.\n• Direct calls use peer-to-peer WebRTC encryption.\n• Zero cloud inference costs, zero data collection.`;
+    return `**100% In-Browser Privacy Guarantee**:\n• Video frames and hand coordinates **NEVER** leave your device or touch a cloud server.\n• All AI computer vision runs locally in your browser using WebAssembly and WebGL.\n• Direct calls use peer-to-peer WebRTC encryption.\n• Zero cloud inference costs, zero data collection.`;
   }
 
   if (query.includes('dictionary') || query.includes('words') || query.includes('vocabulary') || query.includes('signs')) {
@@ -719,7 +796,7 @@ export function getLocalFallbackResponse(userPrompt, page = 'home', extraState =
     return `You are in the **Video Call & Sign Translator**!\n• Room: **${extraState.roomId || 'Direct P2P'}**\n• To see recent call chat, ask: *"Fetch call chat"* or *"What was said in the call?"*.\n• You can also ask me how to perform any specific sign!`;
   }
 
-  return `I'm your **${pageDef.name}** assistant for Sanket (SignBridge ISL)!\n\nI can help you:\n1. Provide **step-by-step guides** for any ISL sign (e.g. Namaste, Hello, A–Z, Water).\n2. Fetch and summarize **call messages** when asked.\n3. Guide you through all features on this page.\n\n🔑 *To ask open-ended questions, tap "BYOK Key" above to add your free Gemini key!*`;
+  return `I'm your **${pageDef.name}** assistant for Sanket (SignBridge ISL)!\n\nI can help you:\n1. Provide **step-by-step guides** for any ISL sign (e.g. Namaste, Hello, A–Z, Water).\n2. Fetch and summarize **call messages** when asked.\n3. Guide you through all features on this page.\n\n*To ask open-ended questions, tap "Add Key" above to add your free Gemini key!*`;
 }
 
 /**
@@ -727,16 +804,20 @@ export function getLocalFallbackResponse(userPrompt, page = 'home', extraState =
  * Falls back to local smart response if no key is supplied.
  */
 export async function sendChatbotMessage({
-  message,
+  message = '',
   history = [],
   page = 'home',
-  extraState = {}
+  extraState = {},
+  screenshotDataUrl = null,
+  wantsAudio = false,
+  audioInputBase64 = null,
+  audioInputMimeType = 'audio/webm'
 }) {
   const config = getByokConfig();
   const trimmedKey = config.apiKey?.trim();
 
   // If user query asks about call chat in call mode, set includeCallChat flag
-  const queryLower = message.toLowerCase();
+  const queryLower = (message || '').toLowerCase();
   const stateCopy = { ...extraState };
   if (
     queryLower.includes('chat') ||
@@ -751,7 +832,7 @@ export async function sendChatbotMessage({
 
   // If no API key is configured by the user, return grounded local response
   if (!trimmedKey) {
-    const localReply = getLocalFallbackResponse(message, page, stateCopy);
+    const localReply = getLocalFallbackResponse(message || 'help', page, stateCopy);
     return {
       reply: localReply,
       isFromLlm: false,
@@ -763,18 +844,71 @@ export async function sendChatbotMessage({
 
   // 1. Google Gemini API (Automatic Model Discovery & Cascading Fallback)
   if (config.provider === 'gemini') {
-    const candidateModels = [
-      workingModelCache.get('gemini'),
-      ...(PROVIDER_CANDIDATE_MODELS.gemini || ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro'])
-    ].filter((m, idx, arr) => m && arr.indexOf(m) === idx);
+    const liveModels = await fetchLiveActiveModels('gemini', trimmedKey);
+    const staticCandidates = wantsAudio
+      ? ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-1.5-flash']
+      : (PROVIDER_CANDIDATE_MODELS.gemini || ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.5-flash-lite']);
+
+    let candidateModels = [];
+    if (liveModels && liveModels.length > 0) {
+      const preferred = wantsAudio
+        ? ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-2.5-flash-lite']
+        : ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.5-flash-lite'];
+      const matched = preferred.filter(p => liveModels.includes(p));
+      const remaining = liveModels.filter(m => !matched.includes(m));
+      candidateModels = matched.length > 0 ? [...matched, ...remaining] : liveModels;
+    } else {
+      candidateModels = staticCandidates;
+    }
+
+    if (workingModelCache.has('gemini') && candidateModels.includes(workingModelCache.get('gemini'))) {
+      candidateModels = [workingModelCache.get('gemini'), ...candidateModels.filter(m => m !== workingModelCache.get('gemini'))];
+    }
 
     // Format multi-turn conversation into Gemini contents array, ensuring it begins with user
     const contents = [];
-    const turns = buildAlternatingChatMessages('', history, message);
-    for (const t of turns) {
+    const turns = buildAlternatingChatMessages('', history, message || (audioInputBase64 ? 'Voice Message' : ''));
+    for (let i = 0; i < turns.length; i++) {
+      const t = turns[i];
+      const isLastTurn = i === turns.length - 1;
+      const parts = [];
+
+      // If user provided a screenshot and this is the active user turn, attach image part
+      if (isLastTurn && t.role === 'user') {
+        if (screenshotDataUrl) {
+          const cleanBase64 = screenshotDataUrl.replace(/^data:image\/\w+;base64,/, '');
+          if (cleanBase64) {
+            parts.push({
+              inlineData: {
+                mimeType: 'image/jpeg',
+                data: cleanBase64
+              }
+            });
+          }
+        }
+
+        // Direct multimodal audio recording from microphone
+        if (audioInputBase64) {
+          parts.push({
+            inlineData: {
+              mimeType: audioInputMimeType || 'audio/webm',
+              data: audioInputBase64
+            }
+          });
+        }
+      }
+
+      if (t.content && t.content.trim() && t.content !== 'Voice Message') {
+        parts.push({ text: t.content });
+      } else if (audioInputBase64 && isLastTurn && t.role === 'user') {
+        parts.push({ text: "Listen to my speech in the attached audio and answer my question directly." });
+      } else if (parts.length === 0) {
+        parts.push({ text: t.content || "Hello" });
+      }
+
       contents.push({
         role: t.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: t.content }]
+        parts
       });
     }
 
@@ -783,11 +917,37 @@ export async function sendChatbotMessage({
     for (const model of candidateModels) {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${trimmedKey}`;
 
+      const requestBody = {
+        system_instruction: {
+          parts: [{ text: systemInstruction }]
+        },
+        contents,
+        generationConfig: {
+          temperature: 0.4,
+          maxOutputTokens: 600,
+          ...(wantsAudio ? {
+            responseModalities: ["AUDIO"],
+            speechConfig: {
+              voiceConfig: {
+                prebuiltVoiceConfig: {
+                  voiceName: "Puck"
+                }
+              }
+            }
+          } : {})
+        }
+      };
+
       try {
-        const response = await fetch(url, {
+        let response = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+          body: JSON.stringify(requestBody)
+        });
+
+        // If audio modality was rejected with 400, retry without audio modality
+        if (!response.ok && wantsAudio && (response.status === 400 || response.status === 404)) {
+          const fallbackBody = {
             system_instruction: {
               parts: [{ text: systemInstruction }]
             },
@@ -796,17 +956,45 @@ export async function sendChatbotMessage({
               temperature: 0.4,
               maxOutputTokens: 500
             }
-          })
-        });
+          };
+          const textOnlyRes = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(fallbackBody)
+          });
+          if (textOnlyRes.ok) {
+            response = textOnlyRes;
+          }
+        }
 
         if (response.ok) {
           const data = await response.json();
-          const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+          const parts = data?.candidates?.[0]?.content?.parts || [];
+          let candidateText = '';
+          let audioData = null;
 
-          if (candidateText) {
+          for (const p of parts) {
+            if (p.text) {
+              candidateText += p.text;
+            }
+            if (p.inlineData && p.inlineData.data) {
+              audioData = {
+                mimeType: p.inlineData.mimeType || 'audio/wav',
+                base64: p.inlineData.data
+              };
+            }
+          }
+
+          candidateText = candidateText.trim();
+          if (!candidateText && audioData) {
+            candidateText = "[Gemini Voice Answer]";
+          }
+
+          if (candidateText || audioData) {
             workingModelCache.set('gemini', model);
             return {
-              reply: candidateText,
+              reply: candidateText || "Voice response received.",
+              audio: audioData,
               isFromLlm: true,
               provider: 'gemini',
               modelUsed: model
@@ -819,9 +1007,16 @@ export async function sendChatbotMessage({
 
         if (response.status === 400 || response.status === 403) {
           const lower = errorMsg.toLowerCase();
-          if (lower.includes('api_key') || lower.includes('invalid') || lower.includes('credential')) {
+          if (
+            lower.includes('api_key') ||
+            lower.includes('api key') ||
+            lower.includes('invalid') ||
+            lower.includes('not valid') ||
+            lower.includes('credential') ||
+            lower.includes('permission_denied')
+          ) {
             return {
-              reply: `⚠️ **Gemini API Key Error**: ${errorMsg}.\n\nPlease check your Gemini API key in the "BYOK Settings" panel. You can generate a free key at [Google AI Studio](https://aistudio.google.com/app/apikey).`,
+              reply: `**Gemini API Key Error**: ${errorMsg}.\n\nPlease check your Gemini API key in the "BYOK Settings" panel. You can generate a free key at [Google AI Studio](https://aistudio.google.com/app/apikey).`,
               isFromLlm: false,
               provider: 'error'
             };
@@ -836,7 +1031,7 @@ export async function sendChatbotMessage({
     }
 
     return {
-      reply: `⚠️ Gemini models currently unavailable (${lastError}). Here is local guidance:\n\n` + getLocalFallbackResponse(message, page, stateCopy),
+      reply: `Gemini models currently unavailable (${lastError}). Here is local guidance:\n\n` + getLocalFallbackResponse(message || 'help', page, stateCopy),
       isFromLlm: false,
       provider: 'fallback'
     };
@@ -903,7 +1098,7 @@ export async function sendChatbotMessage({
 
         if (response.status === 401 || response.status === 403) {
           return {
-            reply: `⚠️ **Groq API Key Error**: ${errorMsg}.\n\nPlease check your key in the BYOK settings panel or generate a free key at [Groq Console](https://console.groq.com/keys).`,
+            reply: `**Groq API Key Error**: ${errorMsg}.\n\nPlease check your key in the BYOK settings panel or generate a free key at [Groq Console](https://console.groq.com/keys).`,
             isFromLlm: false,
             provider: 'error'
           };
@@ -917,7 +1112,7 @@ export async function sendChatbotMessage({
     }
 
     return {
-      reply: `⚠️ Groq models currently unavailable (${lastError}). Here is local guidance:\n\n` + getLocalFallbackResponse(message, page, stateCopy),
+      reply: `Groq models currently unavailable (${lastError}). Here is local guidance:\n\n` + getLocalFallbackResponse(message, page, stateCopy),
       isFromLlm: false,
       provider: 'fallback'
     };
@@ -985,7 +1180,7 @@ export async function sendChatbotMessage({
 
         if (response.status === 401 || response.status === 403) {
           return {
-            reply: `⚠️ **OpenRouter API Key Error**: ${errorMsg}.\n\nPlease check your key in the BYOK settings panel or generate a key at [OpenRouter](https://openrouter.ai/keys).`,
+            reply: `**OpenRouter API Key Error**: ${errorMsg}.\n\nPlease check your key in the BYOK settings panel or generate a key at [OpenRouter](https://openrouter.ai/keys).`,
             isFromLlm: false,
             provider: 'error'
           };
@@ -999,7 +1194,7 @@ export async function sendChatbotMessage({
     }
 
     return {
-      reply: `⚠️ OpenRouter models currently unavailable (${lastError}). Here is local guidance:\n\n` + getLocalFallbackResponse(message, page, stateCopy),
+      reply: `OpenRouter models currently unavailable (${lastError}). Here is local guidance:\n\n` + getLocalFallbackResponse(message, page, stateCopy),
       isFromLlm: false,
       provider: 'fallback'
     };
@@ -1055,7 +1250,7 @@ export async function sendChatbotMessage({
     }
 
     return {
-      reply: `⚠️ Endpoint error (${lastError}). Here is local guidance:\n\n` + getLocalFallbackResponse(message, page, stateCopy),
+      reply: `Endpoint error (${lastError}). Here is local guidance:\n\n` + getLocalFallbackResponse(message, page, stateCopy),
       isFromLlm: false,
       provider: 'fallback'
     };

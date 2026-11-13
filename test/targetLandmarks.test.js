@@ -253,3 +253,52 @@ test('islTargetLandmarks - YES posture evaluation enforces strict closed fist an
   assert.ok(fistResult.matchScore >= 85, 'Fist match score must be >= 85');
 });
 
+test('islTargetLandmarks - Letter A search ranking prioritizes alphabet A over generic words', () => {
+  const q = 'a';
+  // Filter logic matching LearnSidebar
+  const matches = ISL_LEARN_ITEMS.filter(item => {
+    const label = item.label.toLowerCase();
+    const name = item.name.toLowerCase();
+    const english = (item.english || '').toLowerCase();
+    if (q.length === 1) {
+      if (label === q) return true;
+      if (item.type === 'alphabet' && label === q) return true;
+      if (name === q || name === `letter ${q}`) return true;
+      if (label.startsWith(q)) return true;
+      if (name.startsWith(q)) return true;
+      const words = `${name} ${english}`.split(/[\s,()/-]+/);
+      return words.some(w => w.startsWith(q));
+    }
+    return false;
+  });
+
+  const sorted = matches.sort((a, b) => {
+    const aLabel = a.label.toLowerCase();
+    const bLabel = b.label.toLowerCase();
+    const aName = a.name.toLowerCase();
+    const bName = b.name.toLowerCase();
+    const aEnglish = (a.english || '').toLowerCase();
+    const bEnglish = (b.english || '').toLowerCase();
+
+    const computeScore = (item, label, name, english) => {
+      if (label === q) return 1000;
+      if (item.type === 'alphabet' && label === q) return 980;
+      if (name === q || name === `letter ${q}`) return 950;
+      if (label.startsWith(q)) return 800;
+      if (name.startsWith(q)) return 700;
+      const nameWords = name.split(/[\s,()/-]+/);
+      if (nameWords.some(w => w.startsWith(q))) return 600;
+      if (english.startsWith(q)) return 500;
+      return 100;
+    };
+
+    const scoreA = computeScore(a, aLabel, aName, aEnglish);
+    const scoreB = computeScore(b, bLabel, bName, bEnglish);
+    return scoreB - scoreA;
+  });
+
+  assert.ok(sorted.length > 0, 'Must have matches for "a"');
+  assert.strictEqual(sorted[0].label, 'A', 'First result for "a" search MUST be Alphabet Letter A');
+  assert.strictEqual(sorted[0].type, 'alphabet', 'Top result must have type "alphabet"');
+});
+

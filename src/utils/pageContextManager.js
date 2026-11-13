@@ -97,7 +97,7 @@ export function getSignStepByStepGuide(signNameOrLabel = '') {
 
   // 1. Namaste
   if (clean === 'NAMASTE') {
-    return `### 🙏 Step-by-Step: How to Sign **NAMASTE** (Level 1)
+    return `### Step-by-Step: How to Sign **NAMASTE** (Level 1)
 1. **Starting Position**: Sit upright facing your camera so your upper chest and both hands are in view.
 2. **Handshape**: Open both hands flat with all five fingers pressed straight together.
 3. **Placement**: Bring both palms together in front of the center of your chest (Anjali Mudra).
@@ -108,7 +108,7 @@ export function getSignStepByStepGuide(signNameOrLabel = '') {
 
   // 2. Hello
   if (clean === 'HELLO') {
-    return `### 👋 Step-by-Step: How to Sign **HELLO**
+    return `### Step-by-Step: How to Sign **HELLO**
 1. **Starting Position**: Raise your dominant hand to shoulder height.
 2. **Handshape**: Open flat palm with fingers together, thumb naturally relaxed.
 3. **Placement**: Position your palm near your temple or forehead (palm facing slightly forward).
@@ -118,7 +118,7 @@ export function getSignStepByStepGuide(signNameOrLabel = '') {
 
   // 3. Thank You
   if (clean === 'THANK_YOU' || clean === 'THANKYOU' || clean === 'THANKS') {
-    return `### 🤲 Step-by-Step: How to Sign **THANK YOU**
+    return `### Step-by-Step: How to Sign **THANK YOU**
 1. **Handshape**: Dominant hand open, flat fingers touching lightly together.
 2. **Placement**: Place the tips of your dominant fingers gently against your chin or lower lip.
 3. **Motion**: Move your hand forward and slightly downward towards the other person with an open palm.
@@ -127,7 +127,7 @@ export function getSignStepByStepGuide(signNameOrLabel = '') {
 
   // 4. Good / Bad
   if (clean === 'GOOD') {
-    return `### 👍 Step-by-Step: How to Sign **GOOD**
+    return `### Step-by-Step: How to Sign **GOOD**
 1. **Handshape**: Form a firm closed fist with your dominant hand.
 2. **Thumb Placement**: Extend your thumb straight upwards (standard thumbs-up).
 3. **Body Zone**: Hold at mid-chest height, facing forward.
@@ -135,7 +135,7 @@ export function getSignStepByStepGuide(signNameOrLabel = '') {
   }
 
   if (clean === 'BAD') {
-    return `### 👎 Step-by-Step: How to Sign **BAD**
+    return `### Step-by-Step: How to Sign **BAD**
 1. **Handshape**: Form a firm closed fist with your dominant hand.
 2. **Thumb Placement**: Extend your thumb straight downwards (thumbs-down).
 3. **Motion**: A sharp downward gesture indicates negative sentiment.`;
@@ -143,14 +143,14 @@ export function getSignStepByStepGuide(signNameOrLabel = '') {
 
   // 5. Please / Sorry
   if (clean === 'PLEASE') {
-    return `### 🙏 Step-by-Step: How to Sign **PLEASE**
+    return `### Step-by-Step: How to Sign **PLEASE**
 1. **Handshape**: Open flat palm on your dominant hand.
 2. **Placement**: Place your palm flat against the center of your chest.
 3. **Motion**: Move your palm in a gentle clockwise circular rubbing motion 2–3 times.`;
   }
 
   if (clean === 'SORRY') {
-    return `### ✊ Step-by-Step: How to Sign **SORRY**
+    return `### Step-by-Step: How to Sign **SORRY**
 1. **Handshape**: Form a closed fist ('A' fist) with your dominant hand.
 2. **Placement**: Place the knuckle side of your fist against your chest.
 3. **Motion**: Rub in a small circular motion across your heart/chest 2–3 times.`;
@@ -158,7 +158,7 @@ export function getSignStepByStepGuide(signNameOrLabel = '') {
 
   // 6. Water
   if (clean === 'WATER') {
-    return `### 💧 Step-by-Step: How to Sign **WATER**
+    return `### Step-by-Step: How to Sign **WATER**
 1. **Handshape**: Form a 'W' handshape (extend index, middle, and ring fingers upward; thumb holds down pinky).
 2. **Placement**: Bring your index finger to touch your chin or side of the mouth.
 3. **Motion**: Tap your chin twice gently.`;
@@ -166,7 +166,7 @@ export function getSignStepByStepGuide(signNameOrLabel = '') {
 
   // 7. Time
   if (clean === 'TIME') {
-    return `### ⌚ Step-by-Step: How to Sign **TIME**
+    return `### Step-by-Step: How to Sign **TIME**
 1. **Non-Dominant Arm**: Extend your non-dominant arm forward horizontally, wrist facing upward.
 2. **Dominant Hand**: Extend your dominant index finger.
 3. **Motion**: Tap the back of your non-dominant wrist twice (mimicking a wristwatch).`;
@@ -174,7 +174,7 @@ export function getSignStepByStepGuide(signNameOrLabel = '') {
 
   // 8. Help
   if (clean === 'HELP') {
-    return `### 🤝 Step-by-Step: How to Sign **HELP**
+    return `### Step-by-Step: How to Sign **HELP**
 1. **Non-Dominant Hand**: Open flat palm facing upward at chest height (the supporting platform).
 2. **Dominant Hand**: Form a thumbs-up fist and place it directly on top of the non-dominant palm.
 3. **Motion**: Lift both hands upward together towards the person being helped.`;
@@ -183,7 +183,7 @@ export function getSignStepByStepGuide(signNameOrLabel = '') {
   // 9. Authentic ISL Alphabet Check (Two-Handed Standard)
   const letterItem = ISL_ALPHABET_GUIDE.find(item => item.letter.toUpperCase() === clean);
   if (letterItem) {
-    return `### 🔤 Step-by-Step: How to Fingerspell Letter **${letterItem.letter}** in ISL
+    return `### Step-by-Step: How to Fingerspell Letter **${letterItem.letter}** in ISL
 - **Category**: ${letterItem.category} (${letterItem.type})
 - **Hand Configuration**: ${letterItem.description}
 - **Pro-Tip**: ${letterItem.tip}
@@ -193,7 +193,7 @@ export function getSignStepByStepGuide(signNameOrLabel = '') {
   // 10. General Word Labels Lookup
   const wordItem = ISL_WORD_LABELS.find(w => w.gloss.toUpperCase() === clean || w.id.toUpperCase() === clean);
   if (wordItem) {
-    return `### 🤟 Step-by-Step: How to Sign **${wordItem.english || wordItem.gloss}**
+    return `### Step-by-Step: How to Sign **${wordItem.english || wordItem.gloss}**
 - **Category**: ${wordItem.category?.toUpperCase() || 'GENERAL'}
 - **ISL Gloss**: \`${wordItem.gloss}\`
 - **Execution**: Perform the sign at chest height facing your webcam.
@@ -201,7 +201,7 @@ export function getSignStepByStepGuide(signNameOrLabel = '') {
   }
 
   // Generic fallback
-  return `### 🤟 How to Sign **${clean.replace(/_/g, ' ')}**
+  return `### How to Sign **${clean.replace(/_/g, ' ')}**
 1. Position yourself 1.5 to 2 feet in front of your camera with good front lighting.
 2. Keep your upper torso, shoulders, and both hands in view.
 3. Check our **1,000+ Word ISL Dictionary** (click "Dictionary" in the footer) for animated illustrations.
@@ -238,7 +238,7 @@ CURRENT PRACTICE SIGN IN LEARN STUDIO:
 - Type: ${item.type || 'Word'}
 - Description: ${item.description || 'Standard ISL posture'}
 - Practice Tip: ${item.tip || 'Keep hands visible in camera frame'}
-- Progress on this Sign: ${reps} of 3 repetitions completed (${isMastered ? 'MASTERED! 🌟' : 'In Practice'})
+- Progress on this Sign: ${reps} of 3 repetitions completed (${isMastered ? 'MASTERED!' : 'In Practice'})
 - Overall User Progress: ${extraState.masteredCount || 0} signs mastered
 ${item.steps ? `- Compound Steps: This sign has ${item.steps.length} sequential parts. Currently on Step ${Number(extraState.activeStepIndex || 0) + 1}.` : ''}
 
@@ -292,6 +292,26 @@ ${extraState.roomId ? `- Room ID: "${extraState.roomId}"` : ''}
 ${extraState.masteredCount !== undefined ? `- Mastered Signs: ${extraState.masteredCount}` : ''}`;
   }
 
+  // 4. Live Screen & Modal Telemetry
+  const activeModals = [
+    extraState.isDictionaryOpen && '1,000+ Word Dictionary Modal',
+    extraState.isGuideOpen && 'App Guide & Walkthrough Modal',
+    extraState.isAboutOpen && 'System Properties & About Modal',
+    extraState.isFeedbackOpen && 'Issue Reporter & Feedback Modal',
+    extraState.isRecorderOpen && 'Keypoint Dataset Recorder Drawer'
+  ].filter(Boolean);
+
+  const screenTelemetry = [
+    `- Active Route: ${pageDef.name}`,
+    `- Recognition Engine: ${extraState.recognitionMode === 'alphabet' ? '2-Handed A-Z Alphabet' : 'Core 50/260+ Word Gestures'}`,
+    activeModals.length > 0 ? `- Open Overlay Modals: ${activeModals.join(', ')}` : '- Open Overlay Modals: None (clean page view)'
+  ].join('\n');
+
+  dynamicPageDetails += `
+LIVE SCREEN TELEMETRY:
+${screenTelemetry}
+`;
+
   return `You are Sanket AI, the dedicated in-browser assistant for Sanket (SignBridge ISL).
 
 CURRENT VIEW:
@@ -309,5 +329,6 @@ STRICT OPERATIONAL RULES:
 1. Ground answers strictly in the current page (${pageDef.name}) and Sanket features.
 2. When asked how to sign, provide clear, step-by-step physical instructions (Handshape, Placement, Motion, Hold Duration).
 3. If on video call, ONLY fetch call messages when explicitly asked by the user.
-4. Keep answers direct, punchy, and concise (2-4 bullet points or short sentences). Avoid conversational filler, preamble, or repetition.`;
+4. Keep answers direct, punchy, and concise (2-4 bullet points or short sentences). Avoid conversational filler, preamble, or repetition.
+5. Screen Awareness: You have full visibility into the active screen, live camera view, open modals, and learning/call telemetry. When a screenshot is attached or the user asks what is on their screen, analyze the visual and structural state directly.`;
 }

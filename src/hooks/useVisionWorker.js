@@ -97,6 +97,7 @@ export function useVisionWorker() {
             break;
 
           case 'WORKER_ERROR':
+            isProcessingFrameRef.current = false;
             setWorkerStatus('error');
             setWorkerError(data.error);
             setIsWorkerReady(false);
@@ -108,6 +109,7 @@ export function useVisionWorker() {
       };
 
       worker.onerror = (err) => {
+        isProcessingFrameRef.current = false;
         console.error('[useVisionWorker] Web Worker top-level error:', err);
         setWorkerStatus('error');
         setWorkerError(err.message || 'Worker thread execution error');
@@ -139,9 +141,10 @@ export function useVisionWorker() {
       return;
     }
 
+    let imageBitmap = null;
     try {
       isProcessingFrameRef.current = true;
-      const imageBitmap = await createImageBitmap(videoElement);
+      imageBitmap = await createImageBitmap(videoElement);
       workerRef.current.postMessage(
         {
           type: 'PROCESS_FRAME',
@@ -153,6 +156,11 @@ export function useVisionWorker() {
       );
     } catch (err) {
       isProcessingFrameRef.current = false;
+      if (imageBitmap && typeof imageBitmap.close === 'function') {
+        try {
+          imageBitmap.close();
+        } catch (_) {}
+      }
       // Normal during video pauses or tab switching
     }
   }, [isWorkerReady]);

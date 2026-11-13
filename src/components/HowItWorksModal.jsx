@@ -138,7 +138,7 @@ export function HowItWorksModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 md:p-6 bg-zinc-950/70 backdrop-blur-sm select-none"
+      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 bg-zinc-950/70 backdrop-blur-sm select-none"
       aria-label="Sanket Application Guide"
       role="dialog"
       onClick={(e) => {
@@ -147,7 +147,7 @@ export function HowItWorksModal({
         }
       }}
     >
-      <div className="cartoon-card w-full max-w-4xl max-h-[94vh] flex flex-col shadow-cartoon-lg bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <div className="cartoon-card w-full max-w-4xl h-[95dvh] sm:h-auto sm:max-h-[94vh] flex flex-col shadow-cartoon-lg bg-white overflow-hidden rounded-t-2xl sm:rounded-2xl animate-in fade-in zoom-in-95 duration-150">
         {/* Title Bar */}
         <div className="px-4 py-3 bg-[#EAF6E8] border-b-2 border-zinc-900 flex items-center justify-between gap-3 flex-shrink-0">
           <div className="flex items-center gap-2.5">
@@ -377,8 +377,9 @@ export function HowItWorksModal({
                           "{match.english}"
                         </span>
                       </div>
-                      <p className="text-[11px] text-zinc-600 font-medium italic pt-0.5">
-                        💡 {match.rule}
+                      <p className="text-[11px] text-zinc-600 font-medium italic pt-0.5 flex items-center gap-1">
+                        <Lightbulb className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
+                        <span>{match.rule}</span>
                       </p>
                     </div>
                   );
@@ -609,8 +610,9 @@ export function HowItWorksModal({
                       When your hands drop or stay still for your configured pause interval (default: <strong>700ms</strong>, adjustable up to 1200ms), Sanket marks the phrase complete and broadcasts it.
                     </p>
                   </div>
-                  <div className="text-[11px] font-bold text-zinc-700 bg-white p-2 rounded-lg border border-zinc-200">
-                    💡 <em>Tip: You can also tap the "Send" button or press Enter anytime for manual dispatch!</em>
+                  <div className="text-[11px] font-bold text-zinc-700 bg-white p-2 rounded-lg border border-zinc-200 flex items-center gap-1.5">
+                    <Lightbulb className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
+                    <em>Tip: You can also tap the "Send" button or press Enter anytime for manual dispatch!</em>
                   </div>
                 </div>
               </div>

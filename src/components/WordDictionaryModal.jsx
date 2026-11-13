@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { X, Search, BookOpen, CheckCircle2, HelpCircle, Layers, Sparkles, Globe, ExternalLink } from 'lucide-react';
+import { X, Search, BookOpen, CheckCircle2, HelpCircle, Layers, Sparkles, Globe, ExternalLink, Lightbulb } from 'lucide-react';
 import { ISL_WORD_LABELS, ISL_WORD_CATEGORIES } from '../ai/islWordLabels.js';
 import { ISL_ALPHABET_GUIDE } from '../ai/islAlphabetLabels.js';
 import { getLearnItemByLabel } from '../ai/islTargetLandmarks.js';
@@ -21,28 +21,74 @@ export function WordDictionaryModal({ isOpen, onClose, onSelectForPractice }) {
   }, [searchQuery, selectedCategory]);
 
   const filteredWords = useMemo(() => {
-    return ISL_WORD_LABELS.filter(word => {
+    const q = searchQuery.trim().toLowerCase();
+    const matches = ISL_WORD_LABELS.filter(word => {
       const matchesCategory =
         selectedCategory === 'all' || word.category === selectedCategory;
-      const q = searchQuery.trim().toLowerCase();
-      const matchesSearch =
-        !q ||
-        word.gloss.toLowerCase().includes(q) ||
-        word.english.toLowerCase().includes(q) ||
-        word.description.toLowerCase().includes(q);
-      return matchesCategory && matchesSearch;
+      if (!matchesCategory) return false;
+      if (!q) return true;
+
+      const gloss = word.gloss.toLowerCase();
+      const english = (word.english || '').toLowerCase();
+
+      // Single char search: match start of gloss or word tokens only
+      if (q.length === 1) {
+        if (gloss === q || gloss.startsWith(q)) return true;
+        const tokens = `${gloss} ${english}`.split(/[\s,()/-]+/);
+        return tokens.some(t => t.startsWith(q));
+      }
+
+      if (gloss.includes(q) || english.includes(q)) return true;
+      if (q.length >= 3 && word.description.toLowerCase().includes(q)) return true;
+      return false;
+    });
+
+    if (!q) return matches;
+
+    return matches.sort((a, b) => {
+      const aGloss = a.gloss.toLowerCase();
+      const bGloss = b.gloss.toLowerCase();
+      const aEng = (a.english || '').toLowerCase();
+      const bEng = (b.english || '').toLowerCase();
+
+      const getScore = (gloss, eng) => {
+        if (gloss === q) return 1000;
+        if (gloss.startsWith(q)) return 800;
+        if (eng.startsWith(q)) return 600;
+        if (gloss.includes(q)) return 400;
+        if (eng.includes(q)) return 300;
+        return 100;
+      };
+
+      const diff = getScore(bGloss, bEng) - getScore(aGloss, aEng);
+      if (diff !== 0) return diff;
+      return aGloss.localeCompare(bGloss);
     });
   }, [searchQuery, selectedCategory]);
 
   const filteredAlphabet = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return ISL_ALPHABET_GUIDE;
-    return ISL_ALPHABET_GUIDE.filter(item =>
-      item.letter.toLowerCase().includes(q) ||
-      item.description.toLowerCase().includes(q) ||
-      item.tip.toLowerCase().includes(q) ||
-      item.category.toLowerCase().includes(q)
-    );
+
+    const matches = ISL_ALPHABET_GUIDE.filter(item => {
+      const letter = item.letter.toLowerCase();
+      if (q.length === 1) {
+        return letter === q || item.category.toLowerCase().startsWith(q);
+      }
+      return (
+        letter.includes(q) ||
+        item.category.toLowerCase().includes(q) ||
+        (q.length >= 3 && (item.description.toLowerCase().includes(q) || item.tip.toLowerCase().includes(q)))
+      );
+    });
+
+    return matches.sort((a, b) => {
+      const aLetter = a.letter.toLowerCase();
+      const bLetter = b.letter.toLowerCase();
+      if (aLetter === q && bLetter !== q) return -1;
+      if (bLetter === q && aLetter !== q) return 1;
+      return aLetter.localeCompare(bLetter);
+    });
   }, [searchQuery]);
 
   const categoryCounts = useMemo(() => {
@@ -57,10 +103,10 @@ export function WordDictionaryModal({ isOpen, onClose, onSelectForPractice }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-zinc-950/60 backdrop-blur-sm select-none"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-zinc-950/60 backdrop-blur-sm select-none"
       aria-label="ISL Word Dictionary Modal"
     >
-      <div className="cartoon-card w-full max-w-4xl max-h-[90vh] flex flex-col shadow-cartoon-lg bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <div className="cartoon-card w-full max-w-4xl h-[95dvh] sm:h-auto sm:max-h-[90vh] flex flex-col shadow-cartoon-lg bg-white overflow-hidden rounded-t-2xl sm:rounded-2xl animate-in fade-in zoom-in-95 duration-150">
         {/* 1. Header */}
         <div className="px-4 py-3 bg-[#EAF6E8] border-b-2 border-zinc-900 flex items-center justify-between gap-2 flex-shrink-0">
           <div className="flex items-center gap-2.5">
@@ -225,8 +271,9 @@ export function WordDictionaryModal({ isOpen, onClose, onSelectForPractice }) {
                                   {word.gloss}
                                 </span>
                                 {LIVE_VISION_GLOSSES.has(word.gloss) ? (
-                                  <span className="cartoon-badge !py-0.5 !px-2 text-[10px] sm:text-xs bg-[#EDFDF2] text-[#16A34A] border border-green-300 font-black">
-                                    🟢 Live 3D Vision
+                                  <span className="cartoon-badge !py-0.5 !px-2 text-[10px] sm:text-xs bg-[#EDFDF2] text-[#16A34A] border border-green-300 font-black inline-flex items-center gap-1.5">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
+                                    <span>Live 3D Vision</span>
                                   </span>
                                 ) : (
                                   <span className="cartoon-badge !py-0.5 !px-2 text-[10px] sm:text-xs bg-[#FAF8F5] text-zinc-500 border border-zinc-200 font-bold">
@@ -257,7 +304,8 @@ export function WordDictionaryModal({ isOpen, onClose, onSelectForPractice }) {
                             title="Open slow video demonstration in Indian Sign Language Portal"
                           >
                             <Globe className="w-3 h-3" />
-                            <span>ISL Portal ↗</span>
+                            <span>ISL Portal</span>
+                            <ExternalLink className="w-2.5 h-2.5 stroke-[2.5]" />
                           </a>
                         </div>
                         {onSelectForPractice && (
@@ -333,8 +381,9 @@ export function WordDictionaryModal({ isOpen, onClose, onSelectForPractice }) {
                         </p>
                       </div>
                     <div className="flex items-center justify-between gap-1 pt-1 border-t border-zinc-100">
-                      <div className="text-xs sm:text-sm font-bold text-[#16A34A] bg-[#EDFDF2] p-1.5 rounded-lg border border-green-200 flex-1">
-                        💡 {item.tip}
+                      <div className="text-xs sm:text-sm font-bold text-[#16A34A] bg-[#EDFDF2] p-1.5 rounded-lg border border-green-200 flex-1 flex items-center gap-1.5">
+                        <Lightbulb className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
+                        <span>{item.tip}</span>
                       </div>
                       {onSelectForPractice && (
                         <button

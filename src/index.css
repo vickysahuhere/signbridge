@@ -29,10 +29,16 @@
   --duo-border-dark: #CECECE;
   --duo-text: #3C3C3C;
   --duo-bg: #EDF7EC;
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sat: env(safe-area-inset-top, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
 }
 
 html {
-  font-size: 16.5px;
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  touch-action: manipulation;
 }
 
 body {
@@ -43,6 +49,8 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior-y: none;
+  min-height: 100dvh;
 }
 
 /* Custom Delightful Minimal Rounded Scrollbar */

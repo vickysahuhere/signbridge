@@ -423,3 +423,31 @@ test('byokChatbotService - pruneHistoryForTokenEfficiency compresses long histor
   assert.deepEqual(pruneHistoryForTokenEfficiency([]), []);
   assert.deepEqual(pruneHistoryForTokenEfficiency(null), []);
 });
+
+test('byokChatbotService - local fallback provides screen analysis across pages', () => {
+  // 1. Learn page screen inspection
+  const learnScreen = getLocalFallbackResponse("what's on my screen?", 'learn', {
+    selectedLearnItem: { name: 'Namaste', category: 'Greetings' },
+    successfulReps: 2,
+    isSignMastered: false
+  });
+  assert.ok(learnScreen.includes('Live Screen Analysis — Learn ISL Studio'));
+  assert.ok(learnScreen.includes('Namaste'));
+  assert.ok(learnScreen.includes('2 of 3 repetitions'));
+
+  // 2. Chat page screen inspection
+  const chatScreen = getLocalFallbackResponse('what do you see on my screen', 'chat', {
+    roomId: 'room-xyz',
+    glosses: ['HELLO', 'FRIEND'],
+    previewText: 'Hello friend',
+    callMessages: [{ text: 'Hi!' }]
+  });
+  assert.ok(chatScreen.includes('Live Screen Analysis — Video Call & Sign Translator'));
+  assert.ok(chatScreen.includes('room-xyz'));
+  assert.ok(chatScreen.includes('HELLO, FRIEND'));
+
+  // 3. Home page screen inspection
+  const homeScreen = getLocalFallbackResponse('look at my screen', 'home');
+  assert.ok(homeScreen.includes('Live Screen Analysis — Home Portal'));
+  assert.ok(homeScreen.includes('Gateway Portal'));
+});

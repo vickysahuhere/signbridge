@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Home,
   Video,
@@ -12,12 +12,13 @@ import {
   Check,
   Wifi,
   MessageSquare,
-  Sparkles,
   HelpCircle,
   Hand,
   Info,
-  Bug
+  Bug,
+  MoreVertical
 } from 'lucide-react';
+import { OtterLogoIcon } from './OtterLogo.jsx';
 
 export function Navbar({
   currentPage = 'home',
@@ -44,6 +45,31 @@ export function Navbar({
   const [copied, setCopied] = useState(false);
   const [isEditingRoom, setIsEditingRoom] = useState(false);
   const [roomInputValue, setRoomInputValue] = useState('');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setIsMenuOpen(false);
+      }
+    };
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isMenuOpen]);
 
   const handleCopy = () => {
     if (onCopyLink) {
@@ -65,10 +91,10 @@ export function Navbar({
             type="button"
             onClick={() => onPageChange && onPageChange('home')}
             className="flex items-center gap-1 sm:gap-2 text-left cursor-pointer hover:opacity-95 transition-transform active:scale-95 flex-shrink-0"
-            title="Go to Home"
+            title="Sanket ISL Home (Mitra the Otter)"
           >
-            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-[#58CC02] border-2 border-[#46A302] border-b-[3px] sm:border-b-4 flex items-center justify-center flex-shrink-0">
-              <Hand className="w-3 h-3 sm:w-4 sm:h-4 text-white stroke-[2.5]" />
+            <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl bg-[#FFF8EB] border-2 border-amber-200 border-b-[3px] flex items-center justify-center flex-shrink-0 overflow-hidden shadow-xs hover:border-amber-300">
+              <OtterLogoIcon className="w-6 h-6 sm:w-8 sm:h-8" />
             </div>
             <div className="flex items-center gap-1 sm:gap-1.5 leading-none">
               <span className="font-extrabold text-xs sm:text-base tracking-tight text-[#3C3C3C] hidden min-[340px]:inline">
@@ -82,50 +108,71 @@ export function Navbar({
 
           <div className="h-4 sm:h-5 w-[1.5px] sm:w-[2px] bg-zinc-200 hidden min-[360px]:block flex-shrink-0" />
 
-          {/* Primary Page Navigation: Home vs Learn ISL vs Live Chat */}
-          <div className="flex items-center bg-[#F7F7F7] p-0.5 sm:p-1 rounded-xl sm:rounded-2xl border-2 border-[#E5E5E5] flex-shrink-0">
+          {/* Primary Page Navigation: Desktop Pill Bar (Hidden on phone, handled by bottom dock) */}
+          <div className="hidden md:flex items-center bg-[#F7F7F7] p-0.5 sm:p-1 rounded-xl sm:rounded-2xl border-2 border-[#E5E5E5] flex-shrink-0">
             <button
               onClick={() => onPageChange && onPageChange('home')}
-              className={`px-1.5 min-[400px]:px-2 sm:px-2.5 lg:px-3 py-0.5 sm:py-1 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-black transition-all flex items-center gap-1 sm:gap-1.5 flex-shrink-0 ${
+              className={`px-2 lg:px-3 py-1 rounded-lg sm:rounded-xl text-xs font-black transition-all flex items-center gap-1.5 flex-shrink-0 ${
                 currentPage === 'home'
                   ? 'bg-white text-[#3C3C3C] border-2 border-[#E5E5E5] border-b-[3px] border-b-[#CECECE]'
                   : 'text-zinc-500 hover:text-zinc-800'
               }`}
               title="Home Screen"
             >
-              <Home className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5] flex-shrink-0" />
-              <span className="hidden min-[400px]:inline">Home</span>
+              <Home className="w-3.5 h-3.5 stroke-[2.5] flex-shrink-0" />
+              <span>Home</span>
             </button>
             <button
               onClick={() => onPageChange && onPageChange('learn')}
-              className={`px-1.5 min-[400px]:px-2 sm:px-2.5 lg:px-3 py-0.5 sm:py-1 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-black transition-all flex items-center gap-1 sm:gap-1.5 flex-shrink-0 ${
+              className={`px-2 lg:px-3 py-1 rounded-lg sm:rounded-xl text-xs font-black transition-all flex items-center gap-1.5 flex-shrink-0 ${
                 currentPage === 'learn'
                   ? 'bg-[#58CC02] text-white border-2 border-[#58CC02] border-b-[3px] border-b-[#46A302]'
                   : 'text-zinc-500 hover:text-zinc-800'
               }`}
               title="Practice & Learn ISL with Biometric Guides"
             >
-              <BookOpen className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5] flex-shrink-0" />
+              <BookOpen className="w-3.5 h-3.5 stroke-[2.5] flex-shrink-0" />
               <span className="hidden xl:inline">Learn ISL</span>
-              <span className="hidden min-[400px]:inline xl:hidden">Learn</span>
+              <span className="xl:hidden">Learn</span>
             </button>
             <button
               onClick={() => onPageChange && onPageChange('chat')}
-              className={`px-1.5 min-[400px]:px-2 sm:px-2.5 lg:px-3 py-0.5 sm:py-1 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-black transition-all flex items-center gap-1 sm:gap-1.5 flex-shrink-0 ${
+              className={`px-2 lg:px-3 py-1 rounded-lg sm:rounded-xl text-xs font-black transition-all flex items-center gap-1.5 flex-shrink-0 ${
                 currentPage === 'chat'
                   ? 'bg-[#1CB0F6] text-white border-2 border-[#1CB0F6] border-b-[3px] border-b-[#1899D6]'
                   : 'text-zinc-500 hover:text-zinc-800'
               }`}
               title="Real-Time Dual-Camera Video Call & Live ISL Auto-Translator"
             >
-              <Video className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5] flex-shrink-0" />
+              <Video className="w-3.5 h-3.5 stroke-[2.5] flex-shrink-0" />
               <span className="hidden xl:inline">Sign Call</span>
-              <span className="hidden min-[400px]:inline xl:hidden">Call</span>
+              <span className="xl:hidden">Call</span>
             </button>
           </div>
 
-          {/* Mode Switcher Pills: Words vs A-Z Letters (only in active Learn or Chat pages on wide screens) */}
-          {currentPage !== 'home' && (
+          {/* Mobile Current Mode Indicator Badge (< md) */}
+          <div className="flex md:hidden items-center gap-1">
+            {currentPage === 'home' && (
+              <span className="duo-badge !py-0.5 !px-2 text-[10px] bg-amber-50 text-amber-900 border-amber-200 font-black">
+                ✨ Free Edge AI
+              </span>
+            )}
+            {currentPage === 'learn' && (
+              <span className="duo-badge !py-0.5 !px-2 text-[10px] bg-[#EEFDE5] text-[#2F7202] border-[#58CC02]/40 font-black">
+                📖 Learn Studio
+              </span>
+            )}
+            {currentPage === 'chat' && (
+              <div className="flex items-center gap-1">
+                <span className="duo-badge !py-0.5 !px-2 text-[10px] bg-[#DDF4FE] text-[#0284C7] border-[#1CB0F6]/40 font-black">
+                  📹 Call #{roomId || 'main'}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Mode Switcher Pills: Words vs A-Z Letters (only in active Chat/Call page on wide screens) */}
+          {currentPage === 'chat' && (
             <>
               <div className="h-5 w-[2px] bg-zinc-200 hidden xl:block flex-shrink-0" />
               <div className="hidden xl:flex items-center bg-[#F7F7F7] p-0.5 sm:p-1 rounded-2xl border-2 border-[#E5E5E5] flex-shrink-0">
@@ -233,44 +280,8 @@ export function Navbar({
           </div>
         )}
 
-        {/* Right: Modals & Telemetry status - Responsively sized */}
+        {/* Right: Feedback & Overflow Menu (Guide, Dictionary) */}
         <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
-          {onOpenChatbot && (
-            <button
-              onClick={onOpenChatbot}
-              className="duo-btn bg-[#FFF9E5] hover:bg-[#FFD15C] !py-1 !px-1.5 sm:!px-2.5 text-xs text-zinc-900 border-2 border-zinc-900 flex items-center gap-1 shadow-cartoon-sm transition-all flex-shrink-0"
-              title="Open Sanket AI Chatbot (BYOK)"
-              aria-label="Ask AI Chatbot"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-500 flex-shrink-0" />
-              <span className="hidden lg:inline font-bold">Ask AI</span>
-            </button>
-          )}
-
-          {onOpenDictionary && (
-            <button
-              onClick={onOpenDictionary}
-              className="duo-btn !py-1 !px-1.5 sm:!px-2.5 text-xs bg-white hover:bg-zinc-50 flex items-center gap-1 flex-shrink-0"
-              title="Open ISL Visual Sign Dictionary"
-              aria-label="Open Sign Dictionary"
-            >
-              <BookOpen className="w-3.5 h-3.5 text-[#3C3C3C] stroke-[2.2] flex-shrink-0" />
-              <span className="hidden 2xl:inline">Dictionary</span>
-            </button>
-          )}
-
-          {onOpenGuide && (
-            <button
-              onClick={onOpenGuide}
-              className="duo-btn duo-btn-gold !py-1 !px-1.5 sm:!px-2.5 text-xs flex items-center gap-1 flex-shrink-0"
-              title="Learn how to sign & explore features"
-              aria-label="Application Guide"
-            >
-              <HelpCircle className="w-3.5 h-3.5 text-[#78350F] stroke-[2.2] flex-shrink-0" />
-              <span className="hidden xl:inline">Guide</span>
-            </button>
-          )}
-
           {onOpenFeedback && (
             <button
               onClick={onOpenFeedback}
@@ -281,6 +292,57 @@ export function Navbar({
               <Bug className="w-3.5 h-3.5 stroke-[2.2] flex-shrink-0" />
               <span className="hidden 2xl:inline">Feedback</span>
             </button>
+          )}
+
+          {/* Three dots overflow menu for Guide and Dictionary */}
+          {(onOpenDictionary || onOpenGuide) && (
+            <div className="relative" ref={menuRef}>
+              <button
+                type="button"
+                onClick={() => setIsMenuOpen((prev) => !prev)}
+                className={`duo-btn !py-1 !px-1.5 sm:!px-2 text-xs flex items-center justify-center flex-shrink-0 transition-all ${
+                  isMenuOpen
+                    ? 'bg-zinc-200 border-zinc-400 text-zinc-900'
+                    : 'bg-white hover:bg-zinc-50 text-zinc-700'
+                }`}
+                title="More options (Guide, Dictionary)"
+                aria-label="More options"
+                aria-expanded={isMenuOpen}
+              >
+                <MoreVertical className="w-3.5 h-3.5 stroke-[2.4]" />
+              </button>
+
+              {isMenuOpen && (
+                <div className="absolute right-0 top-full mt-1.5 w-44 bg-white border-2 border-zinc-900 rounded-xl shadow-cartoon-md p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100 flex flex-col gap-1">
+                  {onOpenGuide && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        onOpenGuide();
+                      }}
+                      className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-amber-50 font-bold text-xs text-zinc-800 flex items-center gap-2 transition-colors cursor-pointer"
+                    >
+                      <HelpCircle className="w-4 h-4 text-[#78350F] stroke-[2.2] flex-shrink-0" />
+                      <span>Guide</span>
+                    </button>
+                  )}
+                  {onOpenDictionary && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        onOpenDictionary();
+                      }}
+                      className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-100 font-bold text-xs text-zinc-800 flex items-center gap-2 transition-colors cursor-pointer"
+                    >
+                      <BookOpen className="w-4 h-4 text-[#3C3C3C] stroke-[2.2] flex-shrink-0" />
+                      <span>Dictionary</span>
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>

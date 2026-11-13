@@ -1,4 +1,5 @@
 import React from 'react';
+import { AlertCircle, Lightbulb, Info, Quote } from 'lucide-react';
 import {
   parseInlineTokens,
   parseMessageBlocks
@@ -146,21 +147,34 @@ export default function ChatTextFormatter({ text = '', isUser = false, className
             );
           }
 
-          case 'alert':
+          case 'alert': {
+            const cleanContent = block.content.replace(/^[\p{Extended_Pictographic}\s]+/u, '');
+            const AlertIcon =
+              block.alertType === 'warning' ? AlertCircle :
+              block.alertType === 'tip' ? Lightbulb :
+              block.alertType === 'info' ? Info : Quote;
             return (
               <div
                 key={`alert-${i}`}
                 className={`p-2 rounded-lg border text-[11px] leading-relaxed my-1.5 flex items-start gap-1.5 shadow-xs ${
                   isUser
                     ? 'bg-amber-100 border-amber-400 text-zinc-900'
+                    : block.alertType === 'warning'
+                    ? 'bg-rose-50 border-rose-300 text-rose-950'
                     : 'bg-amber-50 border-amber-300 text-amber-950'
                 }`}
               >
+                <AlertIcon className={`w-3.5 h-3.5 flex-shrink-0 mt-0.5 ${
+                  block.alertType === 'warning' ? 'text-rose-600' :
+                  block.alertType === 'tip' ? 'text-amber-600' :
+                  block.alertType === 'info' ? 'text-blue-600' : 'text-zinc-500'
+                }`} />
                 <div className="flex-1 break-words">
-                  {renderInlineContent(block.content, isUser)}
+                  {renderInlineContent(cleanContent, isUser)}
                 </div>
               </div>
             );
+          }
 
           case 'ordered':
             return (

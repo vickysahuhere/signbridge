@@ -12,12 +12,12 @@ import { isSupabaseConfigured, supabase } from '../network/supabaseClient.js';
  */
 
 export const FEEDBACK_CATEGORIES = [
-  { id: 'recognition', label: 'Sign Recognition', icon: '🖐️', desc: 'Signs not detected or inaccurate predictions' },
-  { id: 'translation', label: 'Translation / Grammar', icon: '📖', desc: 'Grammar ordering (SOV to SVO) or sentence errors' },
-  { id: 'camera', label: 'Camera / Biometrics', icon: '📹', desc: 'Webcam feed, landmark tracking or lighting issues' },
-  { id: 'call', label: 'Call / WebRTC', icon: '📞', desc: 'Room joining, peer connection or audio/video call lag' },
-  { id: 'ui', label: 'UI / Visual Glitch', icon: '🎨', desc: 'Layout overflow, broken styles or rendering bugs' },
-  { id: 'other', label: 'General / Suggestion', icon: '💡', desc: 'Feature requests, feedback and ideas' }
+  { id: 'recognition', label: 'Sign Recognition', icon: 'hand', desc: 'Signs not detected or inaccurate predictions' },
+  { id: 'translation', label: 'Translation / Grammar', icon: 'book', desc: 'Grammar ordering (SOV to SVO) or sentence errors' },
+  { id: 'camera', label: 'Camera / Biometrics', icon: 'camera', desc: 'Webcam feed, landmark tracking or lighting issues' },
+  { id: 'call', label: 'Call / WebRTC', icon: 'phone', desc: 'Room joining, peer connection or audio/video call lag' },
+  { id: 'ui', label: 'UI / Visual Glitch', icon: 'palette', desc: 'Layout overflow, broken styles or rendering bugs' },
+  { id: 'other', label: 'General / Suggestion', icon: 'lightbulb', desc: 'Feature requests, feedback and ideas' }
 ];
 
 const LOCAL_STORAGE_KEY = 'sanket_feedback_reports';
@@ -209,7 +209,7 @@ export function generateMarkdownReport(report) {
     ? d.recentGlosses.join(', ')
     : 'None';
 
-  return `### 🐛 Issue Report: ${report.title}
+  return `### Issue Report: ${report.title}
 
 **Report ID**: \`${report.id}\`  
 **Category**: ${catLabel}  
@@ -218,12 +218,12 @@ ${report.contact ? `**Contact**: \`${report.contact}\`  \n` : ''}
 
 ---
 
-#### 📝 Issue Description
+#### Issue Description
 ${report.description || '*(No description provided)*'}
 
 ---
 
-#### ⚙️ System Diagnostics
+#### System Diagnostics
 | Property | Value |
 | :--- | :--- |
 | **Active Page** | \`${d.page || 'unknown'}\` |

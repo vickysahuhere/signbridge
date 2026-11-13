@@ -16,8 +16,12 @@ import {
   HelpCircle,
   Activity,
   Crosshair,
-  Layers
+  Layers,
+  Lightbulb,
+  X,
+  SwitchCamera
 } from 'lucide-react';
+import { SignSvgIllustration, hasSvgIllustration } from './SignSvgIllustrations.jsx';
 import { startCameraLoop } from '../vision/cameraLoop.js';
 import { drawSkeleton, checkBoundaryAlert, HAND_CONNECTIONS } from '../vision/drawSkeleton.js';
 
@@ -43,6 +47,8 @@ export function LearnStage({
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [isLoadingCamera, setIsLoadingCamera] = useState(false);
   const [cameraError, setCameraError] = useState(null);
+  const [facingMode, setFacingMode] = useState('user');
+  const [showSignCue, setShowSignCue] = useState(false);
 
   // Studio Display Modes (Default: Camera View ON, Live and Target overlays OFF)
   const [showLiveSkeleton, setShowLiveSkeleton] = useState(false);
@@ -67,9 +73,10 @@ export function LearnStage({
   }, []);
 
   // Start camera media stream
-  const startCamera = useCallback(async () => {
+  const startCamera = useCallback(async (overrideFacing) => {
     setIsLoadingCamera(true);
     setCameraError(null);
+    const activeFacing = overrideFacing || facingMode;
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -78,7 +85,7 @@ export function LearnStage({
           height: { ideal: 720, min: 480 },
           aspectRatio: { ideal: 1.7777777778 },
           frameRate: { ideal: 30 },
-          facingMode: 'user'
+          facingMode: activeFacing
         },
         audio: false
       });
@@ -100,7 +107,20 @@ export function LearnStage({
     } finally {
       setIsLoadingCamera(false);
     }
-  }, [syncCanvasDimensions]);
+  }, [facingMode, syncCanvasDimensions]);
+
+  // Toggle between front and rear cameras
+  const toggleCameraFacing = useCallback(() => {
+    const nextFacing = facingMode === 'user' ? 'environment' : 'user';
+    setFacingMode(nextFacing);
+    if (isCameraActive) {
+      if (videoRef.current && videoRef.current.srcObject) {
+        const tracks = videoRef.current.srcObject.getTracks();
+        tracks.forEach(track => track.stop());
+      }
+      startCamera(nextFacing);
+    }
+  }, [facingMode, isCameraActive, startCamera]);
 
   // Stop camera media stream
   const stopCamera = useCallback(() => {
@@ -230,7 +250,32 @@ export function LearnStage({
         </div>
 
         {/* Viewport Control Toggles */}
-        <div className="flex items-center gap-1.5 flex-shrink-0">
+        <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
+          {/* Mobile Camera Flip Trigger */}
+          {isCameraActive && (
+            <button
+              type="button"
+              onClick={toggleCameraFacing}
+              className="cartoon-btn !py-1 !px-2 text-xs font-bold bg-white text-zinc-800 flex items-center gap-1 flex-shrink-0"
+              title={`Switch Camera (Currently: ${facingMode})`}
+            >
+              <SwitchCamera className="w-3.5 h-3.5 stroke-[2.2]" />
+              <span className="hidden sm:inline">Flip</span>
+            </button>
+          )}
+
+          {/* Mobile Sign Cue / Hint Toggle Button */}
+          <button
+            type="button"
+            onClick={() => setShowSignCue(prev => !prev)}
+            className={`cartoon-btn !py-1 !px-2 text-xs font-black flex items-center gap-1 ${
+              showSignCue ? 'bg-[#FFC800] text-zinc-900 border-zinc-900' : 'bg-white text-zinc-700'
+            }`}
+            title="Show Sign Gesture Hint"
+          >
+            <Lightbulb className="w-3.5 h-3.5 stroke-[2.2] text-amber-500 fill-amber-400" />
+            <span>Hint</span>
+          </button>
 
           {/* Skeleton Overlay Toggle */}
           <button
@@ -243,26 +288,6 @@ export function LearnStage({
             <Activity className="w-3.5 h-3.5 stroke-[2.2]" />
             <span className="hidden md:inline">Live: {showLiveSkeleton ? 'ON' : 'OFF'}</span>
           </button>
-
-          {/* Ghost Target Overlay Toggle */}
-          <button
-            onClick={() => setShowGhostSkeleton(prev => !prev)}
-            className={`cartoon-btn !py-1 !px-2 text-xs sm:text-sm font-black ${
-              showGhostSkeleton ? 'bg-[#FFC800] text-zinc-900 border-zinc-900' : 'bg-zinc-100 text-zinc-600'
-            }`}
-            title="Toggle Target Blueprint Ghost"
-          >
-            <Crosshair className="w-3.5 h-3.5 stroke-[2.2]" />
-            <span className="hidden lg:inline">Target: {showGhostSkeleton ? 'ON' : 'OFF'}</span>
-          </button>
-
-          {/* Hands Status Indicator */}
-          <div className="flex items-center gap-1 text-xs font-mono font-bold text-zinc-600 bg-zinc-100 px-2 py-0.5 rounded-lg border border-zinc-300">
-            <span>Hands:</span>
-            <span className={hasLeftHand ? 'text-[#58CC02]' : 'text-zinc-400'}>L</span>
-            <span>•</span>
-            <span className={hasRightHand ? 'text-[#58CC02]' : 'text-zinc-400'}>R</span>
-          </div>
         </div>
       </div>
 
@@ -286,8 +311,51 @@ export function LearnStage({
           className="absolute inset-0 w-full h-full object-contain transform -scale-x-100 pointer-events-none z-10"
         />
 
-        {/* 3-Repetition Pass Goal HUD */}
-        <div className="absolute top-3 right-3 z-20 flex items-center gap-1.5 bg-white/95 backdrop-blur-sm px-2.5 py-1.5 rounded-xl border-2 border-zinc-900 shadow-cartoon-sm">
+        {/* Mobile Unified Top HUD Bar (< sm) - Prevents collision between Compound & Pass Goal */}
+        <div className="sm:hidden absolute top-2 inset-x-2 z-20 flex items-center justify-between gap-1.5 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-xl border-2 border-zinc-900 shadow-cartoon-sm">
+          {/* Left: Sign / Step Info */}
+          <div className="flex items-center gap-1.5 min-w-0 flex-1">
+            <span className="text-[10px] font-black uppercase text-zinc-900 truncate">
+              {selectedItem?.isCompound && selectedItem?.steps
+                ? `Step ${activeStepIndex + 1}/${selectedItem.steps.length}: ${selectedItem.steps[activeStepIndex]?.title?.split(':')[1]?.trim() || selectedItem.steps[activeStepIndex]?.title || 'Practice'}`
+                : selectedItem?.name || selectedItem?.label}
+            </span>
+          </div>
+
+          {/* Right: Pass Goal Reps */}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <span className={`text-[11px] font-black ${isMatched ? 'text-[#16A34A]' : 'text-zinc-800'}`}>
+              {successfulReps}/{targetReps}
+            </span>
+            <div className="flex items-center gap-0.5">
+              {Array.from({ length: targetReps }).map((_, i) => (
+                <div
+                  key={i}
+                  className={`w-4 h-4 rounded-md flex items-center justify-center text-[9px] font-black border ${
+                    successfulReps > i
+                      ? 'bg-[#58CC02] text-white border-zinc-900'
+                      : 'bg-zinc-100 text-zinc-400 border-zinc-300'
+                  }`}
+                >
+                  {successfulReps > i ? '✓' : i + 1}
+                </div>
+              ))}
+            </div>
+            {successfulReps > 0 && onResetPractice && (
+              <button
+                onClick={onResetPractice}
+                type="button"
+                className="p-1 hover:bg-zinc-100 text-zinc-700 rounded ml-0.5"
+                title="Reset reps"
+              >
+                <RotateCcw className="w-2.5 h-2.5 stroke-[2.5]" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Desktop 3-Repetition Pass Goal HUD (>= sm) */}
+        <div className="hidden sm:flex absolute top-3 right-3 z-20 items-center gap-1.5 bg-white/95 backdrop-blur-sm px-2.5 py-1.5 rounded-xl border-2 border-zinc-900 shadow-cartoon-sm">
           <div className="flex flex-col text-left leading-none">
             <span className="text-[8px] font-mono font-bold uppercase text-zinc-500">
               Pass Goal
@@ -322,9 +390,9 @@ export function LearnStage({
           )}
         </div>
 
-        {/* Compound Sign Multi-Step Progression HUD */}
+        {/* Desktop Compound Sign Multi-Step Progression HUD (>= sm) */}
         {selectedItem?.isCompound && selectedItem?.steps && (
-          <div className="absolute top-3 left-3 sm:left-1/2 sm:-translate-x-1/2 z-20 flex flex-col items-center gap-1.5 max-w-[92%] sm:max-w-none">
+          <div className="hidden sm:flex absolute top-3 left-1/2 -translate-x-1/2 z-20 flex-col items-center gap-1.5 max-w-none">
             <div className="cartoon-card bg-white/95 backdrop-blur-sm px-3 py-1.5 border-2 border-zinc-900 shadow-cartoon-sm flex items-center gap-2">
               <span className="text-[10px] font-black uppercase text-amber-900 flex items-center gap-1">
                 <Layers className="w-3.5 h-3.5 text-amber-600 stroke-[2.5]" />
@@ -376,7 +444,7 @@ export function LearnStage({
                 {stepSuccessFlash.message || (
                   stepSuccessFlash.isTimeout
                     ? stepSuccessFlash.message
-                    : `PART ${stepSuccessFlash.stepNumber} LOCKED! Now perform the next step! 🌟`
+                    : `PART ${stepSuccessFlash.stepNumber} LOCKED! Now perform the next step!`
                 )}
               </span>
             </div>
@@ -455,6 +523,44 @@ export function LearnStage({
                 <RefreshCw className={`w-3.5 h-3.5 stroke-[2.5] ${isLoadingCamera ? 'animate-spin' : ''}`} />
                 <span>Retry Camera</span>
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Floating Sign Cue Reference Card */}
+        {showSignCue && selectedItem && (
+          <div className="absolute bottom-12 left-2 right-2 sm:bottom-3 sm:left-auto sm:right-3 sm:w-80 z-30 cartoon-card bg-white p-2.5 sm:p-3 border-2 border-zinc-900 shadow-cartoon-lg animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-zinc-200">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <Lightbulb className="w-3.5 h-3.5 text-amber-500 fill-amber-400 flex-shrink-0" />
+                <span className="font-extrabold text-xs text-zinc-900 uppercase truncate">
+                  {selectedItem.name} Cue
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSignCue(false)}
+                className="text-zinc-400 hover:text-zinc-900 p-0.5"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            <div className="flex items-center gap-2.5">
+              {hasSvgIllustration(selectedItem.label) && (
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-amber-50/60 border border-amber-200 flex items-center justify-center p-1 flex-shrink-0">
+                  <SignSvgIllustration label={selectedItem.label} className="w-full h-full object-contain" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0 text-xs">
+                <p className="font-bold text-zinc-700 leading-snug line-clamp-3">
+                  {selectedItem.description || selectedItem.tips || 'Align your hands as shown to match biometric pose.'}
+                </p>
+                {selectedItem.isCompound && selectedItem.steps && (
+                  <p className="mt-1 text-[10px] font-mono font-bold text-amber-800">
+                    Step {activeStepIndex + 1}: {selectedItem.steps[activeStepIndex]?.title}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         )}

@@ -20,9 +20,11 @@ import { GlossBufferManager } from './nlp/glossBufferManager.js';
 import { formatIslSentence, formatRawGlosses } from './nlp/islSentenceFormatter.js';
 import { ISL_LEARN_ITEMS, getLearnItemByLabel } from './ai/islTargetLandmarks.js';
 import { getNextRecommendedSign } from './ai/islCourseCurriculum.js';
-import { AlertCircle, ShieldCheck, Video, MessageSquare, BookOpen, Compass, Bug, Sparkles } from 'lucide-react';
+import { AlertCircle, ShieldCheck, Video, MessageSquare, BookOpen, Compass, Bug, Sparkles, Lock, Globe } from 'lucide-react';
 import { HomeChatbotPopup } from './components/HomeChatbotPopup.jsx';
+import { AnimatedOtterBar } from './components/AnimatedOtterBar.jsx';
 import { ErrorBoundary } from './components/ErrorBoundary.jsx';
+import { MobileBottomNav } from './components/MobileBottomNav.jsx';
 
 export function App() {
   const [fps, setFps] = useState(0);
@@ -30,12 +32,11 @@ export function App() {
   const [currentPage, setCurrentPage] = useState(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
-      const room = params.get('room') || params.get('code') || params.get('r');
       const p = params.get('page') || params.get('mode');
-      if (room || p === 'chat') return 'chat';
+      if (p === 'chat') return 'chat';
       if (p === 'learn') return 'learn';
     }
-    return 'home'; // Home page is default when no room or mode param is given
+    return 'home'; // Home page is default
   });
   const [recognitionMode, setRecognitionMode] = useState('word'); // 'alphabet' | 'word'
   const [isRecorderOpen, setIsRecorderOpen] = useState(false);
@@ -119,7 +120,7 @@ export function App() {
     channelInstance,
     sendBroadcastMessage,
     getRoomShareUrl
-  } = useRoomConnection();
+  } = useRoomConnection(currentPage);
 
   // 2. Peer-to-Peer WebRTC Data Channel & Video Stream (NETW-02, NETW-04)
   const {
@@ -483,13 +484,13 @@ export function App() {
               setStepSuccessFlash({
                 isPass: true,
                 repNumber: 3,
-                message: `${selectedLearnItem.name.toUpperCase()} PASSED! 3 of 3 complete! Outstanding! 🌟`
+                message: `${selectedLearnItem.name.toUpperCase()} PASSED! 3 of 3 complete! Outstanding!`
               });
             } else {
               setStepSuccessFlash({
                 isRep: true,
                 repNumber: next,
-                message: `Repetition ${next} of 3 complete! Relax hands and sign again! 👍`
+                message: `Repetition ${next} of 3 complete! Relax hands and sign again!`
               });
             }
             return next;
@@ -550,7 +551,7 @@ export function App() {
               setStepSuccessFlash({
                 isPass: true,
                 repNumber: 3,
-                message: `${selectedLearnItem.name.toUpperCase()} PASSED! 3 of 3 complete! 🌟`
+                message: `${selectedLearnItem.name.toUpperCase()} PASSED! 3 of 3 complete!`
               });
             } else {
               setActiveStepIndex(0);
@@ -558,7 +559,7 @@ export function App() {
               setStepSuccessFlash({
                 isRep: true,
                 repNumber: next,
-                message: `Repetition ${next} of 3 complete! Now perform the full sequence again! 👍`
+                message: `Repetition ${next} of 3 complete! Now perform the full sequence again!`
               });
             }
             return next;
@@ -668,7 +669,7 @@ export function App() {
   }, []);
 
   return (
-    <div className="h-screen max-h-screen w-full flex flex-col bg-[#EDF7EC] text-zinc-900 font-sans overflow-hidden select-none">
+    <div className="h-[100dvh] min-h-[100dvh] max-h-[100dvh] w-full flex flex-col bg-[#EDF7EC] text-zinc-900 font-sans overflow-hidden select-none pb-14 md:pb-0">
       {/* 1. Playful Minimal Navbar */}
       <Navbar
         currentPage={currentPage}
@@ -973,37 +974,12 @@ export function App() {
         )}
       </main>
 
-      {/* 3. Clean Minimal Footer */}
-      <footer className="h-7 px-4 flex items-center justify-between text-xs font-semibold text-zinc-600 bg-[#E3F2E1] border-t border-[#D5E7D2] flex-shrink-0 select-none">
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-zinc-700">Sanket (संकेत)</span>
-          <span>•</span>
-          <span>100% In-Browser Privacy</span>
-          <span>•</span>
-          <span className="hidden sm:inline">Zero Server Cost</span>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <span className="hidden md:inline text-zinc-400">
-            Tip: Rest hands 1.2s to auto-send
-          </span>
-          <button
-            onClick={handleOpenFeedback}
-            className="hover:text-zinc-900 font-bold flex items-center gap-1 text-[11px] text-zinc-700"
-            title="Report an issue or give feedback with automatic window screenshot"
-          >
-            <Bug className="w-3.5 h-3.5 stroke-[2.2] text-red-600" />
-            <span>Report Issue</span>
-          </button>
-          <button
-            onClick={() => setIsAboutOpen(true)}
-            className="hover:text-zinc-900 font-bold flex items-center gap-1 text-[11px]"
-          >
-            <ShieldCheck className="w-3.5 h-3.5 stroke-[2.2]" />
-            <span>System Info</span>
-          </button>
-        </div>
-      </footer>
+      {/* 3. Lower Bar: Minimal Animated Otter Mascot Track (Home page only) */}
+      {currentPage === 'home' && (
+        <footer className="h-7 sm:h-7.5 w-full bg-white/75 backdrop-blur-md border-t border-zinc-200/80 flex items-center overflow-hidden relative select-none z-30">
+          <AnimatedOtterBar />
+        </footer>
+      )}
 
       {/* Developer Training / Keypoint Dataset Recorder Drawer */}
       <KeypointRecorderDrawer
@@ -1057,14 +1033,16 @@ export function App() {
         contextData={feedbackContextData}
       />
 
-      {/* Global Floating Chatbot Launcher Button (Accessible on all pages) */}
+      {/* Global Floating Chatbot Launcher Button (Desktop only; on mobile, it is integrated into the bottom dock) */}
       {!isChatbotOpen && (
-        <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40">
+        <div className={`hidden md:block fixed right-4 sm:right-6 z-40 transition-all ${
+          currentPage === 'learn' ? 'bottom-24 sm:bottom-24' : 'bottom-12 sm:bottom-14'
+        }`}>
           <button
             type="button"
             onClick={() => setIsChatbotOpen(true)}
             className="cartoon-btn !py-2.5 !px-3.5 rounded-2xl bg-[#FFD15C] hover:bg-[#F5C240] border-2 border-zinc-900 shadow-cartoon text-xs sm:text-sm font-black text-zinc-900 flex items-center gap-2 group transition-all hover:scale-105 active:scale-95"
-            title="Open Sanket AI Chatbot (BYOK)"
+            title="Open Sanket AI Chatbot"
             aria-label="Open Sanket AI Chatbot"
           >
             <div className="relative">
@@ -1072,12 +1050,19 @@ export function App() {
               <span className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-500 rounded-full border border-zinc-900" />
             </div>
             <span className="font-black">Ask Sanket AI</span>
-            <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-white text-zinc-900 border border-zinc-900 leading-none">
-              BYOK
-            </span>
           </button>
         </div>
       )}
+
+      {/* Mobile Bottom Navigation Dock (< md: thumb navigation) */}
+      <MobileBottomNav
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+        onOpenDictionary={() => setIsDictionaryOpen(true)}
+        onOpenChatbot={() => setIsChatbotOpen(true)}
+        masteredCount={masteredCount}
+        unreadCount={allMessages.length}
+      />
 
       {/* Global Sanket AI Chatbot Popup (Real-time page context, BYOK, memory & sign tutorials) */}
       <HomeChatbotPopup
@@ -1095,7 +1080,12 @@ export function App() {
           glosses,
           previewText,
           callMessages: allMessages,
-          recognitionMode
+          recognitionMode,
+          isDictionaryOpen,
+          isGuideOpen,
+          isAboutOpen,
+          isFeedbackOpen,
+          isRecorderOpen
         }}
         onNavigateToMode={(mode) => setCurrentPage(mode)}
         onOpenDictionary={() => setIsDictionaryOpen(true)}

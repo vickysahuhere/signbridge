@@ -102,11 +102,11 @@ export function AboutModal({ isOpen, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-zinc-950/60 backdrop-blur-sm select-none"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-zinc-950/60 backdrop-blur-sm select-none"
       aria-label="System Properties and Contributor Panel"
       role="dialog"
     >
-      <div className="cartoon-card w-full max-w-2xl flex flex-col shadow-cartoon-lg bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <div className="cartoon-card w-full max-w-2xl h-[95dvh] sm:h-auto sm:max-h-[90vh] flex flex-col shadow-cartoon-lg bg-white overflow-hidden rounded-t-2xl sm:rounded-2xl animate-in fade-in zoom-in-95 duration-150">
         {/* Title Bar */}
         <div className="px-4 py-3 bg-[#EAF6E8] border-b-2 border-zinc-900 flex items-center justify-between gap-2 flex-shrink-0">
           <div className="flex items-center gap-2">

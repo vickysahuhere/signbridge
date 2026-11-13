@@ -21,7 +21,12 @@ import {
   Send,
   CheckCircle2,
   Inbox,
-  Mail
+  Mail,
+  Hand,
+  BookOpen,
+  Phone,
+  Palette,
+  Lightbulb
 } from 'lucide-react';
 import {
   FEEDBACK_CATEGORIES,
@@ -254,13 +259,13 @@ export function FeedbackModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-zinc-950/70 backdrop-blur-sm select-none"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-zinc-950/70 backdrop-blur-sm select-none"
       data-feedback-modal="true"
       role="dialog"
       aria-modal="true"
       aria-label="Report Issue and Feedback Dialog"
     >
-      <div className="cartoon-card w-full max-w-2xl flex flex-col shadow-cartoon-lg bg-white overflow-hidden max-h-[92vh] animate-in fade-in zoom-in-95 duration-150 border-2 border-zinc-900">
+      <div className="cartoon-card w-full max-w-2xl flex flex-col shadow-cartoon-lg bg-white overflow-hidden h-[95dvh] sm:h-auto sm:max-h-[92vh] rounded-t-2xl sm:rounded-2xl animate-in fade-in zoom-in-95 duration-150 border-2 border-zinc-900">
         
         {/* Title Bar */}
         <div className="px-4 py-3 bg-[#EAF6E8] border-b-2 border-zinc-900 flex items-center justify-between gap-2 flex-shrink-0">
@@ -450,6 +455,12 @@ export function FeedbackModal({
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
                       {FEEDBACK_CATEGORIES.map((cat) => {
                         const isSelected = category === cat.id;
+                        const CategoryIcon =
+                          cat.id === 'recognition' ? Hand :
+                          cat.id === 'translation' ? BookOpen :
+                          cat.id === 'camera' ? Camera :
+                          cat.id === 'call' ? Phone :
+                          cat.id === 'ui' ? Palette : Lightbulb;
                         return (
                           <button
                             key={cat.id}
@@ -461,7 +472,7 @@ export function FeedbackModal({
                                 : 'bg-[#FAF8F5] border-zinc-300 hover:border-zinc-500 opacity-80'
                             }`}
                           >
-                            <span className="text-base flex-shrink-0 leading-none">{cat.icon}</span>
+                            <CategoryIcon className="w-4 h-4 flex-shrink-0 text-amber-600 mt-0.5" />
                             <div className="min-w-0">
                               <div className="font-extrabold text-[11px] text-zinc-900 leading-tight truncate">
                                 {cat.label}
@@ -523,8 +534,18 @@ export function FeedbackModal({
 
                             {/* Overlay Controls */}
                             <div className="p-1.5 bg-zinc-900/90 text-white flex items-center justify-between gap-1 flex-wrap text-[10px]">
-                              <span className="font-mono text-zinc-300">
-                                {isAnnotating ? '🎨 Drawing Mode: Circle the problem' : '📷 Window Screenshot Attached'}
+                              <span className="font-mono text-zinc-300 inline-flex items-center gap-1.5">
+                                {isAnnotating ? (
+                                  <>
+                                    <PenTool className="w-3 h-3 text-amber-400" />
+                                    <span>Drawing Mode: Circle the problem</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Camera className="w-3 h-3 text-blue-400" />
+                                    <span>Window Screenshot Attached</span>
+                                  </>
+                                )}
                               </span>
 
                               <div className="flex items-center gap-1">

@@ -328,6 +328,7 @@ async function processFrame(imageBitmap, timestamp, recognitionMode = 'word') {
 
     // Free transferred GPU bitmap immediately
     imageBitmap.close();
+    imageBitmap = null;
 
     const tNormStart = performance.now();
     // 1. Normalize 80 keypoints into 240 floats (translation & scale invariant)
@@ -472,7 +473,10 @@ async function processFrame(imageBitmap, timestamp, recognitionMode = 'word') {
     });
   } catch (err) {
     if (imageBitmap && typeof imageBitmap.close === 'function') {
-      imageBitmap.close();
+      try {
+        imageBitmap.close();
+      } catch (_) {}
+      imageBitmap = null;
     }
     console.error('[vision.worker] Frame detection error:', err);
     self.postMessage({
