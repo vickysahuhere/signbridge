@@ -55,6 +55,35 @@ export function LearnStage({
   const [showGhostSkeleton, setShowGhostSkeleton] = useState(false);
   const [boundaryAlert, setBoundaryAlert] = useState({ isOutOfFrame: false, message: '' });
 
+  const containerRef = useRef(null);
+  const [viewportDims, setViewportDims] = useState({ width: 0, height: 0 });
+
+  // Strictly enforce 16:9 aspect ratio geometry, scaling dynamically to maximum available stage bounds
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const calculate16by9 = () => {
+      const clientW = el.clientWidth;
+      const clientH = el.clientHeight;
+      if (clientW <= 0 || clientH <= 0) return;
+
+      // Fit strictly within 16:9 bounds without ever cropping video
+      let w = clientW;
+      let h = (w * 9) / 16;
+      if (h > clientH) {
+        h = clientH;
+        w = (h * 16) / 9;
+      }
+      setViewportDims({ width: Math.round(w), height: Math.round(h) });
+    };
+
+    calculate16by9();
+    const observer = new ResizeObserver(calculate16by9);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   const frameCountRef = useRef(0);
   const lastFpsCalcTimeRef = useRef(performance.now());
 
@@ -246,7 +275,7 @@ export function LearnStage({
   const hasRightHand = Boolean(latestLandmarks?.rightHandLandmarks?.length > 0);
 
   return (
-    <div className="cartoon-card w-full flex-col overflow-hidden bg-white shadow-cartoon-sm flex-shrink-0">
+    <div className="cartoon-card w-full flex-1 min-h-0 flex flex-col overflow-hidden bg-white shadow-cartoon-sm">
       {/* 1. Stage Header: Studio Controls */}
       <div className="px-3.5 py-2 border-b-2 border-[#D6EBD3] bg-[#EAF6E8] flex items-center justify-between gap-2 flex-shrink-0">
         <div className="flex items-center gap-2 min-w-0">
@@ -305,25 +334,32 @@ export function LearnStage({
         </div>
       </div>
 
-      {/* 2. Main Visual Canvas Area - Strict 16:9 Aspect Ratio with Controlled Height */}
-      <div className="relative w-full aspect-video max-h-[360px] sm:max-h-[400px] lg:max-h-[440px] overflow-hidden flex items-center justify-center bg-[#090A0F] mx-auto">
-        {/* Underneath Webcam Feed */}
-        <video
-          ref={videoRef}
-          playsInline
-          autoPlay
-          muted
-          onLoadedMetadata={syncCanvasDimensions}
-          className="absolute inset-0 w-full h-full object-cover transform -scale-x-100 opacity-100"
-        />
+      {/* 2. Main Visual Canvas Area - Strictly 16:9 Aspect Ratio, dynamically filling available stage space */}
+      <div
+        ref={containerRef}
+        className="flex-1 min-h-[220px] w-full flex items-center justify-center bg-[#090A0F] p-1.5 sm:p-2.5 overflow-hidden"
+      >
+        <div
+          style={viewportDims.width > 0 ? { width: `${viewportDims.width}px`, height: `${viewportDims.height}px` } : undefined}
+          className="relative aspect-video max-w-full max-h-full w-full h-auto flex items-center justify-center overflow-hidden rounded-xl bg-black shadow-lg"
+        >
+          {/* Underneath Webcam Feed */}
+          <video
+            ref={videoRef}
+            playsInline
+            autoPlay
+            muted
+            onLoadedMetadata={syncCanvasDimensions}
+            className="w-full h-full object-contain transform -scale-x-100 block"
+          />
 
-        {/* 60fps Biometric Skeleton & Target Ghost Canvas */}
-        <canvas
-          ref={canvasRef}
-          width={1280}
-          height={720}
-          className="absolute inset-0 w-full h-full object-cover transform -scale-x-100 pointer-events-none z-10"
-        />
+          {/* 60fps Biometric Skeleton & Target Ghost Canvas */}
+          <canvas
+            ref={canvasRef}
+            width={1280}
+            height={720}
+            className="absolute inset-0 w-full h-full object-contain transform -scale-x-100 pointer-events-none z-10"
+          />
 
         {/* Mobile Unified Top HUD Bar (< sm) - Prevents collision between Compound & Pass Goal */}
         <div className="sm:hidden absolute top-2 inset-x-2 z-20 flex items-center justify-between gap-1.5 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-xl border-2 border-zinc-900 shadow-cartoon-sm">
@@ -613,6 +649,7 @@ export function LearnStage({
             </div>
           </div>
         )}
+        </div>
       </div>
     </div>
   );
