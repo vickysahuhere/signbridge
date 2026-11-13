@@ -1110,7 +1110,7 @@ export function HomePage({
         <div className="flex items-center gap-3 sm:gap-4 text-left w-full sm:w-auto min-w-0">
           {/* Mitra 24 FPS Mascot */}
           <div className="relative flex-shrink-0">
-            <AnimatedHeroOtter className="w-13 h-13 sm:w-16 sm:h-16" />
+            <AnimatedHeroOtter className="w-16 h-16 sm:w-20 sm:h-20" />
             <span className="absolute -bottom-1 -right-0.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-white border border-[#18181B] text-[8px] font-black text-[#15803D] shadow-xs">
               <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] animate-pulse" />
               <span>AI</span>

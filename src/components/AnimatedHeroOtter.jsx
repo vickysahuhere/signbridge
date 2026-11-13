@@ -3,49 +3,36 @@ import React, { useState, useEffect, useRef } from 'react';
 /**
  * Mitra the ISL Otter Mascot — Hand-Crafted 4.0-Second Studio Animation Loop
  * 
- * Cadence: Smooth 24 FPS cinema frame-rate (96 frames total = exactly 4.00s).
+ * Cadence: Smooth 60fps/24fps native screen cadence over an exact 4.000s narrative cycle.
  * 
  * Four-Act Narrative Arc:
- * 1. 0.0s – 1.0s (Frames 0–23):
+ * 1. 0.0s – 1.0s (p: 0.00 -> 0.25):
  *    Contented idle breathing, gentle tail harmonic swish, and sweet natural double-blink.
- * 2. 1.0s – 2.0s (Frames 24–47):
+ * 2. 1.0s – 2.0s (p: 0.25 -> 0.50):
  *    Paws gracefully lift along an organic arc and press together in authentic ISL "Namaste"
  *    prayer, accompanied by a polite head bow, smiling eyes (^ ^), and glowing MediaPipe AI tracking reticles.
- * 3. 2.0s – 3.0s (Frames 48–71):
+ * 3. 2.0s – 3.0s (p: 0.50 -> 0.75):
  *    Joyful celebration flourish! Body stretches with bouncy squash-and-stretch, head tilts playfully,
  *    mouth beams open in a happy smile (:D), right paw waves high in the air, and golden sparkles pop!
- * 4. 3.0s – 4.0s (Frames 72–95):
+ * 4. 3.0s – 4.0s (p: 0.75 -> 1.00):
  *    Smooth follow-through as paws glide back down along a relaxed bezier curve, body settles with
- *    soft inertia damping, seamlessly matching frame 0 for an infinite, gapless loop.
+ *    soft inertia damping, seamlessly matching p=0.0 for an infinite, gapless loop.
  */
-const TOTAL_FRAMES = 96; // Exactly 4.0s at 24 FPS
+const LOOP_DURATION_MS = 4000; // Exactly 4.000 seconds
 
 export default function AnimatedHeroOtter({ className = 'w-14 h-14 sm:w-16 sm:h-16' }) {
-  const [frame, setFrame] = useState(0);
+  const [progress, setProgress] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const animRef = useRef(null);
-  const lastTimeRef = useRef(performance.now());
-  const accumulatorRef = useRef(0);
+  const startTimeRef = useRef(performance.now());
+  const clickOffsetRef = useRef(0);
 
-  // 24 FPS Cinema Cadence (~41.67ms per frame)
+  // Time-Accurate Native Screen Refresh Loop
   useEffect(() => {
-    const FRAME_DURATION = 1000 / 24;
-
     const tick = (now) => {
-      const delta = now - lastTimeRef.current;
-      lastTimeRef.current = now;
-      accumulatorRef.current += delta;
-
-      // Bound delta to avoid spiral of ticks after background tab throttling
-      if (accumulatorRef.current > 500) {
-        accumulatorRef.current = 500;
-      }
-
-      while (accumulatorRef.current >= FRAME_DURATION) {
-        accumulatorRef.current -= FRAME_DURATION;
-        setFrame((prev) => (prev + 1) % TOTAL_FRAMES);
-      }
-
+      const adjustedNow = now + clickOffsetRef.current;
+      const elapsed = (adjustedNow - startTimeRef.current) % LOOP_DURATION_MS;
+      setProgress(elapsed / LOOP_DURATION_MS);
       animRef.current = requestAnimationFrame(tick);
     };
 
@@ -55,13 +42,13 @@ export default function AnimatedHeroOtter({ className = 'w-14 h-14 sm:w-16 sm:h-
     };
   }, []);
 
-  // Click to jump straight to joyful wave celebration
+  // Click to jump straight to joyful wave celebration (at p = 0.50)
   const handleClick = () => {
-    setFrame(48);
+    const now = performance.now();
+    const currentElapsed = (now + clickOffsetRef.current - startTimeRef.current) % LOOP_DURATION_MS;
+    const targetElapsed = 2000; // 2.0s in = wave start
+    clickOffsetRef.current += (targetElapsed - currentElapsed);
   };
-
-  // Loop progress 0.0 -> 1.0
-  const p = frame / TOTAL_FRAMES;
 
   return (
     <div
@@ -113,7 +100,7 @@ export default function AnimatedHeroOtter({ className = 'w-14 h-14 sm:w-16 sm:h-
         <circle cx="60" cy="62" r="50" fill="url(#artAura)" />
 
         {/* 4.0-Second Master Drawn Character */}
-        <ArtworkOtterCharacter p={p} />
+        <ArtworkOtterCharacter p={progress} />
       </svg>
     </div>
   );
@@ -148,7 +135,7 @@ function ArtworkOtterCharacter({ p }) {
   let isBlinking = false;
   let isSereneEyes = false;
 
-  // Natural double-blink in Phase 1 (frames 13–18: ~0.55s - 0.75s)
+  // Natural double-blink in Phase 1 (p: 0.135 -> 0.185: ~0.55s - 0.75s)
   if (p >= 0.135 && p <= 0.185) {
     isBlinking = true;
   }
