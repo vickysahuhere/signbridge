@@ -24,7 +24,7 @@ export const ISL_COURSE_LEVELS = Object.freeze([
       'GOOD_MORNING',
       'GOOD_AFTERNOON',
       'GOOD_EVENING',
-      'GOOD_NIGHT',
+      // 'GOOD_NIGHT' temporarily reserved from course progression; kept intact in system for reassignment
       'WELCOME',
       'THANK_YOU',
       'PLEASE',

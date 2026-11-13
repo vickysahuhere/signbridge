@@ -22,7 +22,8 @@ test('islCourseCurriculum - defines 7 structured progressive course levels', () 
   assert.strictEqual(level1.glosses.includes('GOOD_MORNING'), true);
   assert.strictEqual(level1.glosses.includes('GOOD_AFTERNOON'), true);
   assert.strictEqual(level1.glosses.includes('GOOD_EVENING'), true);
-  assert.strictEqual(level1.glosses.includes('GOOD_NIGHT'), true);
+  // GOOD_NIGHT temporarily removed from Level 1 course path (remains intact in lexicon)
+  assert.strictEqual(level1.glosses.includes('GOOD_NIGHT'), false);
   assert.strictEqual(level1.glosses.includes('THANK_YOU'), true);
   assert.strictEqual(level1.glosses.includes('PLEASE'), true);
   assert.strictEqual(level1.glosses.includes('SORRY'), true);
@@ -92,7 +93,7 @@ test('islCourseCurriculum - getNextRecommendedSign navigates sequentially along 
 
   // Regression test: When user has mastered courtesies through NO, advances to ME
   const masteredCourtesies = new Set([
-    'NAMASTE', 'HELLO', 'GOOD_MORNING', 'GOOD_AFTERNOON', 'GOOD_EVENING', 'GOOD_NIGHT',
+    'NAMASTE', 'HELLO', 'GOOD_MORNING', 'GOOD_AFTERNOON', 'GOOD_EVENING',
     'WELCOME', 'THANK_YOU', 'PLEASE', 'SORRY', 'YES', 'NO'
   ]);
   const nextSign = getNextRecommendedSign('HELLO', masteredCourtesies, ISL_LEARN_ITEMS);
