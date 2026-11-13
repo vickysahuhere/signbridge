@@ -30,14 +30,13 @@ export const PROVIDERS = [
     keyPlaceholder: 'AIzaSy...',
     keyUrl: 'https://aistudio.google.com/app/apikey',
     keyUrlLabel: 'Get Free Gemini Key',
-    defaultModel: 'gemini-2.5-flash',
+    defaultModel: 'gemini-3.5-flash-lite',
     endpoint: 'https://generativelanguage.googleapis.com/v1beta',
     models: [
-      { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (Fast, Free & Multimodal)' },
-      { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash' },
-      { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash-Lite (Ultra Fast)' },
-      { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro (Deep Reasoning)' },
-      { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash' }
+      { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Flash-Lite (Recommended, Ultra-Fast)' },
+      { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview' },
+      { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash' },
+      { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash' }
     ]
   },
   {
@@ -124,11 +123,11 @@ export const SUPPORTED_MODELS = PROVIDERS.flatMap(p =>
  */
 export const PROVIDER_CANDIDATE_MODELS = {
   gemini: [
-    'gemini-2.5-flash',
-    'gemini-2.0-flash',
-    'gemini-2.5-flash-lite',
-    'gemini-2.5-pro',
-    'gemini-1.5-flash'
+    'gemini-3.5-flash-lite',
+    'gemini-3-flash-preview',
+    'gemini-3.5-flash',
+    'gemini-3.8-flash',
+    'gemma-4-26b-a4b-it'
   ],
   groq: [
     'llama-3.3-70b-versatile',
@@ -151,6 +150,67 @@ export const PROVIDER_CANDIDATE_MODELS = {
 
 export const workingModelCache = new Map();
 const fetchedModelsCache = new Map();
+
+/**
+ * Cleans internal thinking, scratchpad reasoning, and draft monologues
+ * emitted by reasoning models (DeepSeek R1, Gemma, Qwen, etc.) so only the
+ * clean final answer is delivered to the user.
+ *
+ * @param {string} text - Raw model output
+ * @returns {string} Stripped clean response text
+ */
+export function cleanModelOutput(text = '') {
+  if (!text || typeof text !== 'string') return '';
+  let cleaned = text.trim();
+
+  // 1. Strip standard <think>...</think> or <thought>...</thought> tags
+  cleaned = cleaned.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+  cleaned = cleaned.replace(/<thought>[\s\S]*?<\/thought>/gi, '').trim();
+
+  // 2. Strip raw scratchpad reasoning monologues (e.g. Gemma/DeepSeek echoing internal prompt breakdown)
+  // Example pattern:
+  // "gemma-4-26b-a4b-it\nUser says: ...\nContext: ...\nRules: ...\nGreeting: ...Hello! I'm Sanket AI..."
+  if (
+    /^(gemma|[a-z0-9_-]+)?\s*(User says:|Context:|Persona:|Rules:|I need to respond)/i.test(cleaned) ||
+    (cleaned.includes('User says:') && cleaned.includes('Persona:'))
+  ) {
+    // Check if there is an unquoted final greeting or reply transition
+    const lastHello = cleaned.lastIndexOf("Hello! I'm");
+    const lastHi = cleaned.lastIndexOf("Hi! I'm");
+    const lastSanket = cleaned.lastIndexOf("I'm Sanket AI");
+
+    const splitPos = Math.max(lastHello, lastHi, lastSanket);
+    if (splitPos !== -1) {
+      cleaned = cleaned.substring(splitPos).trim();
+    } else {
+      // Filter out scratchpad metadata lines
+      const lines = cleaned.split('\n');
+      const valid = [];
+      let pastScratchpad = false;
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!pastScratchpad) {
+          if (
+            /^(User says:|Context:|Current Active Sign:|Persona:|The user is|I need to|I should|Rules:|Greeting:|Status:|Keep it)/i.test(trimmed) ||
+            /^[a-z0-9_.-]+$/i.test(trimmed) ||
+            (trimmed.startsWith('"') && trimmed.endsWith('"'))
+          ) {
+            continue;
+          }
+          pastScratchpad = true;
+        }
+        if (pastScratchpad) {
+          valid.push(line);
+        }
+      }
+      if (valid.length > 0) {
+        cleaned = valid.join('\n').trim();
+      }
+    }
+  }
+
+  return cleaned || text.trim();
+}
 
 export function getWorkingModel(provider = 'gemini') {
   return workingModelCache.get(provider) || PROVIDER_CANDIDATE_MODELS[provider]?.[0] || 'auto';
@@ -348,10 +408,11 @@ export function getByokConfig() {
     const storage = getStorage();
     const apiKey = storage.getItem(STORAGE_KEYS.API_KEY) || '';
     const provider = storage.getItem(STORAGE_KEYS.PROVIDER) || 'gemini';
-    let model = storage.getItem(STORAGE_KEYS.MODEL) || 'gemini-2.5-flash';
-    if (provider === 'gemini' && (model === 'gemini-1.5-pro' || model === 'gemini-1.0-pro')) {
-      model = 'gemini-2.5-flash';
-      storage.setItem(STORAGE_KEYS.MODEL, 'gemini-2.5-flash');
+    let model = storage.getItem(STORAGE_KEYS.MODEL) || 'gemini-3.5-flash-lite';
+    // Automatically upgrade ancient decommissioned Gemini 1.0 models to the active production model
+    if (provider === 'gemini' && (model === 'gemini-1.0-pro' || model === 'gemini-1.5-pro' || model === 'gemini-pro')) {
+      model = 'gemini-3.5-flash-lite';
+      storage.setItem(STORAGE_KEYS.MODEL, 'gemini-3.5-flash-lite');
     }
     const endpoint = storage.getItem(STORAGE_KEYS.ENDPOINT) || '';
 
@@ -373,7 +434,7 @@ export function getByokConfig() {
   }
 }
 
-export function saveByokConfig({ apiKey, provider = 'gemini', model = 'gemini-2.5-flash', endpoint = '' }) {
+export function saveByokConfig({ apiKey, provider = 'gemini', model = 'gemini-3.5-flash-lite', endpoint = '' }) {
   try {
     const storage = getStorage();
     if (apiKey !== undefined) {
@@ -845,18 +906,13 @@ export async function sendChatbotMessage({
   // 1. Google Gemini API (Automatic Model Discovery & Cascading Fallback)
   if (config.provider === 'gemini') {
     const liveModels = await fetchLiveActiveModels('gemini', trimmedKey);
-    const staticCandidates = wantsAudio
-      ? ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-1.5-flash']
-      : (PROVIDER_CANDIDATE_MODELS.gemini || ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.5-flash-lite']);
+    const staticCandidates = PROVIDER_CANDIDATE_MODELS.gemini;
 
     let candidateModels = [];
     if (liveModels && liveModels.length > 0) {
-      const preferred = wantsAudio
-        ? ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-2.5-flash-lite']
-        : ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.5-flash-lite'];
-      const matched = preferred.filter(p => liveModels.includes(p));
-      const remaining = liveModels.filter(m => !matched.includes(m));
-      candidateModels = matched.length > 0 ? [...matched, ...remaining] : liveModels;
+      const preferred = staticCandidates.filter(m => liveModels.includes(m));
+      const remaining = liveModels.filter(m => !preferred.includes(m) && !m.includes('tts') && !m.includes('embedding'));
+      candidateModels = preferred.length > 0 ? [...preferred, ...remaining] : liveModels;
     } else {
       candidateModels = staticCandidates;
     }
@@ -985,7 +1041,44 @@ export async function sendChatbotMessage({
             }
           }
 
-          candidateText = candidateText.trim();
+          candidateText = cleanModelOutput(candidateText.trim());
+
+          // If user wanted audio feedback and the model only returned text, generate native speech with Gemini TTS
+          if (wantsAudio && candidateText && !audioData) {
+            try {
+              const ttsUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash-lite-tts:generateContent?key=${trimmedKey}`;
+              const ttsRes = await fetch(ttsUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  contents: [{ parts: [{ text: candidateText.slice(0, 300) }] }],
+                  generationConfig: {
+                    responseModalities: ['AUDIO'],
+                    speechConfig: {
+                      voiceConfig: {
+                        prebuiltVoiceConfig: {
+                          voiceName: 'Puck'
+                        }
+                      }
+                    }
+                  }
+                })
+              });
+              if (ttsRes.ok) {
+                const ttsData = await ttsRes.json();
+                const audioPart = ttsData?.candidates?.[0]?.content?.parts?.[0]?.inlineData;
+                if (audioPart && audioPart.data) {
+                  audioData = {
+                    mimeType: audioPart.mimeType || 'audio/wav',
+                    base64: audioPart.data
+                  };
+                }
+              }
+            } catch (ttsErr) {
+              console.warn('[BYOK] Native TTS synthesis skipped, will use browser speech:', ttsErr);
+            }
+          }
+
           if (!candidateText && audioData) {
             candidateText = "[Gemini Voice Answer]";
           }
@@ -1080,7 +1173,7 @@ export async function sendChatbotMessage({
 
         if (response.ok) {
           const data = await response.json();
-          const candidateText = data?.choices?.[0]?.message?.content?.trim();
+          const candidateText = cleanModelOutput(data?.choices?.[0]?.message?.content?.trim());
 
           if (candidateText) {
             workingModelCache.set('groq', model);
@@ -1162,7 +1255,7 @@ export async function sendChatbotMessage({
 
         if (response.ok) {
           const data = await response.json();
-          const candidateText = data?.choices?.[0]?.message?.content?.trim();
+          const candidateText = cleanModelOutput(data?.choices?.[0]?.message?.content?.trim());
 
           if (candidateText) {
             workingModelCache.set('openrouter', model);
@@ -1229,7 +1322,7 @@ export async function sendChatbotMessage({
 
         if (response.ok) {
           const data = await response.json();
-          const candidateText = data?.choices?.[0]?.message?.content?.trim();
+          const candidateText = cleanModelOutput(data?.choices?.[0]?.message?.content?.trim());
 
           if (candidateText) {
             workingModelCache.set(config.provider, model);

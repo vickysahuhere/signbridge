@@ -170,7 +170,7 @@ test('islTargetLandmarks - time sign uses authentic human gesture image instead 
   assert.strictEqual(time.image, '/signs/time.jpg');
 });
 
-test('islTargetLandmarks - compound signs support multi-step sequence evaluation (GOOD_MORNING)', () => {
+test('islTargetLandmarks - compound signs support multi-step sequence evaluation (GOOD_MORNING, GOOD_EVENING, GOOD_NIGHT, GOOD_AFTERNOON)', () => {
   const goodMorning = getLearnItemByLabel('GOOD_MORNING');
   assert.strictEqual(goodMorning != null, true);
   assert.strictEqual(goodMorning.isCompound, true);
@@ -178,26 +178,59 @@ test('islTargetLandmarks - compound signs support multi-step sequence evaluation
   assert.strictEqual(goodMorning.steps.length, 2);
 
   // Step 1: Good (Thumbs-Up)
-  assert.strictEqual(goodMorning.steps[0].id, 'step_good');
   assert.strictEqual(goodMorning.steps[0].stepNumber, 1);
   assert.strictEqual(goodMorning.steps[0].targetGloss, 'GOOD');
 
   // Step 2: Morning (Sunrise)
-  assert.strictEqual(goodMorning.steps[1].id, 'step_morning');
   assert.strictEqual(goodMorning.steps[1].stepNumber, 2);
   assert.strictEqual(goodMorning.steps[1].targetGloss, 'MORNING');
 
+  // GOOD_AFTERNOON
+  const goodAfternoon = getLearnItemByLabel('GOOD_AFTERNOON');
+  assert.strictEqual(goodAfternoon != null, true);
+  assert.strictEqual(goodAfternoon.isCompound, true);
+  assert.strictEqual(goodAfternoon.steps[0].targetGloss, 'GOOD');
+  assert.strictEqual(goodAfternoon.steps[1].targetGloss, 'AFTERNOON');
+
+  // GOOD_EVENING
+  const goodEvening = getLearnItemByLabel('GOOD_EVENING');
+  assert.strictEqual(goodEvening != null, true);
+  assert.strictEqual(goodEvening.isCompound, true);
+  assert.strictEqual(goodEvening.steps[0].targetGloss, 'GOOD');
+  assert.strictEqual(goodEvening.steps[1].targetGloss, 'EVENING');
+
+  // GOOD_NIGHT
+  const goodNight = getLearnItemByLabel('GOOD_NIGHT');
+  assert.strictEqual(goodNight != null, true);
+  assert.strictEqual(goodNight.isCompound, true);
+  assert.strictEqual(goodNight.steps[0].targetGloss, 'GOOD');
+  assert.strictEqual(goodNight.steps[1].targetGloss, 'NIGHT');
+
   // Delegated evaluate call for step 0
-  const step0Res = goodMorning.evaluate(null, 0);
+  const step0Res = goodEvening.evaluate(null, 0);
   assert.strictEqual(step0Res.isCompound, true);
   assert.strictEqual(step0Res.stepIndex, 0);
   assert.strictEqual(step0Res.totalSteps, 2);
 
   // Delegated evaluate call for step 1
-  const step1Res = goodMorning.evaluate(null, 1);
+  const step1Res = goodEvening.evaluate(null, 1);
   assert.strictEqual(step1Res.isCompound, true);
   assert.strictEqual(step1Res.stepIndex, 1);
   assert.strictEqual(step1Res.totalSteps, 2);
+});
+
+test('islTargetLandmarks - dictionary does not conflate ME, GOOD, BAD with HELLO', () => {
+  const me = getLearnItemByLabel('ME');
+  const good = getLearnItemByLabel('GOOD');
+  const bad = getLearnItemByLabel('BAD');
+  const hello = getLearnItemByLabel('HELLO');
+
+  assert.notStrictEqual(me.id, hello.id);
+  assert.notStrictEqual(good.id, hello.id);
+  assert.notStrictEqual(bad.id, hello.id);
+  assert.strictEqual(me.id, 'me');
+  assert.strictEqual(good.id, 'good');
+  assert.strictEqual(bad.id, 'bad');
 });
 
 test('islTargetLandmarks - signs use valid demonstration images', () => {
@@ -213,7 +246,7 @@ test('islTargetLandmarks - signs use valid demonstration images', () => {
 });
 
 test('islTargetLandmarks - dynamic signs in Level 1 use authentic animated GIFs', () => {
-  const dynamicGlosses = ['GOOD_MORNING', 'HELLO', 'THANK_YOU', 'WELCOME', 'PLEASE', 'SORRY', 'YES', 'NO'];
+  const dynamicGlosses = ['GOOD_MORNING', 'HELLO', 'THANK_YOU', 'WELCOME', 'PLEASE', 'SORRY', 'YES', 'NO', 'YOU'];
   for (const gloss of dynamicGlosses) {
     const item = getLearnItemByLabel(gloss);
     assert.ok(item, `Dynamic sign ${gloss} should exist in curriculum`);

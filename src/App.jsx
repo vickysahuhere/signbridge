@@ -597,24 +597,30 @@ export function App() {
   }, [isSignMastered, selectedLearnItem]);
 
   const handleSelectLearnItem = useCallback((item) => {
+    handleResetPractice();
     setSelectedLearnItem(item);
     if (item.type === 'alphabet' && recognitionMode !== 'alphabet') {
       setRecognitionMode('alphabet');
     } else if (item.type === 'word' && recognitionMode !== 'word') {
       setRecognitionMode('word');
     }
-  }, [recognitionMode]);
+  }, [recognitionMode, handleResetPractice]);
 
   const handleNextSign = useCallback(() => {
     // Advance along the tailored course path to the next recommended sign
     const nextGloss = getNextRecommendedSign(selectedLearnItem?.label, masteredSetRef.current, ISL_LEARN_ITEMS);
-    const nextItem = getLearnItemByLabel(nextGloss);
+    let nextItem = (nextGloss && getLearnItemByLabel(nextGloss)) || null;
+
+    // If nextItem is missing or resolves to the exact same sign we are currently practicing,
+    // advance sequentially to prevent getting stuck
+    if (!nextItem || nextItem.id === selectedLearnItem?.id) {
+      const currentIndex = ISL_LEARN_ITEMS.findIndex(item => item.id === selectedLearnItem?.id);
+      const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % ISL_LEARN_ITEMS.length : 0;
+      nextItem = ISL_LEARN_ITEMS[nextIndex];
+    }
+
     if (nextItem) {
       handleSelectLearnItem(nextItem);
-    } else {
-      const currentIndex = ISL_LEARN_ITEMS.findIndex(item => item.id === selectedLearnItem.id);
-      const nextIndex = (currentIndex + 1) % ISL_LEARN_ITEMS.length;
-      handleSelectLearnItem(ISL_LEARN_ITEMS[nextIndex]);
     }
   }, [selectedLearnItem, handleSelectLearnItem]);
 
@@ -767,7 +773,7 @@ export function App() {
             <div className="flex-1 min-h-0 w-full flex flex-col md:flex-row gap-3 sm:gap-4 overflow-hidden items-stretch">
               {/* Left Side: Dedicated Full Practice Blueprint & Real-Time Alignment Guide */}
               <div
-                className={`w-full md:w-[350px] lg:w-[390px] xl:w-[430px] h-full min-h-0 overflow-hidden flex-shrink-0 ${
+                className={`w-full md:w-[410px] lg:w-[470px] xl:w-[520px] 2xl:w-[560px] h-full min-h-0 overflow-hidden flex-shrink-0 ${
                   mobileLearnTab === 'guide' ? 'flex' : 'hidden md:flex'
                 }`}
               >
@@ -790,7 +796,7 @@ export function App() {
 
               {/* Center & Lower Right: Video/Skeleton Stage + Lower AI Guessing Hub */}
               <div
-                className={`flex-1 min-h-0 flex flex-col gap-3 overflow-hidden ${
+                className={`flex-1 min-h-0 flex flex-col gap-3 overflow-y-auto no-scrollbar justify-between ${
                   mobileLearnTab === 'stage' ? 'flex' : 'hidden md:flex'
                 }`}
               >

@@ -867,6 +867,69 @@ export function classifyIslWord(leftHand, rightHand, pose, motion) {
     }
   }
 
+  // 25. AFTERNOON (Dominant open flat hand or upright forearm near forehead level - overhead midday sun)
+  for (const h of hands) {
+    if ((h.isOpenPalm || h.extendedCount >= 4) && h.wrist.y < leftShoulder.y + 0.05) {
+      const isHighMidday = h.wrist.y <= nose.y + 0.08 && h.wrist.y > 0.10;
+      const fingersPointingUp = h.points[12].y < h.wrist.y - 0.04;
+      const notTouchingFace = dist2D(h.points[12], nose) > 0.09;
+      if (isHighMidday && fingersPointingUp && notTouchingFace) {
+        if (left && right) {
+          const nonDom = (h === right) ? left : right;
+          const isHorizon = Math.abs(nonDom.points[12].y - nonDom.wrist.y) < 0.14;
+          if (isHorizon && h.wrist.y <= nonDom.wrist.y + 0.08) {
+            score('AFTERNOON', 0.96);
+          } else {
+            score('AFTERNOON', 0.95);
+          }
+        } else {
+          score('AFTERNOON', 0.95);
+        }
+      }
+    }
+  }
+
+  // 26. EVENING (Sunset - Dominant open or curved hand lowering downward in front of chest/horizon)
+  for (const h of hands) {
+    if ((h.isOpenPalm || h.extendedCount >= 3 || h.curledCount <= 2) && h.wrist.y >= chestCenter.y - 0.06 && h.wrist.y < 0.85) {
+      // Fingers pointing forward or slanting downward (sunset dip)
+      const fingersDownOrForward = h.points[12].y >= h.wrist.y - 0.04;
+      const inChestHorizonZone = dist2D(h.wrist, chestCenter) < 0.32;
+      if (fingersDownOrForward && inChestHorizonZone) {
+        if (left && right) {
+          const nonDom = (h === right) ? left : right;
+          const isHorizon = Math.abs(nonDom.points[12].y - nonDom.wrist.y) < 0.14;
+          if (isHorizon && h.wrist.y >= nonDom.wrist.y - 0.05) {
+            score('EVENING', 0.95);
+          } else {
+            score('EVENING', 0.92);
+          }
+        } else {
+          score('EVENING', 0.92);
+        }
+      }
+    }
+  }
+
+  // 27. NIGHT (Nightfall / darkness - dominant hand dips down past horizontal non-dominant arm or crossed wrists)
+  if (left && right) {
+    const dWrists = dist3D(left.wrist, right.wrist);
+    // Crossed wrists in front of chest or one hand curving down past the other
+    const wristsCrossed = dWrists < 0.20 && Math.abs(left.wrist.y - right.wrist.y) < 0.14 && left.wrist.y > chestCenter.y - 0.05;
+    const oneDippingUnder = (right.wrist.y > left.wrist.y + 0.04 && dist2D(right.wrist, left.wrist) < 0.22) ||
+                           (left.wrist.y > right.wrist.y + 0.04 && dist2D(left.wrist, right.wrist) < 0.22);
+    if ((wristsCrossed || oneDippingUnder) && left.wrist.y < 0.88 && right.wrist.y < 0.88) {
+      score('NIGHT', 0.95);
+    }
+  } else {
+    for (const h of hands) {
+      // Single hand night gesture: hand tilted downward low across chest
+      if (h.wrist.y > chestCenter.y + 0.05 && h.points[12].y > h.wrist.y + 0.02 && h.wrist.y < 0.88) {
+        score('NIGHT', 0.92);
+      }
+    }
+  }
+
   // Convert scores dictionary to ranked top-4 list
   const entries = Object.entries(scores)
     .map(([label, confidence]) => ({ label, confidence }))

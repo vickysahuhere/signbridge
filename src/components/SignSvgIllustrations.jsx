@@ -556,16 +556,25 @@ export function SignSvgIllustration({ signId, className = 'w-full h-full' }) {
       return (
         <svg viewBox="0 0 240 200" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
           <circle cx="120" cy="100" r="75" fill="#38BDF8" fillOpacity="0.18" />
-          {/* Hand pointing directly forward towards viewer */}
-          <g transform="translate(85, 45)">
-            <rect x="20" y="40" width="48" height="42" rx="10" fill="#FFD15C" stroke="#18181B" strokeWidth="2.5" />
-            {/* Index finger pointing straight forward */}
-            <circle cx="44" cy="22" r="12" fill="#FFFFFF" stroke="#18181B" strokeWidth="2.5" />
-            <circle cx="44" cy="22" r="5" fill="#38BDF8" />
+          {/* Hand pointing forward toward partner (clean 3/4 profile) */}
+          <g transform="translate(60, 48)">
+            {/* Palm and wrist base */}
+            <path d="M10 50 L35 45 L60 48 L60 80 L18 85 Z" fill="#FFFFFF" stroke="#18181B" strokeWidth="2.5" strokeLinejoin="round" />
+            {/* Curled middle, ring, pinky fingers */}
+            <rect x="40" y="48" width="30" height="30" rx="6" fill="#FFD15C" stroke="#18181B" strokeWidth="2.5" />
+            <line x1="50" y1="48" x2="50" y2="78" stroke="#18181B" strokeWidth="1.8" strokeLinecap="round" />
+            <line x1="60" y1="48" x2="60" y2="78" stroke="#18181B" strokeWidth="1.8" strokeLinecap="round" />
+            {/* Thumb folded over curled fingers */}
+            <path d="M30 46 C38 38 52 42 52 54 C52 62 40 62 30 56" fill="#FFD15C" stroke="#18181B" strokeWidth="2.5" />
+            {/* Index finger pointing forward */}
+            <path d="M38 34 L92 24 C98 22 104 28 100 34 L45 46 Z" fill="#FFD15C" stroke="#18181B" strokeWidth="2.5" strokeLinejoin="round" />
           </g>
-          {/* Target forward crosshair */}
-          <path d="M120 5 L120 20 M112 12 L128 12" stroke="#38BDF8" strokeWidth="3" strokeLinecap="round" />
-          <text x="120" y="168" textAnchor="middle" fill="#18181B" fontSize="13" fontWeight="bold">Point Index Forward</text>
+          {/* Forward direction arrow pointing to partner */}
+          <path d="M165 72 L195 72 M187 64 L195 72 L187 80" stroke="#0284C7" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+          {/* Target partner icon */}
+          <circle cx="215" cy="65" r="8" fill="#E0F2FE" stroke="#0284C7" strokeWidth="2" />
+          <path d="M205 85 C205 76 210 74 215 74 C220 74 225 76 225 85" stroke="#0284C7" strokeWidth="2" strokeLinecap="round" fill="none" />
+          <text x="120" y="168" textAnchor="middle" fill="#18181B" fontSize="13" fontWeight="bold">Point Index at Partner</text>
         </svg>
       );
 
@@ -607,6 +616,68 @@ export function SignSvgIllustration({ signId, className = 'w-full h-full' }) {
         </svg>
       );
 
+    case 'good_afternoon':
+      return (
+        <svg viewBox="0 0 240 200" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+          <circle cx="120" cy="100" r="75" fill="#38BDF8" fillOpacity="0.20" />
+          {/* Step 1: Good (Thumbs up) */}
+          <g transform="translate(50, 48)">
+            <rect x="15" y="32" width="35" height="35" rx="6" fill="#FFFFFF" stroke="#18181B" strokeWidth="2" />
+            <path d="M22 32 L22 10 C22 5 32 5 32 10 L32 32 Z" fill="#FFD15C" stroke="#18181B" strokeWidth="2" />
+          </g>
+          {/* Step 2: Overhead Noon Sun */}
+          <g transform="translate(130, 36)">
+            <circle cx="32" cy="32" r="20" fill="#FBBF24" stroke="#18181B" strokeWidth="2.5" />
+            <path d="M32 4 L32 0 M32 64 L32 60 M4 32 L0 32 M64 32 L60 32" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" />
+            <path d="M12 12 L8 8 M52 52 L56 56 M12 52 L8 56 M52 12 L56 8" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" />
+            <path d="M20 70 L44 70" stroke="#0284C7" strokeWidth="3" strokeLinecap="round" />
+            <path d="M32 64 L32 76" stroke="#0284C7" strokeWidth="2.5" strokeLinecap="round" />
+          </g>
+          <text x="120" y="168" textAnchor="middle" fill="#18181B" fontSize="13" fontWeight="bold">1. Good + 2. Overhead Noon Sun</text>
+        </svg>
+      );
+
+    case 'good_evening':
+      return (
+        <svg viewBox="0 0 240 200" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+          <circle cx="120" cy="100" r="75" fill="#F97316" fillOpacity="0.20" />
+          {/* Step 1: Good (Thumbs up) */}
+          <g transform="translate(50, 48)">
+            <rect x="15" y="32" width="35" height="35" rx="6" fill="#FFFFFF" stroke="#18181B" strokeWidth="2" />
+            <path d="M22 32 L22 10 C22 5 32 5 32 10 L32 32 Z" fill="#FFD15C" stroke="#18181B" strokeWidth="2" />
+          </g>
+          {/* Step 2: Setting Sun Arc dipping down */}
+          <g transform="translate(125, 45)">
+            <line x1="5" y1="55" x2="65" y2="55" stroke="#18181B" strokeWidth="2" strokeDasharray="3 3" />
+            <circle cx="35" cy="50" r="16" fill="#EA580C" stroke="#18181B" strokeWidth="2.5" />
+            {/* Downward curve arrow */}
+            <path d="M20 30 C35 30 50 40 50 65" stroke="#EA580C" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+            <path d="M44 60 L50 66 L56 60" stroke="#EA580C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </g>
+          <text x="120" y="168" textAnchor="middle" fill="#18181B" fontSize="13" fontWeight="bold">1. Good + 2. Sunset Lowering Hand</text>
+        </svg>
+      );
+
+    case 'good_night':
+      return (
+        <svg viewBox="0 0 240 200" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+          <circle cx="120" cy="100" r="75" fill="#6366F1" fillOpacity="0.22" />
+          {/* Step 1: Good (Thumbs up) */}
+          <g transform="translate(50, 48)">
+            <rect x="15" y="32" width="35" height="35" rx="6" fill="#FFFFFF" stroke="#18181B" strokeWidth="2" />
+            <path d="M22 32 L22 10 C22 5 32 5 32 10 L32 32 Z" fill="#FFD15C" stroke="#18181B" strokeWidth="2" />
+          </g>
+          {/* Step 2: Moon / Night darkness arc */}
+          <g transform="translate(130, 42)">
+            <path d="M35 15 C26 15 18 23 18 32 C18 41 26 49 35 49 C38 49 41 48 43 46 C37 45 32 40 32 33 C32 26 37 20 43 19 C41 16 38 15 35 15 Z" fill="#FDE047" stroke="#18181B" strokeWidth="2" />
+            <line x1="5" y1="60" x2="65" y2="60" stroke="#4338CA" strokeWidth="2.5" strokeLinecap="round" />
+            <path d="M25 50 C35 56 45 68 45 74" stroke="#4338CA" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+            <path d="M40 70 L45 75 L50 70" stroke="#4338CA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </g>
+          <text x="120" y="168" textAnchor="middle" fill="#18181B" fontSize="13" fontWeight="bold">1. Good + 2. Night Darkness Arc</text>
+        </svg>
+      );
+
     default:
       // Generic high-contrast Hand Sign Badge
       return (
@@ -633,7 +704,7 @@ export function hasSvgIllustration(signId) {
   const supported = new Set([
     'namaste', 'hello', 'good', 'thank_you', 'help', 'stop', 'time', 'call', 'love',
     'yes', 'no', 'eat', 'drink', 'please', 'sorry', 'welcome', 'me', 'i', 'you', 'bad',
-    'good_morning', 'a', 'b', 'c', 'l', 'v',
+    'good_morning', 'good_afternoon', 'good_evening', 'good_night', 'a', 'b', 'c', 'l', 'v',
     'alphabet_a', 'alphabet_b', 'alphabet_c', 'alphabet_l', 'alphabet_v'
   ]);
   return supported.has(normalizedId);

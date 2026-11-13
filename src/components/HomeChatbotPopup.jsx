@@ -29,7 +29,8 @@ import {
   MoreVertical,
   GripHorizontal,
   BookOpen,
-  Zap
+  Zap,
+  AudioWaveform
 } from 'lucide-react';
 import {
   getByokConfig,
@@ -926,9 +927,74 @@ export function HomeChatbotPopup({
     startWebSpeechLoop();
   };
 
-  // Voice Input (Microphone) Handler with Continuous Hands-Free Loop
-  const handleToggleVoiceInput = () => {
-    if (isListening || isContinuousVoice || isLiveConnected || isLiveConnecting) {
+  // 1. One-Shot Speech-to-Text (STT): Dictate into input box without continuous loop
+  const handleToggleStt = () => {
+    // If already listening in STT mode, stop it
+    if (isListening && !isContinuousVoice && !isLiveConnected && !isLiveConnecting) {
+      if (speechRecognizerRef.current) {
+        speechRecognizerRef.current.abort();
+      }
+      setIsListening(false);
+      return;
+    }
+
+    // Stop any other active voice or live session first
+    if (isContinuousVoice || isLiveConnected || isLiveConnecting) {
+      setIsContinuousVoice(false);
+      isContinuousVoiceRef.current = false;
+      clearTimeout(liveConnectionTimeoutRef.current);
+      if (geminiLiveRef.current) {
+        geminiLiveRef.current.stop();
+        geminiLiveRef.current = null;
+      }
+      setIsLiveConnected(false);
+      isLiveConnectedRef.current = false;
+      setIsLiveConnecting(false);
+    }
+
+    handleStopSpeaking();
+    if (!isSpeechRecognitionSupported()) {
+      alert('Speech Recognition is not supported in this browser. Please use Google Chrome or Microsoft Edge.');
+      return;
+    }
+
+    if (speechRecognizerRef.current) speechRecognizerRef.current.abort();
+    setIsListening(true);
+
+    speechRecognizerRef.current = new VoiceRecognizer({
+      onStart: () => {
+        setIsListening(true);
+      },
+      onResult: ({ transcript }) => {
+        // Dictate text directly into input field in real time
+        setInputText(transcript);
+      },
+      onSpeechEnd: (spokenText) => {
+        setIsListening(false);
+        if (spokenText && spokenText.trim()) {
+          setInputText(spokenText.trim());
+        }
+      },
+      onError: (err) => {
+        if (err !== 'no-speech') {
+          setIsListening(false);
+        }
+        if (err === 'not-allowed' || err === 'service-not-allowed') {
+          alert('Microphone permission was denied. Please allow microphone access to dictate.');
+        }
+      },
+      onEnd: () => {
+        setIsListening(false);
+      }
+    });
+
+    speechRecognizerRef.current.start();
+  };
+
+  // 2. Continuous Real-Time Voice Conversation (Live Voice Chat)
+  const handleToggleLiveVoice = () => {
+    if (isContinuousVoice || isLiveConnected || isLiveConnecting) {
+      // Stop continuous voice chat
       setIsContinuousVoice(false);
       isContinuousVoiceRef.current = false;
       clearTimeout(liveConnectionTimeoutRef.current);
@@ -938,9 +1004,6 @@ export function HomeChatbotPopup({
       }
       if (speechRecognizerRef.current) {
         speechRecognizerRef.current.abort();
-      }
-      if (geminiRecorderRef.current) {
-        geminiRecorderRef.current.abort();
       }
       setIsListening(false);
       setIsLiveConnected(false);
@@ -952,6 +1015,13 @@ export function HomeChatbotPopup({
       return;
     }
 
+    // If STT was active, cancel it first
+    if (isListening && speechRecognizerRef.current) {
+      speechRecognizerRef.current.abort();
+      setIsListening(false);
+    }
+
+    // Start live bidirectional voice
     if (byokConfig.hasKey && byokConfig.provider === 'gemini') {
       startGeminiLive();
     } else {
@@ -1584,33 +1654,6 @@ export function HomeChatbotPopup({
           )}
 
           <div className="flex items-center gap-1.5">
-            {/* Microphone Voice Input Button */}
-            <button
-              type="button"
-              onClick={handleToggleVoiceInput}
-              disabled={isLoading}
-              className={`cartoon-btn !py-1.5 !px-2.5 text-xs font-black flex items-center justify-center transition-all ${
-                isLiveConnecting
-                  ? 'bg-amber-400 text-white animate-pulse border-amber-900'
-                  : (isContinuousVoice || isListening || isLiveConnected)
-                  ? 'bg-rose-500 text-white animate-pulse border-rose-950 shadow-cartoon-sm'
-                  : 'bg-[#FFF9E5] hover:bg-[#FFD15C] text-zinc-900'
-              }`}
-              title={
-                isLiveConnecting ? 'Connecting to Gemini Live...'
-                : (isContinuousVoice || isListening || isLiveConnected) ? 'Voice active. Click to stop.'
-                : 'Start Voice Chat'
-              }
-            >
-              {isLiveConnecting ? (
-                <Mic className="w-3.5 h-3.5 stroke-[2.5] text-white animate-spin" />
-              ) : (isContinuousVoice || isListening || isLiveConnected) ? (
-                <Mic className="w-3.5 h-3.5 stroke-[2.5] text-white animate-bounce" />
-              ) : (
-                <Mic className="w-3.5 h-3.5 stroke-[2.5]" />
-              )}
-            </button>
-
             {/* Instant Screen Analysis Button */}
             <button
               type="button"
@@ -1624,36 +1667,98 @@ export function HomeChatbotPopup({
               <Eye className="w-3.5 h-3.5 stroke-[2.5]" />
             </button>
 
-            <input
-              ref={inputRef}
-              type="text"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={
-                isLiveConnecting
-                  ? 'Connecting to Gemini Live...'
-                  : isLiveConnected
-                  ? (isSpeaking ? 'Gemini is speaking aloud...' : 'Gemini Live active — speak anytime...')
-                  : isListening
-                  ? (inputText || 'Listening... speak now')
-                  : isSpeaking
-                  ? 'Speaking answer aloud...'
-                  : isLoading
-                  ? 'Sanket AI is thinking...'
-                  : 'Ask or speak about this page or signs...'
-              }
-              disabled={isLoading}
-              className="flex-1 px-3 py-1.5 text-xs font-semibold bg-[#FAF8F5] border-2 border-zinc-900 rounded-xl focus:outline-none focus:shadow-cartoon-sm disabled:opacity-50"
-            />
+            {/* Input Field */}
+            <div className="relative flex-1 flex items-center">
+              <input
+                ref={inputRef}
+                type="text"
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={
+                  isLiveConnecting
+                    ? 'Connecting to Gemini Live...'
+                    : isLiveConnected
+                    ? (isSpeaking ? 'Gemini is speaking aloud...' : 'Gemini Live active — speak anytime...')
+                    : isListening
+                    ? (inputText || 'Listening... speak to dictate')
+                    : isSpeaking
+                    ? 'Speaking answer aloud...'
+                    : isLoading
+                    ? 'Sanket AI is thinking...'
+                    : 'Ask or dictate about this page or signs...'
+                }
+                disabled={isLoading}
+                className="w-full pl-3 pr-8 py-1.5 text-xs font-semibold bg-[#FAF8F5] border-2 border-zinc-900 rounded-xl focus:outline-none focus:shadow-cartoon-sm disabled:opacity-50"
+              />
+
+              {/* 1. Speech-to-Text (STT) Inline Microphone Dictation Icon */}
+              <button
+                type="button"
+                onClick={handleToggleStt}
+                disabled={isLoading}
+                className={`absolute right-1.5 p-1 rounded-lg transition-all ${
+                  isListening && !isContinuousVoice && !isLiveConnected
+                    ? 'text-rose-600 bg-rose-100 animate-pulse'
+                    : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/60'
+                }`}
+                title={
+                  isListening && !isContinuousVoice && !isLiveConnected
+                    ? 'Dictation active (speaking converts to text). Click to stop.'
+                    : 'Speech-to-Text: Dictate message into input bar'
+                }
+                aria-label="Dictate message with microphone"
+              >
+                {isListening && !isContinuousVoice && !isLiveConnected ? (
+                  <Mic className="w-3.5 h-3.5 stroke-[2.5] text-rose-600 animate-bounce" />
+                ) : (
+                  <Mic className="w-3.5 h-3.5 stroke-[2]" />
+                )}
+              </button>
+            </div>
+
+            {/* Text Send Button */}
             <button
               type="button"
               onClick={() => handleSendMessage()}
               disabled={!inputText.trim() || isLoading}
               className="cartoon-btn cartoon-btn-primary !py-1.5 !px-3 text-xs font-black disabled:opacity-40"
-              title="Send message"
+              title="Send text message"
             >
               <Send className="w-3.5 h-3.5 stroke-[2.5]" />
+            </button>
+
+            {/* 2. Live Bidirectional Voice Chat Callout Button (Circular waveform with sparkle) */}
+            <button
+              type="button"
+              onClick={handleToggleLiveVoice}
+              disabled={isLoading}
+              className={`relative rounded-full p-2 border-2 border-zinc-900 transition-all flex items-center justify-center flex-shrink-0 cursor-pointer ${
+                isLiveConnecting
+                  ? 'bg-amber-400 text-white animate-pulse border-amber-950 shadow-cartoon-sm'
+                  : isLiveConnected
+                  ? 'bg-rose-500 text-white animate-pulse border-rose-950 shadow-cartoon-sm'
+                  : isContinuousVoice
+                  ? 'bg-emerald-500 text-white animate-pulse border-emerald-950 shadow-cartoon-sm'
+                  : 'bg-white hover:bg-[#FFF9E5] text-zinc-900 hover:border-zinc-950 shadow-cartoon-sm active:scale-95'
+              }`}
+              title={
+                isLiveConnecting
+                  ? 'Connecting to Gemini Live Voice Chat...'
+                  : isLiveConnected
+                  ? 'Gemini Live Voice Chat active. Click to end voice conversation.'
+                  : isContinuousVoice
+                  ? 'Voice chat active. Click to end conversation.'
+                  : 'Start Live Voice Chat (Real-time spoken AI conversation)'
+              }
+              aria-label="Start Real-Time Voice Conversation"
+            >
+              <div className="relative flex items-center justify-center">
+                <AudioWaveform className={`w-4 h-4 stroke-[2.2] ${
+                  isLiveConnected || isContinuousVoice ? 'text-white animate-pulse' : 'text-zinc-900'
+                }`} />
+                <Sparkles className="w-2 h-2 text-amber-500 fill-amber-500 absolute -top-1 -right-1" />
+              </div>
             </button>
           </div>
 

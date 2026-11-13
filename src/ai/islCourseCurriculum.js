@@ -22,6 +22,9 @@ export const ISL_COURSE_LEVELS = Object.freeze([
       'NAMASTE',
       'HELLO',
       'GOOD_MORNING',
+      'GOOD_AFTERNOON',
+      'GOOD_EVENING',
+      'GOOD_NIGHT',
       'WELCOME',
       'THANK_YOU',
       'PLEASE',
@@ -210,28 +213,47 @@ export function getLevelForGloss(gloss) {
 export function getNextRecommendedSign(currentGloss, masteredSet = new Set(), allItems = []) {
   const normCurrent = currentGloss ? currentGloss.toUpperCase().replace(/\s+/g, '_') : null;
 
-  // 1. Look ahead along the structured path for the first unmastered sign
-  const currentIdx = CORE_PATH_GLOSSES.indexOf(normCurrent);
+  const isMastered = (candidate) => {
+    if (masteredSet.has(candidate) || masteredSet.has(candidate.replace(/_/g, ' '))) {
+      return true;
+    }
+    if ((candidate === 'ME' || candidate === 'I_ME') && (masteredSet.has('ME') || masteredSet.has('I_ME'))) {
+      return true;
+    }
+    return false;
+  };
+
+  const currentIdx = normCurrent ? CORE_PATH_GLOSSES.indexOf(normCurrent) : -1;
   const searchStart = currentIdx >= 0 ? currentIdx + 1 : 0;
 
+  // 1. Look ahead along the structured path for the first unmastered sign
   for (let i = searchStart; i < CORE_PATH_GLOSSES.length; i++) {
     const candidate = CORE_PATH_GLOSSES[i];
-    if (!masteredSet.has(candidate) && !masteredSet.has(candidate.replace(/_/g, ' '))) {
+    if (candidate !== normCurrent && !isMastered(candidate)) {
       return candidate;
     }
   }
 
   // 2. If all signs past current are mastered, check from beginning of path
-  for (let i = 0; i < searchStart; i++) {
+  const searchEnd = currentIdx >= 0 ? currentIdx : CORE_PATH_GLOSSES.length;
+  for (let i = 0; i < searchEnd; i++) {
     const candidate = CORE_PATH_GLOSSES[i];
-    if (!masteredSet.has(candidate) && !masteredSet.has(candidate.replace(/_/g, ' '))) {
+    if (candidate !== normCurrent && !isMastered(candidate)) {
       return candidate;
     }
   }
 
   // 3. Fallback: if all core path is mastered, pick next from all items
-  const unmastered = allItems.find(item => !masteredSet.has(item.label));
-  return unmastered ? unmastered.label : CORE_PATH_GLOSSES[0];
+  const unmastered = allItems.find(item => item.label && item.label.toUpperCase().replace(/\s+/g, '_') !== normCurrent && !isMastered(item.label));
+  if (unmastered) {
+    return unmastered.label;
+  }
+
+  // 4. If everything is mastered, cycle forward to the next sign in the core path
+  if (currentIdx >= 0) {
+    return CORE_PATH_GLOSSES[(currentIdx + 1) % CORE_PATH_GLOSSES.length];
+  }
+  return CORE_PATH_GLOSSES[0];
 }
 
 /**

@@ -5,8 +5,9 @@ import { ISL_ALPHABET_GUIDE } from '../ai/islAlphabetLabels.js';
 import { getLearnItemByLabel } from '../ai/islTargetLandmarks.js';
 
 export const LIVE_VISION_GLOSSES = new Set([
-  'BAD', 'CALL', 'DRINK', 'EAT', 'FEVER', 'GOOD', 'HELLO', 'HELP',
-  'LOVE', 'ME', 'MONEY', 'NAMASTE', 'NO', 'PAIN', 'PLEASE', 'SORRY',
+  'AFTERNOON', 'BAD', 'CALL', 'DRINK', 'EAT', 'EVENING', 'FEVER', 'GOOD',
+  'GOOD_AFTERNOON', 'GOOD_EVENING', 'GOOD_MORNING', 'GOOD_NIGHT', 'HELLO', 'HELP',
+  'LOVE', 'ME', 'MONEY', 'MORNING', 'NAMASTE', 'NIGHT', 'NO', 'PAIN', 'PLEASE', 'SORRY',
   'STOP', 'TIME', 'WANT', 'WELCOME', 'YES', 'YOU'
 ]);
 

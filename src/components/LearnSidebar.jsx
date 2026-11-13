@@ -28,7 +28,9 @@ import {
   ExternalLink,
   RotateCcw,
   X,
-  Lightbulb
+  Lightbulb,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import { SignSvgIllustration, hasSvgIllustration } from './SignSvgIllustrations.jsx';
 import { ISL_LEARN_ITEMS, getLearnItemByLabel } from '../ai/islTargetLandmarks.js';
@@ -61,6 +63,19 @@ export function LearnSidebar({
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [displayCount, setDisplayCount] = useState(50);
   const [filterMasteredOnly, setFilterMasteredOnly] = useState(false);
+  const [gifLayout, setGifLayout] = useState('portrait'); // 'portrait' | 'landscape' | 'square'
+  const [isExpandedDemo, setIsExpandedDemo] = useState(false);
+
+  const handleImageLoad = (e) => {
+    const { naturalWidth, naturalHeight } = e.currentTarget;
+    if (naturalHeight > naturalWidth * 1.15) {
+      setGifLayout('portrait');
+    } else if (naturalWidth > naturalHeight * 1.15) {
+      setGifLayout('landscape');
+    } else {
+      setGifLayout('square');
+    }
+  };
 
 
   // Sidebar slide-over drawer open/close state
@@ -260,7 +275,7 @@ export function LearnSidebar({
           LEFT SIDE VIEW: DEDICATED FULL PRACTICE BLUEPRINT & LANDMARK GUIDE
           Takes the whole left side so it gets generous space and clear layout!
           ========================================================================= */}
-      <div className="w-full h-full flex flex-col gap-2.5 min-h-0 overflow-hidden">
+      <div className="w-full h-full flex flex-col gap-2.5 min-h-0 overflow-y-auto no-scrollbar pr-0.5">
         {/* Top Trigger Button: Click to Open Sign Academy Sidebar */}
         <button
           type="button"
@@ -295,7 +310,7 @@ export function LearnSidebar({
 
         {/* 1. Upper Card: Selected Sign Guide & Biomechanical Blueprint */}
         {selectedItem && (
-          <div className="cartoon-card bg-white p-3 sm:p-3.5 flex flex-col gap-2 border-2 border-zinc-900 shadow-cartoon-sm flex-[1.1] min-h-0 overflow-hidden">
+          <div className="cartoon-card bg-white p-3 sm:p-3.5 flex flex-col gap-2 border-2 border-zinc-900 shadow-cartoon-sm flex-[1.25] min-h-0 overflow-hidden">
             {/* Header: Level & Name */}
             <div className="flex items-start justify-between gap-2 flex-shrink-0">
               <div className="min-w-0 flex-1">
@@ -312,20 +327,31 @@ export function LearnSidebar({
             </div>
 
             {/* Scrollable / Flexible Card Content so texts NEVER hide */}
-            <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-2 pr-0.5">
-              {/* Visual Area: Teaching Demonstration GIF / Image */}
-              <div className="w-full h-28 sm:h-36 max-h-[150px] bg-white rounded-xl border-2 border-zinc-900 shadow-cartoon-sm flex items-center justify-center overflow-hidden p-1.5 relative group flex-shrink-0">
+            <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-2.5 pr-0.5">
+              {/* Visual Area: Teaching Demonstration GIF / Image - Dynamically adjusts to GIF size & orientation */}
+              <div
+                className={`w-full bg-[#FAF8F5] rounded-xl border-2 border-zinc-900 shadow-cartoon-sm flex items-center justify-center overflow-hidden p-2 relative group flex-shrink-0 transition-all duration-200 ${
+                  isExpandedDemo
+                    ? 'h-[340px] sm:h-[380px]'
+                    : gifLayout === 'portrait'
+                    ? 'h-[250px] sm:h-[280px] md:h-[310px]'
+                    : gifLayout === 'landscape'
+                    ? 'aspect-video min-h-[180px] max-h-[250px]'
+                    : 'h-[220px] sm:h-[250px]'
+                }`}
+              >
                 {selectedItem.image ? (
                   <img
                     src={selectedItem.image}
                     alt={`${selectedItem.name} demonstration`}
-                    className="w-full h-full object-contain rounded-lg transition-transform group-hover:scale-[1.02]"
+                    onLoad={handleImageLoad}
+                    className="w-auto h-full max-w-full object-contain rounded-lg transition-transform group-hover:scale-[1.01] shadow-sm"
                     loading="eager"
                   />
                 ) : (
-                  <div className="flex flex-col items-center justify-center text-zinc-700 gap-1 w-full text-center px-2">
-                    <div className="w-9 h-9 rounded-full bg-[#FFC800] border-2 border-zinc-900 flex items-center justify-center text-zinc-900 shadow-cartoon-sm">
-                      <Hand className="w-4 h-4 stroke-[2]" />
+                  <div className="flex flex-col items-center justify-center text-zinc-700 gap-1.5 w-full text-center px-2 py-4">
+                    <div className="w-10 h-10 rounded-full bg-[#FFC800] border-2 border-zinc-900 flex items-center justify-center text-zinc-900 shadow-cartoon-sm">
+                      <Hand className="w-5 h-5 stroke-[2]" />
                     </div>
                     <div className="text-xs sm:text-sm font-extrabold text-zinc-900">
                       {selectedItem.blueprint?.requiredFingers || 'Clear handshape'}
@@ -335,10 +361,34 @@ export function LearnSidebar({
                     </div>
                   </div>
                 )}
-                <div className="absolute top-1.5 left-1.5 bg-zinc-900/90 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1.5 pointer-events-none">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#58CC02] animate-pulse" />
-                  {selectedItem.image?.endsWith('.gif') ? 'Authentic Motion GIF' : 'Authentic Demonstration'}
+
+                {/* Badge indicating authentic motion */}
+                <div className="absolute top-2 left-2 bg-zinc-900/90 backdrop-blur-md text-white text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1.5 pointer-events-none z-10 border border-white/20">
+                  <span className="w-2 h-2 rounded-full bg-[#58CC02] animate-pulse" />
+                  {selectedItem.image?.endsWith('.gif') ? 'Authentic ISL Motion' : 'Authentic Demonstration'}
                 </div>
+
+                {/* Enlarge / Standard Size Toggle Button */}
+                {selectedItem.image && (
+                  <button
+                    type="button"
+                    onClick={() => setIsExpandedDemo(prev => !prev)}
+                    className="absolute top-2 right-2 bg-white/95 hover:bg-white text-zinc-900 px-2 py-1 rounded-lg border border-zinc-900 shadow-sm transition-all z-10 text-[10px] font-bold flex items-center gap-1 cursor-pointer"
+                    title={isExpandedDemo ? "Restore Standard Size" : "Enlarge Demonstration"}
+                  >
+                    {isExpandedDemo ? (
+                      <>
+                        <Minimize2 className="w-3 h-3 stroke-[2.5]" />
+                        <span className="hidden sm:inline">Fit</span>
+                      </>
+                    ) : (
+                      <>
+                        <Maximize2 className="w-3 h-3 stroke-[2.5]" />
+                        <span className="hidden sm:inline">Enlarge</span>
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
 
               {/* Step-by-Step Motion & Pacing Guidance - Fully Visible without cutoff */}

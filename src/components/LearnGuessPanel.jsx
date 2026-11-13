@@ -54,14 +54,23 @@ export function LearnGuessPanel({
     : null;
 
   const activeStepTarget = activeStep
-    ? (activeStepIndex === 0 ? 'GOOD' : 'MORNING')
+    ? (activeStep.targetGloss || (activeStepIndex === 0 ? 'GOOD' : 'MORNING'))
     : targetLabel;
 
   // Does the current top guess match the target word or active compound step?
-  const guessMatchesTarget = topCandidate && (
-    topCandidate.label?.toUpperCase() === targetLabel ||
-    topCandidate.label?.toUpperCase() === activeStepTarget
-  ) && topCandidate.confidence >= 0.82;
+  const topCandidateLabel = topCandidate?.label?.toUpperCase() || '';
+  const topCandidateNorm = topCandidateLabel.replace(/_/g, ' ');
+  const targetLabelNorm = targetLabel.replace(/_/g, ' ');
+  const activeStepTargetNorm = activeStepTarget.replace(/_/g, ' ');
+
+  const guessMatchesTarget = Boolean(
+    topCandidate && (
+      topCandidateLabel === targetLabel ||
+      topCandidateNorm === targetLabelNorm ||
+      topCandidateLabel === activeStepTarget ||
+      topCandidateNorm === activeStepTargetNorm
+    ) && topCandidate.confidence >= 0.80
+  );
 
   const activeGuess = topCandidate?.label || 'Ready / Watching';
   const activeConfidence = topCandidate ? Math.round(topCandidate.confidence * 100) : 0;

@@ -7,7 +7,7 @@ import {
   getNextRecommendedSign,
   calculateCourseProgress
 } from '../src/ai/islCourseCurriculum.js';
-import { ISL_LEARN_ITEMS } from '../src/ai/islTargetLandmarks.js';
+import { ISL_LEARN_ITEMS, getLearnItemByLabel } from '../src/ai/islTargetLandmarks.js';
 
 test('islCourseCurriculum - defines 7 structured progressive course levels', () => {
   assert.strictEqual(Array.isArray(ISL_COURSE_LEVELS), true);
@@ -19,6 +19,10 @@ test('islCourseCurriculum - defines 7 structured progressive course levels', () 
   assert.strictEqual(level1.startSign, 'NAMASTE');
   assert.strictEqual(level1.glosses[0], 'NAMASTE');
   assert.strictEqual(level1.glosses.includes('HELLO'), true);
+  assert.strictEqual(level1.glosses.includes('GOOD_MORNING'), true);
+  assert.strictEqual(level1.glosses.includes('GOOD_AFTERNOON'), true);
+  assert.strictEqual(level1.glosses.includes('GOOD_EVENING'), true);
+  assert.strictEqual(level1.glosses.includes('GOOD_NIGHT'), true);
   assert.strictEqual(level1.glosses.includes('THANK_YOU'), true);
   assert.strictEqual(level1.glosses.includes('PLEASE'), true);
   assert.strictEqual(level1.glosses.includes('SORRY'), true);
@@ -85,6 +89,28 @@ test('islCourseCurriculum - getNextRecommendedSign navigates sequentially along 
   // When NAMASTE is mastered, advances to HELLO
   const masteredOne = new Set(['NAMASTE']);
   assert.strictEqual(getNextRecommendedSign('NAMASTE', masteredOne, ISL_LEARN_ITEMS), 'HELLO');
+
+  // Regression test: When user has mastered courtesies through NO, advances to ME
+  const masteredCourtesies = new Set([
+    'NAMASTE', 'HELLO', 'GOOD_MORNING', 'GOOD_AFTERNOON', 'GOOD_EVENING', 'GOOD_NIGHT',
+    'WELCOME', 'THANK_YOU', 'PLEASE', 'SORRY', 'YES', 'NO'
+  ]);
+  const nextSign = getNextRecommendedSign('HELLO', masteredCourtesies, ISL_LEARN_ITEMS);
+  assert.strictEqual(nextSign, 'ME');
+
+  // Verify all CORE_PATH_GLOSSES resolve to valid learn items
+  const meItem = getLearnItemByLabel('ME');
+  assert.ok(meItem != null, 'ME item must exist in ISL_LEARN_ITEMS');
+  assert.notStrictEqual(meItem.id, 'hello', 'ME must not fall back to hello');
+  assert.strictEqual(meItem.id, 'me');
+
+  const goodItem = getLearnItemByLabel('GOOD');
+  assert.ok(goodItem != null, 'GOOD item must exist in ISL_LEARN_ITEMS');
+  assert.strictEqual(goodItem.id, 'good');
+
+  const badItem = getLearnItemByLabel('BAD');
+  assert.ok(badItem != null, 'BAD item must exist in ISL_LEARN_ITEMS');
+  assert.strictEqual(badItem.id, 'bad');
 
   // When all Level 1 is mastered, advances to Level 2 (A)
   const level1Glosses = ISL_COURSE_LEVELS[0].glosses;

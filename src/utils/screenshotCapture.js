@@ -28,8 +28,8 @@ export async function captureDOMScreenshot(targetElement = null) {
       allowTaint: true,
       logging: false,
       backgroundColor: '#FAF8F5',
-      // Balanced scale: sharp enough to read telemetry and text, lightweight in memory
-      scale: typeof window !== 'undefined' ? Math.min(window.devicePixelRatio || 1, 1.5) : 1,
+      // Balanced scale: 0.75 for visual comprehension without token bloat
+      scale: typeof window !== 'undefined' ? Math.min(window.devicePixelRatio || 1, 1.0) : 1,
       ignoreElements: (el) => {
         // Exclude feedback modal itself from the screenshot if it happens to be open
         return el.getAttribute('data-feedback-modal') === 'true';
@@ -89,7 +89,21 @@ export async function captureDOMScreenshot(targetElement = null) {
       }
     });
 
-    return canvas.toDataURL('image/jpeg', 0.82);
+    // Downscale to max 960px width for optimal Gemini vision token consumption
+    const maxWidth = 960;
+    if (canvas.width > maxWidth) {
+      const scale = maxWidth / canvas.width;
+      const resized = document.createElement('canvas');
+      resized.width = maxWidth;
+      resized.height = Math.round(canvas.height * scale);
+      const rCtx = resized.getContext('2d');
+      if (rCtx) {
+        rCtx.drawImage(canvas, 0, 0, resized.width, resized.height);
+        return resized.toDataURL('image/jpeg', 0.75);
+      }
+    }
+
+    return canvas.toDataURL('image/jpeg', 0.75);
   } catch (err) {
     console.error('[Screenshot] HTML2Canvas capture failed:', err);
     return createFallbackScreenshot(err?.message || 'DOM rendering error');

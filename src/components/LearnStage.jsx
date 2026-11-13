@@ -92,7 +92,15 @@ export function LearnStage({
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        await videoRef.current.play();
+        try {
+          await videoRef.current.play();
+        } catch (playErr) {
+          if (playErr.name === 'AbortError') {
+            // Ignored: benign interruption during stream switch or component remount
+            return;
+          }
+          throw playErr;
+        }
         setIsCameraActive(true);
         syncCanvasDimensions();
       }
@@ -232,19 +240,19 @@ export function LearnStage({
   const hasRightHand = Boolean(latestLandmarks?.rightHandLandmarks?.length > 0);
 
   return (
-    <div className="cartoon-card w-full flex-1 min-h-0 flex flex-col overflow-hidden bg-white">
+    <div className="cartoon-card w-full flex-none flex flex-col overflow-hidden bg-white shadow-cartoon-sm">
       {/* 1. Stage Header: Studio Controls */}
-      <div className="px-3.5 py-2.5 border-b-2 border-[#D6EBD3] bg-[#EAF6E8] flex items-center justify-between gap-2 flex-shrink-0">
+      <div className="px-3.5 py-2 border-b-2 border-[#D6EBD3] bg-[#EAF6E8] flex items-center justify-between gap-2 flex-shrink-0">
         <div className="flex items-center gap-2 min-w-0">
           <div className="w-6 h-6 rounded-lg bg-zinc-900 text-white flex items-center justify-center flex-shrink-0">
             <Video className="w-3.5 h-3.5 stroke-[2.2]" />
           </div>
           <span className="font-black text-sm sm:text-base text-zinc-900 truncate">
-            Camera Feed & Biometric HUD
+            Camera Feed &amp; Biometric HUD
           </span>
           {isCameraActive && (
             <span className="cartoon-badge !py-0.5 !px-2 text-xs bg-[#58CC02] text-white hidden sm:inline-flex font-bold">
-              ● Live Tracking
+              ● Live Tracking (16:9)
             </span>
           )}
         </div>
@@ -291,16 +299,16 @@ export function LearnStage({
         </div>
       </div>
 
-      {/* 2. Main Visual Canvas Area */}
-      <div className="relative flex-1 min-h-0 w-full overflow-hidden flex items-center justify-center bg-[#090A0F]">
-        {/* Underneath Webcam Feed (Visible when isBlackScreen is false) */}
+      {/* 2. Main Visual Canvas Area - Strictly 16:9 Aspect Ratio */}
+      <div className="relative w-full aspect-video max-h-[290px] sm:max-h-[330px] md:max-h-[360px] lg:max-h-[390px] xl:max-h-[420px] overflow-hidden flex items-center justify-center bg-[#090A0F] mx-auto">
+        {/* Underneath Webcam Feed */}
         <video
           ref={videoRef}
           playsInline
           autoPlay
           muted
           onLoadedMetadata={syncCanvasDimensions}
-          className="absolute inset-0 w-full h-full object-contain transform -scale-x-100 opacity-100"
+          className="absolute inset-0 w-full h-full object-cover transform -scale-x-100 opacity-100"
         />
 
         {/* 60fps Biometric Skeleton & Target Ghost Canvas */}
@@ -308,7 +316,7 @@ export function LearnStage({
           ref={canvasRef}
           width={1280}
           height={720}
-          className="absolute inset-0 w-full h-full object-contain transform -scale-x-100 pointer-events-none z-10"
+          className="absolute inset-0 w-full h-full object-cover transform -scale-x-100 pointer-events-none z-10"
         />
 
         {/* Mobile Unified Top HUD Bar (< sm) - Prevents collision between Compound & Pass Goal */}

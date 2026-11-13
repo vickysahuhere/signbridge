@@ -648,6 +648,721 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
   },
 
   {
+    id: 'good_afternoon',
+    label: 'GOOD_AFTERNOON',
+    name: 'Good Afternoon',
+    category: 'greetings',
+    type: 'word',
+    english: 'Good Afternoon',
+    image: '/signs/good_afternoon.gif',
+    description: 'Authentic 2-part compound sign: Part 1 - Thumbs-up at chest level (Good), followed by Part 2 - Dominant open flat hand held upright near forehead level representing overhead midday sun (Afternoon).',
+    tip: 'Complete the sequence: First hold Thumbs-Up at chest level (Part 1), then hold open palm upright near forehead level like noon sun (Part 2).',
+    isCompound: true,
+    blueprint: {
+      activeHand: 'Dominant Hand',
+      wristTarget: { x: 0.54, y: 0.35 },
+      requiredFingers: '1. Thumbs-up (Good) ➔ 2. Overhead Palm (Afternoon)',
+      zone: 'Chest level moving to forehead/overhead'
+    },
+    steps: [
+      {
+        id: 'step_good_aft',
+        stepNumber: 1,
+        title: 'Part 1: GOOD',
+        targetGloss: 'GOOD',
+        sublabel: 'Thumbs-Up at chest level',
+        description: 'Give a firm thumbs-up in front of your chest with fingers tightly curled.',
+        tip: 'Hold a solid thumbs-up at mid-chest level.',
+        targetSkeleton: {
+          leftHand: null,
+          rightHand: createHandSkeleton({ wristX: 0.54, wristY: 0.55, isRight: true, fingerPose: 'thumbs_up' }),
+          pose: BASE_POSE_LANDMARKS
+        },
+        blueprint: {
+          activeHand: 'Dominant Hand',
+          wristTarget: { x: 0.54, y: 0.55 },
+          requiredFingers: 'Thumb extended up, other 4 fingers curled',
+          zone: 'Chest center (Y: 0.40 - 0.75)'
+        },
+        evaluate: (landmarks) => {
+          const left = analyzeHand(landmarks?.leftHandLandmarks);
+          const right = analyzeHand(landmarks?.rightHandLandmarks);
+          const h = right || left;
+          const checklist = [];
+          let score = 0;
+
+          if (!h) {
+            return {
+              matchScore: 0,
+              isMatched: false,
+              isPostureAligned: false,
+              checklist: [
+                { id: 'hand', label: 'Hand visible in frame', status: 'fail', current: 'None detected', target: '1 hand', hint: 'Raise your dominant hand.' }
+              ],
+              primaryGuidance: 'Part 1: Hold a thumbs-up in front of your chest.'
+            };
+          }
+
+          checklist.push({
+            id: 'hand',
+            label: 'Hand visible',
+            status: 'pass',
+            current: '1 hand (OK)',
+            target: '1 hand',
+            hint: ''
+          });
+          score += 25;
+
+          const thumbUp = h.thumb.isExtended && (h.points[4].y < h.points[2].y - 0.03);
+          checklist.push({
+            id: 'thumb_up',
+            label: 'Thumb pointing upward',
+            status: thumbUp ? 'pass' : 'fail',
+            current: thumbUp ? 'Pointing up (OK)' : 'Thumb not upright',
+            target: 'Upward',
+            hint: 'Point thumb straight up.'
+          });
+          if (thumbUp) score += 35;
+
+          const fingersCurled = h.curledCount >= 3 || (!h.index.isExtended && !h.middle.isExtended);
+          checklist.push({
+            id: 'fingers_curled',
+            label: 'Other 4 fingers curled into fist',
+            status: fingersCurled ? 'pass' : 'fail',
+            current: fingersCurled ? 'Curled into fist (OK)' : 'Curl fingers',
+            target: 'Fist',
+            hint: 'Curl index, middle, ring, pinky.'
+          });
+          if (fingersCurled) score += 20;
+
+          const inZone = h.wrist.y >= 0.38 && h.wrist.y <= 0.80;
+          checklist.push({
+            id: 'zone',
+            label: 'Hand at chest height',
+            status: inZone ? 'pass' : 'fail',
+            current: inZone ? 'Chest level (OK)' : (h.wrist.y < 0.38 ? 'Too high' : 'Too low'),
+            target: 'Chest level',
+            hint: 'Hold hand at chest height.'
+          });
+          if (inZone) score += 20;
+
+          const isMatched = score >= 75;
+          return {
+            matchScore: score,
+            isMatched,
+            isPostureAligned: isMatched,
+            checklist,
+            primaryGuidance: isMatched
+              ? 'Part 1 Good aligned! (OK) Now do Part 2 (Afternoon overhead sun).'
+              : 'Part 1: Hold a thumbs-up in front of your chest.'
+          };
+        }
+      },
+      {
+        id: 'step_afternoon',
+        stepNumber: 2,
+        title: 'Part 2: AFTERNOON',
+        targetGloss: 'AFTERNOON',
+        sublabel: 'Overhead Midday Sun',
+        description: 'Dominant open flat hand held upright near forehead height representing overhead midday sun.',
+        tip: 'Hold open flat hand upright near forehead level like noon sun.',
+        targetSkeleton: {
+          leftHand: null,
+          rightHand: createHandSkeleton({ wristX: 0.54, wristY: 0.32, isRight: true, fingerPose: 'open' }),
+          pose: BASE_POSE_LANDMARKS
+        },
+        blueprint: {
+          activeHand: 'Dominant Hand',
+          wristTarget: { x: 0.54, y: 0.32 },
+          requiredFingers: 'Open palm pointing upward',
+          zone: 'Forehead / Head level (Y: 0.12 - 0.48)'
+        },
+        evaluate: (landmarks) => {
+          const left = analyzeHand(landmarks?.leftHandLandmarks);
+          const right = analyzeHand(landmarks?.rightHandLandmarks);
+          const h = right || left;
+          const checklist = [];
+          let score = 0;
+
+          if (!h) {
+            return {
+              matchScore: 0,
+              isMatched: false,
+              isPostureAligned: false,
+              checklist: [
+                { id: 'hand', label: 'Hand visible in frame', status: 'fail', current: 'None detected', target: '1 hand', hint: 'Raise hand near forehead.' }
+              ],
+              primaryGuidance: 'Part 2: Hold open flat hand near forehead height like midday sun.'
+            };
+          }
+
+          checklist.push({
+            id: 'hand',
+            label: 'Hand visible',
+            status: 'pass',
+            current: '1 hand (OK)',
+            target: '1 hand',
+            hint: ''
+          });
+          score += 25;
+
+          const isOpen = h.isOpenPalm || h.extendedCount >= 3;
+          checklist.push({
+            id: 'open_hand',
+            label: 'Open palm (overhead sun)',
+            status: isOpen ? 'pass' : 'fail',
+            current: isOpen ? 'Palm open (OK)' : 'Open fingers',
+            target: 'Open palm',
+            hint: 'Hold open flat hand.'
+          });
+          if (isOpen) score += 35;
+
+          const fingersUp = h.points[12].y < h.wrist.y - 0.04;
+          checklist.push({
+            id: 'fingers_up',
+            label: 'Fingers pointing upward',
+            status: fingersUp ? 'pass' : 'fail',
+            current: fingersUp ? 'Pointing upward (OK)' : 'Point fingers up',
+            target: 'Fingers up',
+            hint: 'Keep fingers directed upward.'
+          });
+          if (fingersUp) score += 20;
+
+          const inZone = h.wrist.y >= 0.12 && h.wrist.y <= 0.48;
+          checklist.push({
+            id: 'zone',
+            label: 'Hand held at midday height (forehead/head level)',
+            status: inZone ? 'pass' : 'fail',
+            current: inZone ? 'Midday height (OK)' : (h.wrist.y > 0.48 ? 'Raise hand higher' : 'Too high'),
+            target: 'Forehead / Head level',
+            hint: 'Raise hand up to forehead height (midday sun).'
+          });
+          if (inZone) score += 20;
+
+          const isMatched = score >= 75;
+          return {
+            matchScore: score,
+            isMatched,
+            isPostureAligned: isMatched,
+            checklist,
+            primaryGuidance: isMatched
+              ? 'Part 2 Midday Sun aligned! (OK) Good Afternoon complete!'
+              : 'Part 2: Hold hand upright near forehead height like midday sun.'
+          };
+        }
+      }
+    ],
+    targetSkeleton: {
+      leftHand: null,
+      rightHand: createHandSkeleton({ wristX: 0.54, wristY: 0.55, isRight: true, fingerPose: 'thumbs_up' }),
+      pose: BASE_POSE_LANDMARKS
+    },
+    blueprint: {
+      activeHand: 'Dominant Hand',
+      wristTarget: { x: 0.54, y: 0.55 },
+      requiredFingers: 'Step 1: Thumbs-Up -> Step 2: Overhead Noon Palm',
+      zone: 'Step 1: Chest -> Step 2: Forehead level'
+    },
+    evaluate: function(landmarks, stepIndex = 0) {
+      const idx = Math.max(0, Math.min(this.steps.length - 1, stepIndex));
+      const step = this.steps[idx];
+      const res = step.evaluate(landmarks);
+      return {
+        ...res,
+        isCompound: true,
+        stepIndex: idx,
+        totalSteps: this.steps.length,
+        activeStepTitle: step.title,
+        activeStepSublabel: step.sublabel,
+        stepsSummary: this.steps.map((s, i) => ({
+          stepNumber: s.stepNumber,
+          title: s.title,
+          sublabel: s.sublabel,
+          isCurrent: i === idx
+        }))
+      };
+    }
+  },
+
+  {
+    id: 'good_evening',
+    label: 'GOOD_EVENING',
+    name: 'Good Evening',
+    category: 'greetings',
+    type: 'word',
+    english: 'Good Evening',
+    image: '/signs/good_evening.gif',
+    description: 'Authentic 2-part compound sign: Part 1 - Thumbs-up at chest level (Good), followed by Part 2 - Dominant curved or open hand lowering downward in front of chest like the setting sun (Evening).',
+    tip: 'Complete the sequence: First hold Thumbs-Up at chest level (Part 1), then lower your hand gently downward in front of chest like sunset (Part 2).',
+    isCompound: true,
+    blueprint: {
+      activeHand: 'Dominant Hand',
+      wristTarget: { x: 0.54, y: 0.55 },
+      requiredFingers: '1. Thumbs-up (Good) ➔ 2. Sunset Lowering Palm (Evening)',
+      zone: 'Chest level lowering towards horizon'
+    },
+    steps: [
+      {
+        id: 'step_good_eve',
+        stepNumber: 1,
+        title: 'Part 1: GOOD',
+        targetGloss: 'GOOD',
+        sublabel: 'Thumbs-Up at chest level',
+        description: 'Give a firm thumbs-up in front of your chest with fingers tightly curled.',
+        tip: 'Hold a solid thumbs-up at mid-chest level.',
+        targetSkeleton: {
+          leftHand: null,
+          rightHand: createHandSkeleton({ wristX: 0.54, wristY: 0.55, isRight: true, fingerPose: 'thumbs_up' }),
+          pose: BASE_POSE_LANDMARKS
+        },
+        blueprint: {
+          activeHand: 'Dominant Hand',
+          wristTarget: { x: 0.54, y: 0.55 },
+          requiredFingers: 'Thumb extended up, other 4 fingers curled',
+          zone: 'Chest center (Y: 0.40 - 0.75)'
+        },
+        evaluate: (landmarks) => {
+          const left = analyzeHand(landmarks?.leftHandLandmarks);
+          const right = analyzeHand(landmarks?.rightHandLandmarks);
+          const h = right || left;
+          const checklist = [];
+          let score = 0;
+
+          if (!h) {
+            return {
+              matchScore: 0,
+              isMatched: false,
+              isPostureAligned: false,
+              checklist: [
+                { id: 'hand', label: 'Hand visible in frame', status: 'fail', current: 'None detected', target: '1 hand', hint: 'Raise your dominant hand.' }
+              ],
+              primaryGuidance: 'Part 1: Hold a thumbs-up in front of your chest.'
+            };
+          }
+
+          checklist.push({
+            id: 'hand',
+            label: 'Hand visible',
+            status: 'pass',
+            current: '1 hand (OK)',
+            target: '1 hand',
+            hint: ''
+          });
+          score += 25;
+
+          const thumbUp = h.thumb.isExtended && (h.points[4].y < h.points[2].y - 0.03);
+          checklist.push({
+            id: 'thumb_up',
+            label: 'Thumb pointing upward',
+            status: thumbUp ? 'pass' : 'fail',
+            current: thumbUp ? 'Pointing up (OK)' : 'Thumb not upright',
+            target: 'Upward',
+            hint: 'Point thumb straight up.'
+          });
+          if (thumbUp) score += 35;
+
+          const fingersCurled = h.curledCount >= 3 || (!h.index.isExtended && !h.middle.isExtended);
+          checklist.push({
+            id: 'fingers_curled',
+            label: 'Other 4 fingers curled into fist',
+            status: fingersCurled ? 'pass' : 'fail',
+            current: fingersCurled ? 'Curled into fist (OK)' : 'Curl fingers',
+            target: 'Fist',
+            hint: 'Curl index, middle, ring, pinky.'
+          });
+          if (fingersCurled) score += 20;
+
+          const inZone = h.wrist.y >= 0.38 && h.wrist.y <= 0.80;
+          checklist.push({
+            id: 'zone',
+            label: 'Hand at chest height',
+            status: inZone ? 'pass' : 'fail',
+            current: inZone ? 'Chest level (OK)' : (h.wrist.y < 0.38 ? 'Too high' : 'Too low'),
+            target: 'Chest level',
+            hint: 'Hold hand at chest height.'
+          });
+          if (inZone) score += 20;
+
+          const isMatched = score >= 75;
+          return {
+            matchScore: score,
+            isMatched,
+            isPostureAligned: isMatched,
+            checklist,
+            primaryGuidance: isMatched
+              ? 'Part 1 Good aligned! (OK) Now do Part 2 (Evening sunset).'
+              : 'Part 1: Hold a thumbs-up in front of your chest.'
+          };
+        }
+      },
+      {
+        id: 'step_evening',
+        stepNumber: 2,
+        title: 'Part 2: EVENING',
+        targetGloss: 'EVENING',
+        sublabel: 'Sunset Lowering Hand',
+        description: 'Dominant curved or open palm lowers downward in front of mid-chest like the setting sun dipping beneath the horizon.',
+        tip: 'Lower your curved or flat hand downward in front of chest like sunset.',
+        targetSkeleton: {
+          leftHand: null,
+          rightHand: createHandSkeleton({ wristX: 0.54, wristY: 0.60, isRight: true, fingerPose: 'open' }),
+          pose: BASE_POSE_LANDMARKS
+        },
+        blueprint: {
+          activeHand: 'Dominant Hand',
+          wristTarget: { x: 0.54, y: 0.60 },
+          requiredFingers: 'Curved/open palm pointing forward/downward',
+          zone: 'Mid/Lower chest (Y: 0.38 - 0.85)'
+        },
+        evaluate: (landmarks) => {
+          const left = analyzeHand(landmarks?.leftHandLandmarks);
+          const right = analyzeHand(landmarks?.rightHandLandmarks);
+          const h = right || left;
+          const checklist = [];
+          let score = 0;
+
+          if (!h) {
+            return {
+              matchScore: 0,
+              isMatched: false,
+              isPostureAligned: false,
+              checklist: [
+                { id: 'hand', label: 'Hand visible in frame', status: 'fail', current: 'None detected', target: '1 hand', hint: 'Lower hand in front of chest like sunset.' }
+              ],
+              primaryGuidance: 'Part 2: Lower your hand downward in front of chest like sunset.'
+            };
+          }
+
+          checklist.push({
+            id: 'hand',
+            label: 'Hand visible',
+            status: 'pass',
+            current: '1 hand (OK)',
+            target: '1 hand',
+            hint: ''
+          });
+          score += 25;
+
+          const isRelaxedOrCurved = h.isOpenPalm || h.extendedCount >= 3 || h.curledCount <= 2;
+          checklist.push({
+            id: 'hand_shape',
+            label: 'Open or gently curved palm (setting sun)',
+            status: isRelaxedOrCurved ? 'pass' : 'fail',
+            current: isRelaxedOrCurved ? 'Sun shape (OK)' : 'Relax fingers',
+            target: 'Open/Curved palm',
+            hint: 'Hold hand relaxed or curved like setting sun.'
+          });
+          if (isRelaxedOrCurved) score += 35;
+
+          const sunsetTilt = h.points[12].y >= h.wrist.y - 0.05;
+          checklist.push({
+            id: 'sunset_tilt',
+            label: 'Fingers curving or pointing forward/downward',
+            status: sunsetTilt ? 'pass' : 'fail',
+            current: sunsetTilt ? 'Dipping downward (OK)' : 'Angle fingers down',
+            target: 'Downward angle',
+            hint: 'Angle hand slightly downward like sunset.'
+          });
+          if (sunsetTilt) score += 20;
+
+          const inZone = h.wrist.y >= 0.38 && h.wrist.y <= 0.85;
+          checklist.push({
+            id: 'zone',
+            label: 'Hand lowered to mid/lower chest (sunset horizon)',
+            status: inZone ? 'pass' : 'fail',
+            current: inZone ? 'Sunset level (OK)' : 'Lower hand to chest',
+            target: 'Mid-to-lower chest',
+            hint: 'Lower hand in front of chest like sunset.'
+          });
+          if (inZone) score += 20;
+
+          const isMatched = score >= 75;
+          return {
+            matchScore: score,
+            isMatched,
+            isPostureAligned: isMatched,
+            checklist,
+            primaryGuidance: isMatched
+              ? 'Part 2 Sunset aligned! (OK) Good Evening complete!'
+              : 'Part 2: Lower hand gently in front of chest like setting sun.'
+          };
+        }
+      }
+    ],
+    targetSkeleton: {
+      leftHand: null,
+      rightHand: createHandSkeleton({ wristX: 0.54, wristY: 0.55, isRight: true, fingerPose: 'thumbs_up' }),
+      pose: BASE_POSE_LANDMARKS
+    },
+    blueprint: {
+      activeHand: 'Dominant Hand',
+      wristTarget: { x: 0.54, y: 0.55 },
+      requiredFingers: 'Step 1: Thumbs-Up -> Step 2: Sunset Lowering Hand',
+      zone: 'Step 1: Chest -> Step 2: Lower chest horizon'
+    },
+    evaluate: function(landmarks, stepIndex = 0) {
+      const idx = Math.max(0, Math.min(this.steps.length - 1, stepIndex));
+      const step = this.steps[idx];
+      const res = step.evaluate(landmarks);
+      return {
+        ...res,
+        isCompound: true,
+        stepIndex: idx,
+        totalSteps: this.steps.length,
+        activeStepTitle: step.title,
+        activeStepSublabel: step.sublabel,
+        stepsSummary: this.steps.map((s, i) => ({
+          stepNumber: s.stepNumber,
+          title: s.title,
+          sublabel: s.sublabel,
+          isCurrent: i === idx
+        }))
+      };
+    }
+  },
+
+  {
+    id: 'good_night',
+    label: 'GOOD_NIGHT',
+    name: 'Good Night',
+    category: 'greetings',
+    type: 'word',
+    english: 'Good Night',
+    image: '/signs/good_night.gif',
+    description: 'Authentic 2-part compound sign: Part 1 - Thumbs-up at chest level (Good), followed by Part 2 - Dominant hand arcing down past horizontal non-dominant arm or crossing hands over chest symbolizing darkness and nightfall (Night).',
+    tip: 'Complete the sequence: First hold Thumbs-Up at chest level (Part 1), then arc hand downward past wrist or cross arms gently at chest level (Part 2).',
+    isCompound: true,
+    blueprint: {
+      activeHand: 'Dominant Hand',
+      wristTarget: { x: 0.54, y: 0.55 },
+      requiredFingers: '1. Thumbs-up (Good) ➔ 2. Night Darkness Arc (Night)',
+      zone: 'Chest level arcing below horizon'
+    },
+    steps: [
+      {
+        id: 'step_good_ngt',
+        stepNumber: 1,
+        title: 'Part 1: GOOD',
+        targetGloss: 'GOOD',
+        sublabel: 'Thumbs-Up at chest level',
+        description: 'Give a firm thumbs-up in front of your chest with fingers tightly curled.',
+        tip: 'Hold a solid thumbs-up at mid-chest level.',
+        targetSkeleton: {
+          leftHand: null,
+          rightHand: createHandSkeleton({ wristX: 0.54, wristY: 0.55, isRight: true, fingerPose: 'thumbs_up' }),
+          pose: BASE_POSE_LANDMARKS
+        },
+        blueprint: {
+          activeHand: 'Dominant Hand',
+          wristTarget: { x: 0.54, y: 0.55 },
+          requiredFingers: 'Thumb extended up, other 4 fingers curled',
+          zone: 'Chest center (Y: 0.40 - 0.75)'
+        },
+        evaluate: (landmarks) => {
+          const left = analyzeHand(landmarks?.leftHandLandmarks);
+          const right = analyzeHand(landmarks?.rightHandLandmarks);
+          const h = right || left;
+          const checklist = [];
+          let score = 0;
+
+          if (!h) {
+            return {
+              matchScore: 0,
+              isMatched: false,
+              isPostureAligned: false,
+              checklist: [
+                { id: 'hand', label: 'Hand visible in frame', status: 'fail', current: 'None detected', target: '1 hand', hint: 'Raise your dominant hand.' }
+              ],
+              primaryGuidance: 'Part 1: Hold a thumbs-up in front of your chest.'
+            };
+          }
+
+          checklist.push({
+            id: 'hand',
+            label: 'Hand visible',
+            status: 'pass',
+            current: '1 hand (OK)',
+            target: '1 hand',
+            hint: ''
+          });
+          score += 25;
+
+          const thumbUp = h.thumb.isExtended && (h.points[4].y < h.points[2].y - 0.03);
+          checklist.push({
+            id: 'thumb_up',
+            label: 'Thumb pointing upward',
+            status: thumbUp ? 'pass' : 'fail',
+            current: thumbUp ? 'Pointing up (OK)' : 'Thumb not upright',
+            target: 'Upward',
+            hint: 'Point thumb straight up.'
+          });
+          if (thumbUp) score += 35;
+
+          const fingersCurled = h.curledCount >= 3 || (!h.index.isExtended && !h.middle.isExtended);
+          checklist.push({
+            id: 'fingers_curled',
+            label: 'Other 4 fingers curled into fist',
+            status: fingersCurled ? 'pass' : 'fail',
+            current: fingersCurled ? 'Curled into fist (OK)' : 'Curl fingers',
+            target: 'Fist',
+            hint: 'Curl index, middle, ring, pinky.'
+          });
+          if (fingersCurled) score += 20;
+
+          const inZone = h.wrist.y >= 0.38 && h.wrist.y <= 0.80;
+          checklist.push({
+            id: 'zone',
+            label: 'Hand at chest height',
+            status: inZone ? 'pass' : 'fail',
+            current: inZone ? 'Chest level (OK)' : (h.wrist.y < 0.38 ? 'Too high' : 'Too low'),
+            target: 'Chest level',
+            hint: 'Hold hand at chest height.'
+          });
+          if (inZone) score += 20;
+
+          const isMatched = score >= 75;
+          return {
+            matchScore: score,
+            isMatched,
+            isPostureAligned: isMatched,
+            checklist,
+            primaryGuidance: isMatched
+              ? 'Part 1 Good aligned! (OK) Now do Part 2 (Night darkness).'
+              : 'Part 1: Hold a thumbs-up in front of your chest.'
+          };
+        }
+      },
+      {
+        id: 'step_night',
+        stepNumber: 2,
+        title: 'Part 2: NIGHT',
+        targetGloss: 'NIGHT',
+        sublabel: 'Nightfall Darkness Arc',
+        description: 'Dominant hand arcs downward past horizontal wrist or arms crossing at chest level symbolizing evening darkness and nightfall.',
+        tip: 'Dip dominant hand down past wrist or cross arms gently at chest level.',
+        targetSkeleton: {
+          leftHand: null,
+          rightHand: createHandSkeleton({ wristX: 0.54, wristY: 0.65, isRight: true, fingerPose: 'open' }),
+          pose: BASE_POSE_LANDMARKS
+        },
+        blueprint: {
+          activeHand: 'Dominant Hand',
+          wristTarget: { x: 0.54, y: 0.65 },
+          requiredFingers: 'Dominant hand arcing down past wrist',
+          zone: 'Lower chest / horizon level (Y: 0.42 - 0.88)'
+        },
+        evaluate: (landmarks) => {
+          const left = analyzeHand(landmarks?.leftHandLandmarks);
+          const right = analyzeHand(landmarks?.rightHandLandmarks);
+          const h = right || left;
+          const checklist = [];
+          let score = 0;
+
+          if (!h) {
+            return {
+              matchScore: 0,
+              isMatched: false,
+              isPostureAligned: false,
+              checklist: [
+                { id: 'hand', label: 'Hand visible in frame', status: 'fail', current: 'None detected', target: '1 or 2 hands', hint: 'Lower hand down past horizontal wrist or cross arms.' }
+              ],
+              primaryGuidance: 'Part 2: Arc hand downward past wrist or cross hands at chest for Night.'
+            };
+          }
+
+          checklist.push({
+            id: 'hand',
+            label: 'Hand visible',
+            status: 'pass',
+            current: 'Hand visible (OK)',
+            target: '1 or 2 hands',
+            hint: ''
+          });
+          score += 25;
+
+          const dWrists = (left && right) ? dist3D(left.wrist, right.wrist) : 99;
+          const twoHandsCrossed = (left && right) && (dWrists < 0.22);
+          const singleHandDipping = h.points[12].y > h.wrist.y - 0.02 && h.wrist.y >= 0.45;
+          const validNightShape = twoHandsCrossed || singleHandDipping;
+
+          checklist.push({
+            id: 'night_pose',
+            label: 'Hands crossed or dominant hand arcing down past horizon',
+            status: validNightShape ? 'pass' : 'fail',
+            current: validNightShape ? 'Night posture (OK)' : 'Lower hand or cross wrists',
+            target: 'Downward arc / Crossed',
+            hint: 'Dip dominant hand downward below wrist or cross wrists.'
+          });
+          if (validNightShape) score += 35;
+
+          const fingersDown = h.points[12].y >= h.wrist.y - 0.03 || twoHandsCrossed;
+          checklist.push({
+            id: 'fingers_down',
+            label: 'Fingers dipped downward (darkness covering)',
+            status: fingersDown ? 'pass' : 'fail',
+            current: fingersDown ? 'Dipped downward (OK)' : 'Dip fingers down',
+            target: 'Downward',
+            hint: 'Dip fingers downward past horizontal wrist.'
+          });
+          if (fingersDown) score += 20;
+
+          const inZone = h.wrist.y >= 0.42 && h.wrist.y <= 0.88;
+          checklist.push({
+            id: 'zone',
+            label: 'Hand at lower chest / horizon level',
+            status: inZone ? 'pass' : 'fail',
+            current: inZone ? 'Horizon level (OK)' : 'Hold at lower chest',
+            target: 'Lower chest level',
+            hint: 'Keep hands at lower chest height.'
+          });
+          if (inZone) score += 20;
+
+          const isMatched = score >= 75;
+          return {
+            matchScore: score,
+            isMatched,
+            isPostureAligned: isMatched,
+            checklist,
+            primaryGuidance: isMatched
+              ? 'Part 2 Nightfall aligned! (OK) Good Night complete!'
+              : 'Part 2: Dip dominant hand down past horizontal wrist like nightfall.'
+          };
+        }
+      }
+    ],
+    targetSkeleton: {
+      leftHand: null,
+      rightHand: createHandSkeleton({ wristX: 0.54, wristY: 0.55, isRight: true, fingerPose: 'thumbs_up' }),
+      pose: BASE_POSE_LANDMARKS
+    },
+    blueprint: {
+      activeHand: 'Dominant Hand',
+      wristTarget: { x: 0.54, y: 0.55 },
+      requiredFingers: 'Step 1: Thumbs-Up -> Step 2: Night Darkness Arc',
+      zone: 'Step 1: Chest -> Step 2: Lower chest horizon'
+    },
+    evaluate: function(landmarks, stepIndex = 0) {
+      const idx = Math.max(0, Math.min(this.steps.length - 1, stepIndex));
+      const step = this.steps[idx];
+      const res = step.evaluate(landmarks);
+      return {
+        ...res,
+        isCompound: true,
+        stepIndex: idx,
+        totalSteps: this.steps.length,
+        activeStepTitle: step.title,
+        activeStepSublabel: step.sublabel,
+        stepsSummary: this.steps.map((s, i) => ({
+          stepNumber: s.stepNumber,
+          title: s.title,
+          sublabel: s.sublabel,
+          isCurrent: i === idx
+        }))
+      };
+    }
+  },
+
+  {
     id: 'thank_you',
     label: 'THANK YOU',
     name: 'Thank You',
@@ -1444,7 +2159,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
     category: 'actions',
     type: 'word',
     english: 'You / Yourself',
-    image: '/signs/you.jpg',
+    image: '/signs/you.gif',
     description: 'Point your dominant index finger directly forward toward your conversation partner.',
     tip: 'Index finger extended forward, other 3 fingers curled into palm.',
     targetSkeleton: {
@@ -3723,6 +4438,8 @@ export function synthesizeLearnItem(word) {
     WALK: '/signs/walk.gif',
     SEE: '/signs/see.gif',
     LEARN: '/signs/learn.gif',
+    YOU: '/signs/you.gif',
+    YES: '/signs/yes.gif',
     WE: '/signs/we.gif',
     WHICH: '/signs/which.gif',
     DOCTOR: '/signs/doctor.gif',
@@ -3755,17 +4472,32 @@ export function synthesizeLearnItem(word) {
 const handcraftedByLabel = new Map(HANDCRAFTED_LEARN_ITEMS.map(i => [i.label.toUpperCase().replace(/\s+/g, '_'), i]));
 const handcraftedLetters = HANDCRAFTED_LEARN_ITEMS.filter(i => i.type === 'alphabet');
 
+// Explicit alias support for pronouns (I_ME <-> ME)
+const handcraftedMe = HANDCRAFTED_LEARN_ITEMS.find(i => i.id === 'me');
+if (handcraftedMe) {
+  handcraftedByLabel.set('I_ME', handcraftedMe);
+  handcraftedByLabel.set('ME', handcraftedMe);
+}
+
+const usedHandcraftedIds = new Set();
 const allWordLearnItems = ISL_WORD_LABELS.map(word => {
   const normGloss = word.gloss.toUpperCase().replace(/\s+/g, '_');
   const existing = handcraftedByLabel.get(normGloss);
   if (existing) {
+    usedHandcraftedIds.add(existing.id);
     return existing;
   }
   return synthesizeLearnItem(word);
 });
 
+// Any handcrafted words not in ISL_WORD_LABELS (e.g. standalone GOOD, BAD, ME) must also be preserved
+const remainingHandcraftedWords = HANDCRAFTED_LEARN_ITEMS.filter(
+  i => i.type === 'word' && !usedHandcraftedIds.has(i.id)
+);
+
 export const ISL_LEARN_ITEMS = Object.freeze([
   ...allWordLearnItems,
+  ...remainingHandcraftedWords,
   ...handcraftedLetters
 ]);
 
@@ -3779,10 +4511,25 @@ for (const item of ISL_LEARN_ITEMS) {
   ISL_LEARN_MAP.set(item.label.toUpperCase(), item);
   ISL_LEARN_MAP.set(item.label.toUpperCase().replace(/\s+/g, '_'), item);
   ISL_LEARN_BY_ID.set(item.id, item);
+  ISL_LEARN_MAP.set(item.id.toUpperCase(), item);
 }
 
-export function getLearnItemByLabel(label) {
-  if (!label) return ISL_LEARN_ITEMS[0];
+// Ensure both ME and I_ME are explicitly mapped
+if (handcraftedMe) {
+  ISL_LEARN_MAP.set('ME', handcraftedMe);
+  ISL_LEARN_MAP.set('I_ME', handcraftedMe);
+}
+
+export function getLearnItemByLabel(label, fallbackToFirst = false) {
+  if (!label) return fallbackToFirst ? ISL_LEARN_ITEMS[0] : null;
   const cleaned = label.trim().toUpperCase();
-  return ISL_LEARN_MAP.get(cleaned) || ISL_LEARN_MAP.get(cleaned.replace(/\s+/g, '_')) || ISL_LEARN_ITEMS[0];
+  const normalized = cleaned.replace(/\s+/g, '_');
+  const found = ISL_LEARN_MAP.get(cleaned) || 
+                ISL_LEARN_MAP.get(normalized) || 
+                ISL_LEARN_BY_ID.get(label.trim().toLowerCase()) || 
+                null;
+  if (!found && fallbackToFirst) {
+    return ISL_LEARN_ITEMS[0];
+  }
+  return found;
 }
