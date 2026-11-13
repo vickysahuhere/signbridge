@@ -22,6 +22,7 @@ import { ISL_LEARN_ITEMS, getLearnItemByLabel } from './ai/islTargetLandmarks.js
 import { getNextRecommendedSign } from './ai/islCourseCurriculum.js';
 import { AlertCircle, ShieldCheck, Video, MessageSquare, BookOpen, Compass, Bug, Sparkles, Lock, Globe } from 'lucide-react';
 import { HomeChatbotPopup } from './components/HomeChatbotPopup.jsx';
+import { MovableChatbotLauncher } from './components/MovableChatbotLauncher.jsx';
 import { AnimatedOtterBar } from './components/AnimatedOtterBar.jsx';
 import { ErrorBoundary } from './components/ErrorBoundary.jsx';
 import { MobileBottomNav } from './components/MobileBottomNav.jsx';
@@ -796,7 +797,7 @@ export function App() {
 
               {/* Center & Lower Right: Video/Skeleton Stage + Lower AI Guessing Hub */}
               <div
-                className={`flex-1 min-h-0 flex flex-col gap-3 overflow-y-auto no-scrollbar justify-between ${
+                className={`flex-1 min-h-0 flex flex-col gap-2.5 sm:gap-3 overflow-hidden ${
                   mobileLearnTab === 'stage' ? 'flex' : 'hidden md:flex'
                 }`}
               >
@@ -1039,26 +1040,12 @@ export function App() {
         contextData={feedbackContextData}
       />
 
-      {/* Global Floating Chatbot Launcher Button (Desktop only; on mobile, it is integrated into the bottom dock) */}
-      {!isChatbotOpen && (
-        <div className={`hidden md:block fixed right-4 sm:right-6 z-40 transition-all ${
-          currentPage === 'learn' ? 'bottom-24 sm:bottom-24' : 'bottom-12 sm:bottom-14'
-        }`}>
-          <button
-            type="button"
-            onClick={() => setIsChatbotOpen(true)}
-            className="cartoon-btn !py-2.5 !px-3.5 rounded-2xl bg-[#FFD15C] hover:bg-[#F5C240] border-2 border-zinc-900 shadow-cartoon text-xs sm:text-sm font-black text-zinc-900 flex items-center gap-2 group transition-all hover:scale-105 active:scale-95"
-            title="Open Sanket AI Chatbot"
-            aria-label="Open Sanket AI Chatbot"
-          >
-            <div className="relative">
-              <Sparkles className="w-4 h-4 text-zinc-900 fill-zinc-900 animate-subtle-bounce" />
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-500 rounded-full border border-zinc-900" />
-            </div>
-            <span className="font-black">Ask Sanket AI</span>
-          </button>
-        </div>
-      )}
+      {/* Global Movable Floating Chatbot Launcher Button (Drag anywhere on desktop; mobile uses bottom dock) */}
+      <MovableChatbotLauncher
+        isOpen={isChatbotOpen}
+        onOpen={() => setIsChatbotOpen(true)}
+        currentPage={currentPage}
+      />
 
       {/* Mobile Bottom Navigation Dock (< md: thumb navigation) */}
       <MobileBottomNav

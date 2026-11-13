@@ -177,7 +177,17 @@ export function HomeChatbotPopup({
   const moreMenuRef = useRef(null);
 
   // Draggable window state for desktop screens
-  const [position, setPosition] = useState(null);
+  const [position, setPosition] = useState(() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const saved = localStorage.getItem('sanket_ai_popup_pos');
+      if (saved) {
+        const p = JSON.parse(saved);
+        if (typeof p.x === 'number' && typeof p.y === 'number') return p;
+      }
+    } catch {}
+    return null;
+  });
   const dragRef = useRef({ isDragging: false, startX: 0, startY: 0, initialX: 0, initialY: 0 });
 
   // Update default position on open or window resize
@@ -245,6 +255,14 @@ export function HomeChatbotPopup({
       dragRef.current.isDragging = false;
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('pointerup', handlePointerUp);
+      setPosition(cur => {
+        if (cur) {
+          try {
+            localStorage.setItem('sanket_ai_popup_pos', JSON.stringify(cur));
+          } catch {}
+        }
+        return cur;
+      });
     };
 
     window.addEventListener('pointermove', handlePointerMove);

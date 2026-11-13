@@ -30,7 +30,8 @@ import {
   X,
   Lightbulb,
   Maximize2,
-  Minimize2
+  Minimize2,
+  Target
 } from 'lucide-react';
 import { SignSvgIllustration, hasSvgIllustration } from './SignSvgIllustrations.jsx';
 import { ISL_LEARN_ITEMS, getLearnItemByLabel } from '../ai/islTargetLandmarks.js';
@@ -250,6 +251,15 @@ export function LearnSidebar({
   const primaryGuidance = evaluationResult?.primaryGuidance || 'Position yourself in front of the camera.';
   const isAligned = evaluationResult?.isPostureAligned || evaluationResult?.isMatched || false;
 
+  // Real-time breakdown of checklist into completed vs immediate next action
+  const totalChecks = checklist.length;
+  const passedChecks = checklist.filter(item => item.status === 'pass').length;
+  const nextActionItem = useMemo(() => {
+    if (!checklist || checklist.length === 0) return null;
+    return checklist.find(item => item.status === 'fail') || checklist.find(item => item.status === 'warn') || null;
+  }, [checklist]);
+  const isAllPassed = totalChecks > 0 && passedChecks === totalChecks;
+
   // Level icon helper
   const renderLevelIcon = (iconName) => {
     switch (iconName) {
@@ -310,7 +320,7 @@ export function LearnSidebar({
 
         {/* 1. Upper Card: Selected Sign Guide & Biomechanical Blueprint */}
         {selectedItem && (
-          <div className="cartoon-card bg-white p-3 sm:p-3.5 flex flex-col gap-2 border-2 border-zinc-900 shadow-cartoon-sm flex-[1.25] min-h-0 overflow-hidden">
+          <div className="cartoon-card bg-white p-3 sm:p-3.5 flex flex-col gap-2 border-2 border-zinc-900 shadow-cartoon-sm flex-1 min-h-0 overflow-hidden">
             {/* Header: Level & Name */}
             <div className="flex items-start justify-between gap-2 flex-shrink-0">
               <div className="min-w-0 flex-1">
@@ -332,22 +342,40 @@ export function LearnSidebar({
               <div
                 className={`w-full bg-[#FAF8F5] rounded-xl border-2 border-zinc-900 shadow-cartoon-sm flex items-center justify-center overflow-hidden p-2 relative group flex-shrink-0 transition-all duration-200 ${
                   isExpandedDemo
-                    ? 'h-[340px] sm:h-[380px]'
+                    ? 'h-[320px] sm:h-[360px]'
                     : gifLayout === 'portrait'
-                    ? 'h-[250px] sm:h-[280px] md:h-[310px]'
+                    ? 'h-[180px] sm:h-[210px]'
                     : gifLayout === 'landscape'
-                    ? 'aspect-video min-h-[180px] max-h-[250px]'
-                    : 'h-[220px] sm:h-[250px]'
+                    ? 'aspect-video min-h-[140px] max-h-[190px]'
+                    : 'h-[170px] sm:h-[190px]'
                 }`}
               >
                 {selectedItem.image ? (
-                  <img
-                    src={selectedItem.image}
-                    alt={`${selectedItem.name} demonstration`}
-                    onLoad={handleImageLoad}
-                    className="w-auto h-full max-w-full object-contain rounded-lg transition-transform group-hover:scale-[1.01] shadow-sm"
-                    loading="eager"
-                  />
+                  selectedItem.image.endsWith('.mp4') ? (
+                    <video
+                      src={selectedItem.image}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      className="w-auto h-full max-w-full object-contain rounded-lg shadow-sm"
+                    />
+                  ) : (
+                    <img
+                      src={selectedItem.image}
+                      alt={`${selectedItem.name} demonstration`}
+                      onLoad={handleImageLoad}
+                      onError={(e) => {
+                        const mp4Url = selectedItem.image.replace(/\.(gif|jpg|png)$/i, '.mp4');
+                        if (!e.currentTarget.dataset.retried) {
+                          e.currentTarget.dataset.retried = 'true';
+                          e.currentTarget.src = mp4Url;
+                        }
+                      }}
+                      className="w-auto h-full max-w-full object-contain rounded-lg transition-transform group-hover:scale-[1.01] shadow-sm"
+                      loading="eager"
+                    />
+                  )
                 ) : (
                   <div className="flex flex-col items-center justify-center text-zinc-700 gap-1.5 w-full text-center px-2 py-4">
                     <div className="w-10 h-10 rounded-full bg-[#FFC800] border-2 border-zinc-900 flex items-center justify-center text-zinc-900 shadow-cartoon-sm">
@@ -408,84 +436,86 @@ export function LearnSidebar({
           </div>
         )}
 
-        {/* 2. Lower Card: Landmark Target Blueprint & Real-time Alignment Guide */}
-        <div className="cartoon-card bg-white p-3 sm:p-3.5 flex flex-col gap-2 flex-[0.9] min-h-0 border-2 border-zinc-900 shadow-cartoon-sm overflow-hidden justify-between">
-          {/* Header Row */}
-          <div className="flex items-center justify-between border-b border-zinc-200 pb-1.5 flex-shrink-0">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <div className="w-5 h-5 rounded-md bg-[#58CC02] flex items-center justify-center text-white border border-zinc-900/20 flex-shrink-0">
-                <Crosshair className="w-3.5 h-3.5 stroke-[2.5]" />
+        {/* 2. Lower Card: Live Posture Alignment Guide */}
+        <div className="bg-white rounded-2xl border-2 border-zinc-900 shadow-cartoon-sm p-3 sm:p-3.5 flex flex-col gap-2.5 flex-1 min-h-0 justify-between overflow-hidden">
+          {/* Header & Repetition Goal Bar (Integrated & Compact) */}
+          <div className="flex items-center justify-between gap-2 pb-2 border-b border-zinc-100 flex-shrink-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-6 h-6 rounded-xl bg-gradient-to-br from-[#58CC02] to-[#46A302] flex items-center justify-center text-white shadow-xs border border-zinc-900/10 flex-shrink-0">
+                <Target className="w-3.5 h-3.5 stroke-[2.5]" />
               </div>
-              <span className="font-black text-xs sm:text-sm text-zinc-900 truncate">
+              <span className="font-black text-xs sm:text-sm text-zinc-900 truncate tracking-tight">
                 {selectedItem?.isCompound && selectedItem?.steps?.[activeStepIndex]
                   ? selectedItem.steps[activeStepIndex].title
-                  : 'Landmark Target Blueprint'}
+                  : 'Live Posture Guide'}
               </span>
             </div>
 
-            <div className="flex items-center gap-1 font-mono text-xs font-black flex-shrink-0">
-              <span className="text-zinc-500">Match:</span>
-              <span className={`px-1.5 py-0.5 rounded border border-zinc-900/30 ${
-                score >= 75 ? 'bg-[#58CC02] text-white' : score >= 40 ? 'bg-[#FFC800] text-zinc-900' : 'bg-zinc-200 text-zinc-700'
-              }`}>
-                {score}%
-              </span>
-            </div>
-          </div>
-
-          {/* Repetition Goal: Complete 3 Times to Pass */}
-          <div className="bg-[#EAF6E8] p-2 rounded-xl border border-[#D6EBD3] flex items-center justify-between gap-2 flex-shrink-0">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-[10px] font-black uppercase text-zinc-700 font-mono">
-                Pass Goal:
-              </span>
-              <div className="flex items-center gap-1">
+            {/* Reps Goal & Match Score side-by-side */}
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              {/* Repetition Goal Pills */}
+              <div className="flex items-center gap-1 bg-[#F4F4F5] px-2 py-1 rounded-xl border border-zinc-200/80">
+                <span className="text-[9px] font-black uppercase text-zinc-500 tracking-wider mr-0.5">Reps</span>
                 {Array.from({ length: targetReps }).map((_, i) => (
                   <span
                     key={i}
-                    className={`px-1.5 py-0.5 rounded text-[10px] font-black border transition-all ${
+                    className={`w-4 h-4 rounded-md text-[9px] font-black flex items-center justify-center transition-all ${
                       successfulReps > i
-                        ? 'bg-[#58CC02] text-white border-zinc-900'
-                        : 'bg-white text-zinc-400 border-zinc-300'
+                        ? 'bg-[#58CC02] text-white shadow-xs'
+                        : 'bg-white text-zinc-400 border border-zinc-300'
                     }`}
                   >
-                    {successfulReps > i ? `✓ ${i + 1}` : `${i + 1}/${targetReps}`}
+                    {successfulReps > i ? '✓' : i + 1}
                   </span>
                 ))}
               </div>
+
+              {/* Match Score Badge */}
+              <div className={`px-2 py-1 rounded-xl text-[11px] font-black font-mono flex items-center gap-1.5 border transition-all ${
+                score >= 75
+                  ? 'bg-[#EBFDF0] text-[#15803D] border-[#86EFAC]'
+                  : score >= 40
+                  ? 'bg-[#FEFCE8] text-[#A16207] border-[#FDE047]'
+                  : 'bg-zinc-100 text-zinc-600 border-zinc-200'
+              }`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${
+                  score >= 75 ? 'bg-[#22C55E] animate-pulse' : score >= 40 ? 'bg-[#EAB308]' : 'bg-zinc-400'
+                }`} />
+                <span>{score}%</span>
+              </div>
+
+              {onResetPractice && (
+                <button
+                  type="button"
+                  onClick={onResetPractice}
+                  className="w-6 h-6 rounded-xl bg-white hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 border border-zinc-300 hover:border-zinc-900 flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-95"
+                  title="Reset practice repetitions"
+                >
+                  <RotateCcw className="w-3 h-3 stroke-[2.2]" />
+                </button>
+              )}
             </div>
-            {onResetPractice && (
-              <button
-                type="button"
-                onClick={onResetPractice}
-                className="cartoon-btn !py-0.5 !px-2 text-[10px] font-bold bg-white text-zinc-700 hover:bg-zinc-100 border border-zinc-900 shadow-sm flex items-center gap-1 cursor-pointer flex-shrink-0"
-                title="Reset repetitions and try again"
-              >
-                <RotateCcw className="w-3 h-3 stroke-[2.2]" />
-                <span>Try Again</span>
-              </button>
-            )}
           </div>
 
           {/* Compound Sign Multi-Step Mini Progress Indicator */}
           {selectedItem?.isCompound && selectedItem?.steps && (
-            <div className="flex items-center gap-1 p-1 bg-[#EAF6E8] rounded-lg border border-[#D6EBD3] flex-shrink-0">
+            <div className="flex items-center gap-1.5 p-1.5 bg-[#F4FBF4] rounded-xl border border-[#D6EBD3] flex-shrink-0">
               {selectedItem.steps.map((st, idx) => {
                 const isDone = completedSteps.includes(idx);
                 const isCur = idx === activeStepIndex;
                 return (
                   <div
                     key={st.id}
-                    className={`flex-1 text-center py-1 px-1.5 rounded text-xs font-bold border transition-all ${
+                    className={`flex-1 text-center py-1 px-1.5 rounded-lg text-xs font-black border transition-all ${
                       isDone
-                        ? 'bg-[#58CC02] text-white border-zinc-900'
+                        ? 'bg-[#58CC02] text-white border-zinc-900 shadow-xs'
                         : isCur
-                        ? 'bg-[#FFC800] text-zinc-900 border-zinc-900 shadow-cartoon-sm animate-pulse'
+                        ? 'bg-[#FFC800] text-zinc-900 border-zinc-900 shadow-sm animate-pulse'
                         : 'bg-white text-zinc-500 border-zinc-200'
                     }`}
                   >
                     {isDone ? (
-                      <Check className="w-3.5 h-3.5 inline mr-1 stroke-[3]" />
+                      <Check className="w-3.5 h-3.5 inline mr-0.5 stroke-[3]" />
                     ) : (
                       `${idx + 1}. `
                     )}
@@ -496,76 +526,162 @@ export function LearnSidebar({
             </div>
           )}
 
-          {/* Dynamic Match Score Progress Bar */}
+          {/* Dynamic Match Score Progress Bar (Polished Pill) */}
           <div className="space-y-1 flex-shrink-0">
-            <div className="w-full h-2.5 bg-zinc-100 rounded-full border border-zinc-300 overflow-hidden relative">
+            <div className="w-full h-2.5 bg-zinc-100 rounded-full border border-zinc-200/90 overflow-hidden relative shadow-inner">
+              {/* Target Threshold Notch at 75% */}
+              <div
+                className="absolute top-0 bottom-0 left-[75%] w-0.5 bg-zinc-400/80 z-10"
+                title="Goal threshold (75%)"
+              />
               <div
                 className={`h-full transition-all duration-300 rounded-full ${
-                  score >= 75 ? 'bg-[#58CC02]' : score >= 40 ? 'bg-[#FFC800]' : 'bg-zinc-400'
+                  score >= 75
+                    ? 'bg-gradient-to-r from-[#58CC02] to-[#46A302]'
+                    : score >= 40
+                    ? 'bg-gradient-to-r from-[#FFD15C] to-[#E5A500]'
+                    : 'bg-zinc-400'
                 }`}
                 style={{ width: `${Math.min(100, Math.max(0, score))}%` }}
               />
             </div>
-            <div className="flex justify-between text-xs font-bold text-zinc-500 font-mono">
-              <span>0% (Idle)</span>
-              <span>Target: 75%+</span>
-              <span>100% (Perfect)</span>
+            <div className="flex justify-between items-center text-[10px] font-bold text-zinc-400 px-0.5 font-mono leading-none">
+              <span>0%</span>
+              <span className="text-[9.5px] font-black text-zinc-500 uppercase tracking-wider">
+                Goal: 75%+
+              </span>
+              <span>100%</span>
             </div>
           </div>
 
-          {/* Real-time Guidance Message Box */}
-          <div className={`p-2.5 rounded-xl border-2 flex items-start gap-2 flex-shrink-0 ${
-            isAligned
-              ? 'bg-[#EBFDF0] border-[#58CC02] text-[#15803D]'
-              : score > 30
-              ? 'bg-[#FEFCE8] border-[#EAB308] text-[#854D0E]'
-              : 'bg-zinc-50 border-zinc-300 text-zinc-700'
+          {/* CENTER HERO: ACTIVE COACHING DIRECTIVE */}
+          <div className={`p-3 rounded-2xl border-2 flex flex-col gap-2 transition-all flex-shrink-0 ${
+            isAllPassed || isAligned
+              ? 'bg-gradient-to-r from-[#F0FDF4] to-[#DCFCE7] border-[#86EFAC] text-emerald-950 shadow-xs'
+              : nextActionItem?.status === 'fail'
+              ? 'bg-gradient-to-r from-[#FFFDF5] to-[#FEF9E7] border-[#FDE68A] text-zinc-900 shadow-xs'
+              : 'bg-gradient-to-r from-[#F0F9FF] to-[#E0F2FE] border-[#BAE6FD] text-zinc-900 shadow-xs'
           }`}>
-            {isAligned ? (
-              <CheckCircle2 className="w-4 h-4 text-[#58CC02] flex-shrink-0 mt-0.5 stroke-[2.5]" />
-            ) : (
-              <Compass className="w-4 h-4 text-zinc-600 flex-shrink-0 mt-0.5 stroke-[2.5]" />
-            )}
-            <div className="min-w-0 flex-1">
-              <span className="text-xs sm:text-sm font-bold block leading-snug">
-                {primaryGuidance}
+            <div className="flex items-center justify-between gap-1.5">
+              <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full flex items-center gap-1 ${
+                isAllPassed || isAligned
+                  ? 'bg-[#58CC02] text-white shadow-xs'
+                  : 'bg-[#FFC800] text-[#78350F] border border-[#E5A500]'
+              }`}>
+                {isAllPassed || isAligned ? (
+                  <>
+                    <Sparkles className="w-3 h-3 text-white stroke-[2.5]" />
+                    <span>Target Aligned!</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-amber-800">👉</span>
+                    <span>Current Step</span>
+                  </>
+                )}
+              </span>
+
+              <span className="text-[10.5px] font-bold text-zinc-500 font-mono">
+                {isAllPassed || isAligned
+                  ? 'Hold Steady (1s)'
+                  : `${passedChecks} of ${totalChecks} conditions met`}
               </span>
             </div>
-          </div>
 
-          {/* Biomechanical Target Landmark Checklist */}
-          <div className="space-y-1 overflow-y-auto flex-1 min-h-0 pr-1">
-            {checklist.map(item => (
-              <div
-                key={item.id}
-                className="flex items-center justify-between p-1.5 rounded-lg bg-[#EAF6E8] border border-[#D6EBD3] text-xs"
-              >
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <span className={`w-4 h-4 rounded flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${
-                    item.status === 'pass'
-                      ? 'bg-[#58CC02] text-white'
-                      : item.status === 'warn'
-                      ? 'bg-[#FFC800] text-zinc-900'
-                      : 'bg-zinc-200 text-zinc-500'
-                  }`}>
-                    {item.status === 'pass' ? '✓' : '!'}
-                  </span>
-                  <span className="font-bold text-xs sm:text-sm text-zinc-800 truncate">
-                    {item.label}
-                  </span>
-                </div>
-                <span className="font-mono text-xs text-zinc-600 font-medium truncate ml-1 flex-shrink-0">
-                  {item.current}
+            {/* Main Action Instruction in Bold Center */}
+            <div className="font-black text-xs sm:text-sm text-zinc-900 leading-snug">
+              {isAllPassed || isAligned
+                ? 'All requirements satisfied! Hold this exact sign steady to register the repetition.'
+                : nextActionItem?.hint || nextActionItem?.label || primaryGuidance}
+            </div>
+
+            {/* Live Sensor Comparison Badge */}
+            {nextActionItem && !isAllPassed && !isAligned && (
+              <div className="inline-flex items-center gap-2 bg-white/95 px-2.5 py-1 rounded-xl border border-amber-200/80 text-[11px] font-bold text-zinc-700 w-fit flex-wrap">
+                <span className="text-zinc-400 text-[10px] uppercase font-black tracking-wider">Detected:</span>
+                <span className={`px-1.5 py-0.2 rounded-md font-black text-[10.5px] ${
+                  nextActionItem.status === 'fail'
+                    ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                    : 'bg-amber-50 text-amber-800 border border-amber-200'
+                }`}>
+                  {nextActionItem.current || 'Detecting...'}
+                </span>
+                <ArrowRight className="w-3 h-3 text-zinc-400 flex-shrink-0" />
+                <span className="text-zinc-400 text-[10px] uppercase font-black tracking-wider">Target:</span>
+                <span className="px-1.5 py-0.2 rounded-md font-black text-[10.5px] bg-emerald-50 text-emerald-800 border border-emerald-200">
+                  {nextActionItem.target || nextActionItem.label}
                 </span>
               </div>
-            ))}
+            )}
+          </div>
+
+          {/* REQUIREMENTS MATRIX */}
+          <div className="flex flex-col gap-1.5 flex-1 min-h-0 justify-center">
+            <div className="flex items-center justify-between text-[10px] font-black uppercase text-zinc-500 tracking-wider">
+              <span>Requirements Overview</span>
+              <span className="font-mono text-[#15803D] font-bold">{passedChecks} of {totalChecks} Completed</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-1.5">
+              {checklist.map((item, idx) => {
+                const isPass = item.status === 'pass';
+                const isCurrent = item === nextActionItem;
+                const isLastOdd = checklist.length % 2 === 1 && idx === checklist.length - 1;
+                return (
+                  <div
+                    key={item.id || idx}
+                    className={`flex items-center justify-between p-2 rounded-xl border text-xs transition-all ${
+                      isLastOdd ? 'col-span-2' : ''
+                    } ${
+                      isPass
+                        ? 'bg-[#F0FDF4] border-[#86EFAC]/80 text-[#15803D]'
+                        : isCurrent
+                        ? 'bg-[#FFFBEB] border-2 border-[#FFC800] text-zinc-900 shadow-xs'
+                        : 'bg-zinc-50/80 border-zinc-200/80 text-zinc-500'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className={`w-4 h-4 rounded-md flex items-center justify-center text-[10px] font-black flex-shrink-0 ${
+                        isPass
+                          ? 'bg-[#58CC02] text-white shadow-xs'
+                          : isCurrent
+                          ? 'bg-[#FFC800] text-[#78350F]'
+                          : 'bg-zinc-200 text-zinc-400'
+                      }`}>
+                        {isPass ? '✓' : isCurrent ? '!' : '○'}
+                      </span>
+                      <span className="font-bold text-[11.5px] truncate leading-tight">
+                        {item.label}
+                      </span>
+                    </div>
+
+                    <span className={`text-[10px] font-bold ml-1 flex-shrink-0 text-right px-1.5 py-0.2 rounded-md ${
+                      isPass
+                        ? 'text-emerald-700 bg-emerald-100/60 font-black'
+                        : isCurrent
+                        ? 'text-amber-800 bg-amber-100/80 font-black'
+                        : 'text-zinc-500 bg-zinc-100'
+                    }`}>
+                      {isPass ? 'Done' : item.current}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {/* Target Specs Summary */}
           {selectedItem?.blueprint && (
-            <div className="pt-1.5 border-t border-zinc-100 flex items-center justify-between text-xs text-zinc-600 font-mono flex-shrink-0">
-              <span className="truncate">Zone: {selectedItem.blueprint.zone || 'Mid-chest level (Y: 0.42 - 0.70)'}</span>
-              <span className="text-zinc-500 flex-shrink-0 ml-1">ISL Standard</span>
+            <div className="pt-2 border-t border-zinc-100 flex items-center justify-between text-[11px] text-zinc-500 flex-shrink-0">
+              <span className="flex items-center gap-1.5 truncate">
+                <span className="text-zinc-400 font-bold text-[10px] uppercase tracking-wider">Target Zone:</span>
+                <span className="text-zinc-800 font-bold">
+                  {(selectedItem.blueprint.zone || 'Mid-chest center').replace(/\s*\([^)]*\)/g, '').trim()}
+                </span>
+              </span>
+              <span className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex-shrink-0">
+                ISL Standard
+              </span>
             </div>
           )}
         </div>

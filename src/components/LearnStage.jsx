@@ -91,26 +91,32 @@ export function LearnStage({
       });
 
       if (videoRef.current) {
+        if (videoRef.current.srcObject) {
+          try {
+            const oldTracks = videoRef.current.srcObject.getTracks();
+            oldTracks.forEach(t => t.stop());
+          } catch (e) {}
+        }
         videoRef.current.srcObject = stream;
         try {
           await videoRef.current.play();
         } catch (playErr) {
-          if (playErr.name === 'AbortError') {
-            // Ignored: benign interruption during stream switch or component remount
-            return;
+          if (playErr.name !== 'AbortError' && !playErr.message?.includes('interrupted')) {
+            console.warn('[LearnStage] video.play() warning:', playErr);
           }
-          throw playErr;
         }
         setIsCameraActive(true);
         syncCanvasDimensions();
       }
     } catch (err) {
       console.error('[LearnStage] Camera access denied or failed:', err);
-      setCameraError(
-        err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError'
-          ? 'Camera permission denied. Please allow camera access in browser.'
-          : `Video capture error: ${err.message || 'Unknown device error'}`
-      );
+      if (err.name !== 'AbortError' && !err.message?.includes('interrupted')) {
+        setCameraError(
+          err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError'
+            ? 'Camera permission denied. Please allow camera access in browser.'
+            : `Video capture error: ${err.message || 'Unknown device error'}`
+        );
+      }
       setIsCameraActive(false);
     } finally {
       setIsLoadingCamera(false);
@@ -240,7 +246,7 @@ export function LearnStage({
   const hasRightHand = Boolean(latestLandmarks?.rightHandLandmarks?.length > 0);
 
   return (
-    <div className="cartoon-card w-full flex-none flex flex-col overflow-hidden bg-white shadow-cartoon-sm">
+    <div className="cartoon-card w-full flex-col overflow-hidden bg-white shadow-cartoon-sm flex-shrink-0">
       {/* 1. Stage Header: Studio Controls */}
       <div className="px-3.5 py-2 border-b-2 border-[#D6EBD3] bg-[#EAF6E8] flex items-center justify-between gap-2 flex-shrink-0">
         <div className="flex items-center gap-2 min-w-0">
@@ -299,8 +305,8 @@ export function LearnStage({
         </div>
       </div>
 
-      {/* 2. Main Visual Canvas Area - Strictly 16:9 Aspect Ratio */}
-      <div className="relative w-full aspect-video max-h-[290px] sm:max-h-[330px] md:max-h-[360px] lg:max-h-[390px] xl:max-h-[420px] overflow-hidden flex items-center justify-center bg-[#090A0F] mx-auto">
+      {/* 2. Main Visual Canvas Area - Strict 16:9 Aspect Ratio with Controlled Height */}
+      <div className="relative w-full aspect-video max-h-[360px] sm:max-h-[400px] lg:max-h-[440px] overflow-hidden flex items-center justify-center bg-[#090A0F] mx-auto">
         {/* Underneath Webcam Feed */}
         <video
           ref={videoRef}

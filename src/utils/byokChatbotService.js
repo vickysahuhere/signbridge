@@ -234,7 +234,7 @@ export function setWorkingModel(provider, model) {
  * @param {number} [maxAssistantChars=280] - Max character length for older assistant turns
  * @returns {Array} Token-optimized history array
  */
-export function pruneHistoryForTokenEfficiency(history = [], maxTurns = 6, maxAssistantChars = 280) {
+export function pruneHistoryForTokenEfficiency(history = [], maxTurns = 4, maxAssistantChars = 200) {
   if (!Array.isArray(history) || history.length === 0) return [];
 
   // Window to the most recent turns
@@ -979,49 +979,17 @@ export async function sendChatbotMessage({
         },
         contents,
         generationConfig: {
-          temperature: 0.4,
-          maxOutputTokens: 600,
-          ...(wantsAudio ? {
-            responseModalities: ["AUDIO"],
-            speechConfig: {
-              voiceConfig: {
-                prebuiltVoiceConfig: {
-                  voiceName: "Puck"
-                }
-              }
-            }
-          } : {})
+          temperature: 0.3,
+          maxOutputTokens: 220
         }
       };
 
       try {
-        let response = await fetch(url, {
+        const response = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(requestBody)
         });
-
-        // If audio modality was rejected with 400, retry without audio modality
-        if (!response.ok && wantsAudio && (response.status === 400 || response.status === 404)) {
-          const fallbackBody = {
-            system_instruction: {
-              parts: [{ text: systemInstruction }]
-            },
-            contents,
-            generationConfig: {
-              temperature: 0.4,
-              maxOutputTokens: 500
-            }
-          };
-          const textOnlyRes = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(fallbackBody)
-          });
-          if (textOnlyRes.ok) {
-            response = textOnlyRes;
-          }
-        }
 
         if (response.ok) {
           const data = await response.json();
