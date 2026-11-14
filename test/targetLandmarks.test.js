@@ -217,6 +217,55 @@ test('islTargetLandmarks - compound signs support multi-step sequence evaluation
   assert.strictEqual(step1Res.isCompound, true);
   assert.strictEqual(step1Res.stepIndex, 1);
   assert.strictEqual(step1Res.totalSteps, 2);
+
+  // Verify thumbs-up posture satisfies Step 0 (GOOD) but strictly fails Step 1 (EVENING)
+  const thumbUpHand = [
+    { x: 0.54, y: 0.60, z: 0 }, // wrist (0)
+    { x: 0.54, y: 0.55, z: 0 },
+    { x: 0.54, y: 0.50, z: 0 },
+    { x: 0.54, y: 0.45, z: 0 },
+    { x: 0.54, y: 0.38, z: 0 }, // thumb tip pointing UP (4)
+    ...Array(4).fill({ x: 0.54, y: 0.58, z: 0 }), // index curled
+    ...Array(4).fill({ x: 0.54, y: 0.58, z: 0 }), // middle curled
+    ...Array(4).fill({ x: 0.54, y: 0.58, z: 0 }), // ring curled
+    ...Array(4).fill({ x: 0.54, y: 0.58, z: 0 })  // pinky curled
+  ];
+  const thumbsUpLandmarks = { rightHandLandmarks: thumbUpHand, leftHandLandmarks: null };
+
+  const evalStep0 = goodEvening.evaluate(thumbsUpLandmarks, 0);
+  assert.strictEqual(evalStep0.isMatched, true, 'GOOD (Part 1) should match thumbs-up');
+
+  const evalStep1WithThumbsUp = goodEvening.evaluate(thumbsUpLandmarks, 1);
+  assert.strictEqual(evalStep1WithThumbsUp.isMatched, false, 'EVENING (Part 2) MUST reject thumbs-up posture');
+  assert.strictEqual(evalStep1WithThumbsUp.matchScore, 0, 'EVENING (Part 2) should yield 0 score for thumbs-up');
+
+  // Verify authentic evening sunset posture passes Step 1
+  const sunsetHand = [
+    { x: 0.54, y: 0.55, z: 0 }, // wrist (0)
+    { x: 0.54, y: 0.53, z: 0 },
+    { x: 0.53, y: 0.52, z: 0 },
+    { x: 0.52, y: 0.54, z: 0 },
+    { x: 0.50, y: 0.56, z: 0 }, // thumb
+    { x: 0.54, y: 0.52, z: 0 }, // index mcp
+    { x: 0.54, y: 0.55, z: 0 },
+    { x: 0.54, y: 0.58, z: 0 },
+    { x: 0.54, y: 0.60, z: 0 }, // index tip (pointing down)
+    { x: 0.54, y: 0.52, z: 0 }, // middle mcp
+    { x: 0.54, y: 0.55, z: 0 },
+    { x: 0.54, y: 0.58, z: 0 },
+    { x: 0.54, y: 0.61, z: 0 }, // middle tip (pointing down, y >= wrist.y)
+    { x: 0.54, y: 0.52, z: 0 }, // ring mcp
+    { x: 0.54, y: 0.55, z: 0 },
+    { x: 0.54, y: 0.58, z: 0 },
+    { x: 0.54, y: 0.60, z: 0 }, // ring tip
+    { x: 0.54, y: 0.52, z: 0 }, // pinky mcp
+    { x: 0.54, y: 0.54, z: 0 },
+    { x: 0.54, y: 0.56, z: 0 },
+    { x: 0.54, y: 0.58, z: 0 }  // pinky tip
+  ];
+  const sunsetLandmarks = { rightHandLandmarks: sunsetHand, leftHandLandmarks: null };
+  const evalStep1WithSunset = goodEvening.evaluate(sunsetLandmarks, 1);
+  assert.strictEqual(evalStep1WithSunset.isMatched, true, 'EVENING (Part 2) should match open sunset posture');
 });
 
 test('islTargetLandmarks - dictionary does not conflate ME, GOOD, BAD with HELLO', () => {

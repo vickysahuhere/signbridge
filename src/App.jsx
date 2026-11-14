@@ -356,6 +356,7 @@ export function App() {
   const stepHoldTimerRef = useRef(null);
   const abortGraceTimerRef = useRef(null);
   const repAwaitingReleaseRef = useRef(false);
+  const stepAwaitingReleaseRef = useRef(false);
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [completedSteps, setCompletedSteps] = useState([]);
   const [stepSuccessFlash, setStepSuccessFlash] = useState(null);
@@ -379,6 +380,7 @@ export function App() {
     stepHoldTimerRef.current = null;
     abortGraceTimerRef.current = null;
     repAwaitingReleaseRef.current = false;
+    stepAwaitingReleaseRef.current = false;
     if (stepTimeoutRef.current) clearTimeout(stepTimeoutRef.current);
   }, []);
 
@@ -396,6 +398,7 @@ export function App() {
     stepHoldTimerRef.current = null;
     abortGraceTimerRef.current = null;
     repAwaitingReleaseRef.current = false;
+    stepAwaitingReleaseRef.current = false;
     if (stepTimeoutRef.current) clearTimeout(stepTimeoutRef.current);
   }, [selectedLearnItem?.id]);
 
@@ -443,6 +446,15 @@ export function App() {
     if (repAwaitingReleaseRef.current) {
       if (!isStepSatisfied) {
         repAwaitingReleaseRef.current = false;
+      }
+      return;
+    }
+
+    // Inter-step release hysteresis: When advancing between steps in a compound sign,
+    // require the user to release/break the previous step's posture before the new step can start holding.
+    if (stepAwaitingReleaseRef.current) {
+      if (!isStepSatisfied) {
+        stepAwaitingReleaseRef.current = false;
       }
       return;
     }
@@ -523,6 +535,7 @@ export function App() {
             message: `PART ${finishedIdx + 1} LOCKED! Now perform Part ${nextIdx + 1}!`
           });
           setActiveStepIndex(nextIdx);
+          stepAwaitingReleaseRef.current = true;
 
           setTimeout(() => {
             setStepSuccessFlash(null);
@@ -533,6 +546,7 @@ export function App() {
           stepTimeoutRef.current = setTimeout(() => {
             setActiveStepIndex(0);
             setCompletedSteps([]);
+            stepAwaitingReleaseRef.current = false;
             setStepSuccessFlash({
               isTimeout: true,
               message: 'Sequence reset: Start with Part 1 again.'
@@ -543,6 +557,7 @@ export function App() {
           // Final step of compound sign complete -> 1 full repetition complete!
           if (stepTimeoutRef.current) clearTimeout(stepTimeoutRef.current);
           repAwaitingReleaseRef.current = true;
+          stepAwaitingReleaseRef.current = false;
 
           setSuccessfulReps(prev => {
             const next = prev + 1;
@@ -557,6 +572,7 @@ export function App() {
             } else {
               setActiveStepIndex(0);
               setCompletedSteps([]);
+              stepAwaitingReleaseRef.current = false;
               setStepSuccessFlash({
                 isRep: true,
                 repNumber: next,

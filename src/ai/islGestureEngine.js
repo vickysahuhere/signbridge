@@ -891,7 +891,11 @@ export function classifyIslWord(leftHand, rightHand, pose, motion) {
 
   // 26. EVENING (Sunset - Dominant open or curved hand lowering downward in front of chest/horizon)
   for (const h of hands) {
-    if ((h.isOpenPalm || h.extendedCount >= 3 || h.curledCount <= 2) && h.wrist.y >= chestCenter.y - 0.06 && h.wrist.y < 0.85) {
+    const isThumbsUpOrFist = (h.thumb.isExtended && h.points[4].y < h.points[2].y - 0.03 && h.curledCount >= 2) || h.isFist || h.curledCount >= 3;
+    if (isThumbsUpOrFist) continue;
+
+    const isOpenOrCurved = (h.isOpenPalm || h.extendedCount >= 3) && h.curledCount <= 1;
+    if (isOpenOrCurved && h.wrist.y >= chestCenter.y - 0.06 && h.wrist.y < 0.85) {
       // Fingers pointing forward or slanting downward (sunset dip)
       const fingersDownOrForward = h.points[12].y >= h.wrist.y - 0.04;
       const inChestHorizonZone = dist2D(h.wrist, chestCenter) < 0.32;
@@ -923,8 +927,12 @@ export function classifyIslWord(leftHand, rightHand, pose, motion) {
     }
   } else {
     for (const h of hands) {
+      const isThumbsUpOrFist = (h.thumb.isExtended && h.points[4].y < h.points[2].y - 0.03 && h.curledCount >= 2) || h.isFist || h.curledCount >= 3;
+      if (isThumbsUpOrFist) continue;
+
+      const isOpenOrExtended = (h.isOpenPalm || h.extendedCount >= 3) && h.curledCount <= 1;
       // Single hand night gesture: hand tilted downward low across chest
-      if (h.wrist.y > chestCenter.y + 0.05 && h.points[12].y > h.wrist.y + 0.02 && h.wrist.y < 0.88) {
+      if (isOpenOrExtended && h.wrist.y > chestCenter.y + 0.05 && h.points[12].y > h.wrist.y + 0.02 && h.wrist.y < 0.88) {
         score('NIGHT', 0.92);
       }
     }

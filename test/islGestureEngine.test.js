@@ -75,6 +75,8 @@ test('islGestureEngine - GOOD (thumbs-up) recognized accurately', () => {
   assert.ok(words.length > 0);
   assert.strictEqual(words[0].label, 'GOOD');
   assert.ok(words[0].confidence >= 0.90);
+  assert.strictEqual(words.some(w => w.label === 'EVENING'), false, 'Thumbs-up must never trigger EVENING');
+  assert.strictEqual(words.some(w => w.label === 'NIGHT'), false, 'Thumbs-up must never trigger NIGHT');
 });
 
 test('islGestureEngine - Alphabet Letter L recognized accurately', () => {

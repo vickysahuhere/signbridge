@@ -1033,6 +1033,26 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
             };
           }
 
+          // Strict rejection: If user is still holding thumbs-up or closed fist from Part 1 (GOOD), reject Part 2!
+          const isThumbsUp = h.thumb.isExtended && (h.points[4].y < h.points[2].y - 0.03) && h.curledCount >= 2;
+          const isFist = h.isFist || (h.curledCount >= 3 && !h.isOpenPalm);
+          if (isThumbsUp || isFist) {
+            return {
+              matchScore: 0,
+              isMatched: false,
+              isPostureAligned: false,
+              checklist: [
+                { id: 'hand', label: 'Hand visible', status: 'pass', current: '1 hand (OK)', target: '1 hand', hint: '' },
+                { id: 'hand_shape', label: 'Open or gently curved palm (setting sun)', status: 'fail', current: isThumbsUp ? 'Thumbs-up detected (Part 1)' : 'Fist closed', target: 'Open/Curved palm', hint: 'Release thumbs-up. Open your palm and curve it gently downward like the setting sun.' },
+                { id: 'sunset_tilt', label: 'Fingers dipping downward', status: 'fail', current: 'Not dipping', target: 'Downward angle', hint: 'Angle palm downward.' },
+                { id: 'zone', label: 'Hand at mid/lower chest', status: 'fail', current: 'Waiting for sunset shape', target: 'Mid-to-lower chest', hint: 'Lower hand to chest level.' }
+              ],
+              primaryGuidance: isThumbsUp
+                ? 'Part 2: Release thumbs-up! Open your hand and curve palm downward like the setting sun.'
+                : 'Part 2: Open your fist! Lower curved palm downward like the setting sun.'
+            };
+          }
+
           checklist.push({
             id: 'hand',
             label: 'Hand visible',
@@ -1043,14 +1063,14 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
           });
           score += 25;
 
-          const isRelaxedOrCurved = h.isOpenPalm || h.extendedCount >= 3 || h.curledCount <= 2;
+          const isRelaxedOrCurved = (h.isOpenPalm || h.extendedCount >= 3) && h.curledCount <= 1;
           checklist.push({
             id: 'hand_shape',
             label: 'Open or gently curved palm (setting sun)',
             status: isRelaxedOrCurved ? 'pass' : 'fail',
-            current: isRelaxedOrCurved ? 'Sun shape (OK)' : 'Relax fingers',
+            current: isRelaxedOrCurved ? 'Sun shape (OK)' : 'Open/Relax fingers',
             target: 'Open/Curved palm',
-            hint: 'Hold hand relaxed or curved like setting sun.'
+            hint: 'Hold hand open or curved like setting sun.'
           });
           if (isRelaxedOrCurved) score += 35;
 
@@ -1270,6 +1290,21 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
             };
           }
 
+          // Strict rejection: If user is still holding thumbs-up from Part 1 (GOOD), reject Part 2!
+          const isThumbsUp = h.thumb.isExtended && (h.points[4].y < h.points[2].y - 0.03) && h.curledCount >= 2;
+          if (isThumbsUp) {
+            return {
+              matchScore: 0,
+              isMatched: false,
+              isPostureAligned: false,
+              checklist: [
+                { id: 'hand', label: 'Hand visible', status: 'pass', current: '1 hand (OK)', target: '1 or 2 hands', hint: '' },
+                { id: 'night_pose', label: 'Hands crossed or dominant hand arcing down past horizon', status: 'fail', current: 'Thumbs-up detected (Part 1)', target: 'Downward arc / Crossed', hint: 'Release thumbs-up. Arc hand down past horizontal wrist or cross wrists.' }
+              ],
+              primaryGuidance: 'Part 2: Release thumbs-up! Arc hand downward or cross wrists at chest for Night.'
+            };
+          }
+
           checklist.push({
             id: 'hand',
             label: 'Hand visible',
@@ -1282,7 +1317,7 @@ export const HANDCRAFTED_LEARN_ITEMS = Object.freeze([
 
           const dWrists = (left && right) ? dist3D(left.wrist, right.wrist) : 99;
           const twoHandsCrossed = (left && right) && (dWrists < 0.22);
-          const singleHandDipping = h.points[12].y > h.wrist.y - 0.02 && h.wrist.y >= 0.45;
+          const singleHandDipping = (h.isOpenPalm || h.extendedCount >= 3) && h.curledCount <= 1 && h.points[12].y > h.wrist.y - 0.02 && h.wrist.y >= 0.45;
           const validNightShape = twoHandsCrossed || singleHandDipping;
 
           checklist.push({
