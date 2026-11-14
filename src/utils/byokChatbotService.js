@@ -1037,10 +1037,10 @@ export async function sendChatbotMessage({
               });
               if (ttsRes.ok) {
                 const ttsData = await ttsRes.json();
-                const audioPart = ttsData?.candidates?.[0]?.content?.parts?.[0]?.inlineData;
+                const audioPart = ttsData?.candidates?.[0]?.content?.parts?.find(p => p.inlineData?.data)?.inlineData;
                 if (audioPart && audioPart.data) {
                   audioData = {
-                    mimeType: audioPart.mimeType || 'audio/L16;codec=pcm;rate=24000',
+                    mimeType: audioPart.mimeType || 'audio/pcm;rate=24000',
                     base64: audioPart.data
                   };
                 }

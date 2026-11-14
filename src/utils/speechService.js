@@ -500,9 +500,13 @@ export async function playGeminiAudio(base64Data, mimeType = 'audio/wav', { onSt
       return null;
     }
 
-    // If raw PCM (16-bit little endian, mono, 24kHz)
-    if (mimeType.toLowerCase().includes('pcm')) {
-      const sampleRate = 24000;
+    // If raw PCM (16-bit little endian, mono, e.g. 24kHz)
+    if (mimeType.toLowerCase().includes('pcm') || mimeType.toLowerCase().includes('l16')) {
+      let sampleRate = 24000;
+      const rateMatch = mimeType.match(/rate=(\d+)/i);
+      if (rateMatch && rateMatch[1]) {
+        sampleRate = parseInt(rateMatch[1], 10) || 24000;
+      }
       const AudioContextClass = window.AudioContext || window.webkitAudioContext;
       if (!AudioContextClass) throw new Error('Web Audio API not supported');
 

@@ -186,6 +186,7 @@ export function HomeChatbotPopup({
   const [liveUserTranscript, setLiveUserTranscript] = useState('');
   const liveConnectionTimeoutRef = useRef(null);
   const speechRecognizerRef = useRef(null);
+  const isProcessingTurnRef = useRef(false);
   const geminiRecorderRef = useRef(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -651,10 +652,11 @@ export function HomeChatbotPopup({
         const onFinishedSpeaking = () => {
           setIsSpeaking(false);
           setActiveSpeakingId(null);
+          isProcessingTurnRef.current = false;
           // Continuous hands-free voice loop: automatically listen again for next user question!
           if (isContinuousVoiceRef.current) {
             setTimeout(() => {
-              if (isContinuousVoiceRef.current) {
+              if (isContinuousVoiceRef.current && !isProcessingTurnRef.current) {
                 startWebSpeechLoop();
               }
             }, 400);
@@ -684,6 +686,8 @@ export function HomeChatbotPopup({
             onError: onFinishedSpeaking
           });
         }
+      } else {
+        isProcessingTurnRef.current = false;
       }
     } catch (err) {
       setMessages(prev => [
@@ -696,6 +700,14 @@ export function HomeChatbotPopup({
           isError: true
         }
       ]);
+      isProcessingTurnRef.current = false;
+      if (isContinuousVoiceRef.current) {
+        setTimeout(() => {
+          if (isContinuousVoiceRef.current && !isProcessingTurnRef.current) {
+            startWebSpeechLoop();
+          }
+        }, 800);
+      }
     } finally {
       setIsLoading(false);
       setTimeout(() => inputRef.current?.focus(), 50);
@@ -902,6 +914,10 @@ export function HomeChatbotPopup({
     handleStopSpeaking();
     if (!isSpeechRecognitionSupported()) {
       console.warn('[HomeChatbotPopup] Web Speech not supported.');
+      alert('Speech Recognition is not supported in this browser. Please use Google Chrome or Microsoft Edge.');
+      setIsContinuousVoice(false);
+      isContinuousVoiceRef.current = false;
+      isProcessingTurnRef.current = false;
       return;
     }
 
@@ -919,8 +935,10 @@ export function HomeChatbotPopup({
         setInputText(transcript);
       },
       onSpeechEnd: (spokenText) => {
-        if (spokenText && spokenText.trim() && !isLoading) {
+        if (spokenText && spokenText.trim() && !isProcessingTurnRef.current) {
+          isProcessingTurnRef.current = true;
           setIsListening(false);
+          if (speechRecognizerRef.current) speechRecognizerRef.current.abort();
           handleSendMessage(spokenText.trim());
         }
       },
@@ -932,13 +950,14 @@ export function HomeChatbotPopup({
           alert('Microphone permission was denied. Please allow microphone access in your browser to use voice chat.');
           setIsContinuousVoice(false);
           isContinuousVoiceRef.current = false;
+          isProcessingTurnRef.current = false;
         }
       },
       onEnd: () => {
-        // After an utterance finishes, restart recognizer for the continuous loop
-        if (isContinuousVoiceRef.current && !isLoading) {
+        // After an utterance finishes, restart recognizer only if we are NOT currently processing an AI response
+        if (isContinuousVoiceRef.current && !isProcessingTurnRef.current) {
           setTimeout(() => {
-            if (isContinuousVoiceRef.current) {
+            if (isContinuousVoiceRef.current && !isProcessingTurnRef.current) {
               startWebSpeechLoop();
             }
           }, 300);
@@ -957,6 +976,7 @@ export function HomeChatbotPopup({
     // This avoids the silent GeminiVoiceRecorder approach that showed nothing while speaking.
     setIsContinuousVoice(true);
     isContinuousVoiceRef.current = true;
+    isProcessingTurnRef.current = false;
     setAutoSpeak(true);
     startWebSpeechLoop();
   };
@@ -976,6 +996,7 @@ export function HomeChatbotPopup({
     if (isContinuousVoice || isLiveConnected || isLiveConnecting) {
       setIsContinuousVoice(false);
       isContinuousVoiceRef.current = false;
+      isProcessingTurnRef.current = false;
       clearTimeout(liveConnectionTimeoutRef.current);
       if (geminiLiveRef.current) {
         geminiLiveRef.current.stop();
@@ -1031,6 +1052,7 @@ export function HomeChatbotPopup({
       // Stop continuous voice chat
       setIsContinuousVoice(false);
       isContinuousVoiceRef.current = false;
+      isProcessingTurnRef.current = false;
       clearTimeout(liveConnectionTimeoutRef.current);
       if (geminiLiveRef.current) {
         geminiLiveRef.current.stop();
@@ -1056,11 +1078,7 @@ export function HomeChatbotPopup({
     }
 
     // Start live bidirectional voice
-    if (byokConfig.hasKey && byokConfig.provider === 'gemini') {
-      startGeminiLive();
-    } else {
-      startRestListening();
-    }
+    startRestListening();
   };
 
   const handleKeyDown = (e) => {
