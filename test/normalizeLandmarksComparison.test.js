@@ -9,7 +9,7 @@ import { extractAndNormalizeFrame } from '../src/vision/normalizeLandmarks.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-test('normalizeLandmarksComparison - JS and Python normalization produce identical 240-float vectors', () => {
+test('normalizeLandmarksComparison - JS and Python normalization produce identical 240-float vectors', (t) => {
   const fixturePath = path.resolve(__dirname, 'fixtures/sample_landmarks.json');
   assert.strictEqual(fs.existsSync(fixturePath), true, 'Fixture file must exist');
 
@@ -38,8 +38,15 @@ feats = normalize_frame_landmarks(
 print(json.dumps([round(float(x), 6) for x in feats]))
 `;
 
-  const pythonExe = 'C:\\Users\\Vicky\\AppData\\Local\\Python\\bin\\python.exe';
-  const stdout = execFileSync(pythonExe, ['-c', pythonScript], { encoding: 'utf-8' });
+  const candidates = [process.env.PYTHON, 'python3', 'python'].filter(Boolean);
+  let stdout = null;
+  for (const exe of candidates) {
+    try {
+      stdout = execFileSync(exe, ['-c', pythonScript], { encoding: 'utf-8' });
+      break;
+    } catch { /* try next */ }
+  }
+  if (stdout === null) return t.skip('Python (with numpy) not available');
   const pyFeatures = JSON.parse(stdout.trim());
 
   assert.strictEqual(pyFeatures.length, 240);

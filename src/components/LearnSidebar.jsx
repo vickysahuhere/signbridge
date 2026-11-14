@@ -320,7 +320,7 @@ export function LearnSidebar({
 
         {/* 1. Upper Card: Selected Sign Guide & Biomechanical Blueprint */}
         {selectedItem && (
-          <div className="cartoon-card bg-white p-3 sm:p-3.5 flex flex-col gap-2 border-2 border-zinc-900 shadow-cartoon-sm flex-1 min-h-0 overflow-hidden">
+          <div className="cartoon-card bg-white p-3 sm:p-3.5 flex flex-col gap-2 border-2 border-zinc-900 shadow-cartoon-sm flex-1 min-h-[200px] overflow-hidden">
             {/* Header: Level & Name */}
             <div className="flex items-start justify-between gap-2 flex-shrink-0">
               <div className="min-w-0 flex-1">
@@ -341,7 +341,9 @@ export function LearnSidebar({
               {/* Visual Area: Teaching Demonstration GIF / Image - Dynamically adjusts to GIF size & orientation */}
               <div
                 className={`w-full bg-[#FAF8F5] rounded-xl border-2 border-zinc-900 shadow-cartoon-sm flex items-center justify-center overflow-hidden p-2 relative group flex-shrink-0 transition-all duration-200 ${
-                  isExpandedDemo
+                  !selectedItem.image
+                    ? 'h-[72px]'
+                    : isExpandedDemo
                     ? 'h-[320px] sm:h-[360px]'
                     : gifLayout === 'portrait'
                     ? 'h-[180px] sm:h-[210px]'
@@ -377,24 +379,15 @@ export function LearnSidebar({
                     />
                   )
                 ) : (
-                  <div className="flex flex-col items-center justify-center text-zinc-700 gap-1.5 w-full text-center px-2 py-4">
-                    <div className="w-10 h-10 rounded-full bg-[#FFC800] border-2 border-zinc-900 flex items-center justify-center text-zinc-900 shadow-cartoon-sm">
+                  <div className="flex items-center gap-3 w-full px-2 text-left">
+                    <div className="w-10 h-10 rounded-full bg-[#FFC800] border-2 border-zinc-900 flex items-center justify-center text-zinc-900 flex-shrink-0">
                       <Hand className="w-5 h-5 stroke-[2]" />
                     </div>
-                    <div className="text-xs sm:text-sm font-extrabold text-zinc-900">
+                    <div className="text-xs sm:text-sm font-extrabold text-zinc-900 leading-snug line-clamp-2">
                       {selectedItem.blueprint?.requiredFingers || 'Clear handshape'}
-                    </div>
-                    <div className="text-[10px] font-mono text-zinc-500">
-                      Zone: {selectedItem.blueprint?.zone || 'Mid-chest level'}
                     </div>
                   </div>
                 )}
-
-                {/* Badge indicating authentic motion */}
-                <div className="absolute top-2 left-2 bg-zinc-900/90 backdrop-blur-md text-white text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1.5 pointer-events-none z-10 border border-white/20">
-                  <span className="w-2 h-2 rounded-full bg-[#58CC02] animate-pulse" />
-                  {selectedItem.image?.endsWith('.gif') ? 'Authentic ISL Motion' : 'Authentic Demonstration'}
-                </div>
 
                 {/* Enlarge / Standard Size Toggle Button */}
                 {selectedItem.image && (
@@ -437,7 +430,7 @@ export function LearnSidebar({
         )}
 
         {/* 2. Lower Card: Live Posture Alignment Guide */}
-        <div className="bg-white rounded-2xl border-2 border-zinc-900 shadow-cartoon-sm p-3 sm:p-3.5 flex flex-col gap-2.5 flex-1 min-h-0 justify-between overflow-hidden">
+        <div className="bg-white rounded-2xl border-2 border-zinc-900 shadow-cartoon-sm p-3 sm:p-3.5 flex flex-col gap-2.5 flex-shrink-0 max-h-[50%] overflow-y-auto">
           {/* Header & Repetition Goal Bar (Integrated & Compact) */}
           <div className="flex items-center justify-between gap-2 pb-2 border-b border-zinc-100 flex-shrink-0">
             <div className="flex items-center gap-2 min-w-0">
@@ -595,31 +588,13 @@ export function LearnSidebar({
                 : nextActionItem?.hint || nextActionItem?.label || primaryGuidance}
             </div>
 
-            {/* Live Sensor Comparison Badge */}
-            {nextActionItem && !isAllPassed && !isAligned && (
-              <div className="inline-flex items-center gap-2 bg-white/95 px-2.5 py-1 rounded-xl border border-amber-200/80 text-[11px] font-bold text-zinc-700 w-fit flex-wrap">
-                <span className="text-zinc-400 text-[10px] uppercase font-black tracking-wider">Detected:</span>
-                <span className={`px-1.5 py-0.2 rounded-md font-black text-[10.5px] ${
-                  nextActionItem.status === 'fail'
-                    ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                    : 'bg-amber-50 text-amber-800 border border-amber-200'
-                }`}>
-                  {nextActionItem.current || 'Detecting...'}
-                </span>
-                <ArrowRight className="w-3 h-3 text-zinc-400 flex-shrink-0" />
-                <span className="text-zinc-400 text-[10px] uppercase font-black tracking-wider">Target:</span>
-                <span className="px-1.5 py-0.2 rounded-md font-black text-[10.5px] bg-emerald-50 text-emerald-800 border border-emerald-200">
-                  {nextActionItem.target || nextActionItem.label}
-                </span>
-              </div>
-            )}
           </div>
 
           {/* REQUIREMENTS MATRIX */}
           <div className="flex flex-col gap-1.5 flex-1 min-h-0 justify-center">
             <div className="flex items-center justify-between text-[10px] font-black uppercase text-zinc-500 tracking-wider">
-              <span>Requirements Overview</span>
-              <span className="font-mono text-[#15803D] font-bold">{passedChecks} of {totalChecks} Completed</span>
+              <span>Checklist</span>
+              <span className="font-mono text-[#15803D] font-bold">{passedChecks}/{totalChecks}</span>
             </div>
 
             <div className="grid grid-cols-2 gap-1.5">
@@ -670,20 +645,6 @@ export function LearnSidebar({
             </div>
           </div>
 
-          {/* Target Specs Summary */}
-          {selectedItem?.blueprint && (
-            <div className="pt-2 border-t border-zinc-100 flex items-center justify-between text-[11px] text-zinc-500 flex-shrink-0">
-              <span className="flex items-center gap-1.5 truncate">
-                <span className="text-zinc-400 font-bold text-[10px] uppercase tracking-wider">Target Zone:</span>
-                <span className="text-zinc-800 font-bold">
-                  {(selectedItem.blueprint.zone || 'Mid-chest center').replace(/\s*\([^)]*\)/g, '').trim()}
-                </span>
-              </span>
-              <span className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex-shrink-0">
-                ISL Standard
-              </span>
-            </div>
-          )}
         </div>
       </div>
 

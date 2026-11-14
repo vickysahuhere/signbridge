@@ -6,7 +6,7 @@ import { extractRoomId, generateRoomId, normalizeRoomCode, getRoomChannel } from
  * 
  * Manages instant room creation, URL parameters, role selection, and Realtime signaling (NETW-01, NETW-03).
  */
-export function useRoomConnection(currentPage = 'home') {
+export function useRoomConnection() {
   const [roomId, setRoomIdState] = useState(() => {
     if (typeof window !== 'undefined') {
       const parsed = extractRoomId(window.location.search);
@@ -48,44 +48,17 @@ export function useRoomConnection(currentPage = 'home') {
   const [peerPresence, setPeerPresence] = useState({ isOnline: false, userId: null, role: null, name: '' });
   const [channelInstance, setChannelInstance] = useState(null);
 
-  // Synchronize URL query parameter without page reload (only active in relevant pages)
+  // Synchronize URL query parameter without page reload
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href);
-      if (currentPage === 'chat') {
-        if (url.searchParams.get('room') !== roomId || url.searchParams.get('page') !== 'chat') {
-          url.searchParams.set('page', 'chat');
-          url.searchParams.set('room', roomId);
-          url.searchParams.delete('role');
-          window.history.replaceState({}, '', url.toString());
-        }
-      } else if (currentPage === 'learn') {
-        if (url.searchParams.get('page') !== 'learn' || url.searchParams.has('room')) {
-          url.searchParams.delete('room');
-          url.searchParams.delete('code');
-          url.searchParams.delete('r');
-          url.searchParams.delete('role');
-          url.searchParams.set('page', 'learn');
-          const cleanQuery = url.searchParams.toString();
-          const cleanUrl = url.pathname + (cleanQuery ? `?${cleanQuery}` : '') + url.hash;
-          window.history.replaceState({}, '', cleanUrl);
-        }
-      } else if (currentPage === 'home') {
-        // Clean URL when on Home page so refreshing or reopening always loads the Home page
-        if (url.searchParams.has('room') || url.searchParams.has('page') || url.searchParams.has('mode') || url.searchParams.has('code') || url.searchParams.has('r')) {
-          url.searchParams.delete('room');
-          url.searchParams.delete('page');
-          url.searchParams.delete('mode');
-          url.searchParams.delete('code');
-          url.searchParams.delete('r');
-          url.searchParams.delete('role');
-          const cleanQuery = url.searchParams.toString();
-          const cleanUrl = url.pathname + (cleanQuery ? `?${cleanQuery}` : '') + url.hash;
-          window.history.replaceState({}, '', cleanUrl);
-        }
+      if (url.searchParams.get('room') !== roomId) {
+        url.searchParams.set('room', roomId);
+        url.searchParams.delete('role');
+        window.history.replaceState({}, '', url.toString());
       }
     }
-  }, [roomId, currentPage]);
+  }, [roomId]);
 
   // Connect to room channel
   useEffect(() => {

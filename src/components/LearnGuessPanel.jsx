@@ -30,7 +30,11 @@ export function LearnGuessPanel({
   stepSuccessFlash = null,
   successfulReps = 0,
   targetReps = 3,
-  onResetPractice
+  onResetPractice,
+  untrained = false,
+  targetMatched = false,
+  onManualPass,
+  onTrain
 }) {
   const currentLevel = useMemo(() => {
     return getLevelForGloss(selectedItem?.label);
@@ -54,7 +58,7 @@ export function LearnGuessPanel({
     : null;
 
   const activeStepTarget = activeStep
-    ? (activeStep.targetGloss || (activeStepIndex === 0 ? 'GOOD' : 'MORNING'))
+    ? (activeStep.targetGloss || activeStep.title?.replace(/^Part \d+:\s*/i, '') || targetLabel)
     : targetLabel;
 
   // Does the current top guess match the target word or active compound step?
@@ -63,20 +67,15 @@ export function LearnGuessPanel({
   const targetLabelNorm = targetLabel.replace(/_/g, ' ');
   const activeStepTargetNorm = activeStepTarget.replace(/_/g, ' ');
 
-  const guessMatchesTarget = Boolean(
-    topCandidate && (
-      topCandidateLabel === targetLabel ||
-      topCandidateNorm === targetLabelNorm ||
-      topCandidateLabel === activeStepTarget ||
-      topCandidateNorm === activeStepTargetNorm
-    ) && topCandidate.confidence >= 0.80
-  );
+  // Match comes from the same matcher that counts repetitions (passed in), not a separate threshold
+  const guessMatchesTarget = Boolean(targetMatched);
+  const norm = (x) => (x || '').toUpperCase().replace(/[_\s]+/g, '_');
 
   const activeGuess = topCandidate?.label || 'Ready / Watching';
   const activeConfidence = topCandidate ? Math.round(topCandidate.confidence * 100) : 0;
 
   return (
-    <div className={`duo-card p-2 sm:p-2.5 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 flex-shrink-0 w-full min-w-0 transition-colors shadow-cartoon-sm ${
+    <div className={`duo-card p-2 sm:p-2.5 flex flex-col lg:flex-row lg:flex-wrap xl:flex-nowrap items-stretch lg:items-center justify-between gap-2.5 flex-shrink-0 w-full min-w-0 xl:h-[68px] xl:overflow-hidden transition-colors shadow-cartoon-sm ${
       isMatched ? 'bg-[#EEFDE5] border-[#58CC02] border-b-[4px]' : 'bg-white border-[#E5E5E5]'
     }`}>
       {/* 1. Left Section: Primary Live AI Vision Guess */}
@@ -100,7 +99,7 @@ export function LearnGuessPanel({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 whitespace-nowrap">
             <span className="text-[10px] uppercase font-black text-zinc-500 font-mono tracking-wider">
-              {isMatched ? 'Sign Passed' : 'Live AI Vision'}
+              {isMatched ? 'Sign Passed' : 'AI sees'}
             </span>
             <span className="duo-badge !py-0.2 !px-1.5 text-[9px] bg-zinc-100 text-zinc-700 border-zinc-200 font-bold">
               {recognitionMode === 'word' ? 'Words' : 'A–Z'}
@@ -115,7 +114,7 @@ export function LearnGuessPanel({
               }`}
               title={isMatched ? `${selectedItem?.name || targetLabel} Mastered!` : activeGuess}
             >
-              {isMatched ? `${selectedItem?.name || targetLabel} Mastered!` : topCandidate ? activeGuess : 'Ready • Sign when ready'}
+              {isMatched ? `${selectedItem?.name || targetLabel} Mastered!` : untrained ? 'Not trained yet' : topCandidate ? activeGuess : 'Ready • Sign when ready'}
             </span>
 
             {topCandidate && !isMatched && (
@@ -133,12 +132,12 @@ export function LearnGuessPanel({
 
       {/* 2. Middle Section: Integrated Candidate Probabilities Bar */}
       {isMatched ? (
-        <div className="hidden md:flex items-center gap-2 bg-[#EAF6E8] px-3 py-1.5 rounded-xl border border-[#D6EBD3] text-xs font-black text-[#2F7202] flex-shrink-0">
+        <div className="hidden 2xl:flex items-center gap-2 h-[50px] w-64 bg-[#EAF6E8] px-3 rounded-xl border border-[#D6EBD3] text-xs font-black text-[#2F7202] flex-shrink-0">
           <CheckCircle2 className="w-4 h-4 text-[#58CC02] stroke-[3] flex-shrink-0" />
           <span>Target Mastered! Complete 3/3!</span>
         </div>
       ) : candidates.length > 0 ? (
-        <div className="hidden md:flex flex-col justify-center bg-[#F4FAF2] px-2.5 py-1 rounded-xl border border-[#D6EBD3] flex-shrink-0 w-60 lg:w-64">
+        <div className="hidden 2xl:flex flex-col justify-center h-[50px] w-64 bg-[#F4FAF2] px-2.5 rounded-xl border border-[#D6EBD3] flex-shrink-0">
           <div className="flex items-center justify-between text-[9px] font-black text-zinc-500 font-mono leading-tight mb-1">
             <span>Candidate Rankings</span>
             <span className="text-[#2F7202] truncate max-w-[100px]">
@@ -147,7 +146,7 @@ export function LearnGuessPanel({
           </div>
           <div className="flex flex-col gap-1">
             {candidates.slice(0, 2).map((cand, idx) => {
-              const isTarget = cand.label?.toUpperCase() === targetLabel;
+              const isTarget = norm(cand.label) === norm(activeStepTarget);
               const pct = Math.round(cand.confidence * 100);
               return (
                 <div key={cand.label || idx} className="flex items-center gap-1.5 text-xs h-3.5 flex-shrink-0 min-w-0">
@@ -176,15 +175,14 @@ export function LearnGuessPanel({
           </div>
         </div>
       ) : (
-        <div className="hidden md:flex items-center gap-2 bg-[#FAF8F5] px-2.5 py-1.5 rounded-xl border border-zinc-200 text-zinc-500 text-xs font-medium flex-shrink-0">
+        <div className="hidden 2xl:flex items-center gap-2 h-[50px] w-64 bg-[#FAF8F5] px-2.5 rounded-xl border border-zinc-200 text-zinc-500 text-xs font-medium flex-shrink-0">
           <div className="w-2 h-2 rounded-full bg-[#FFC800] animate-pulse flex-shrink-0" />
-          <span className="text-[11px] font-mono font-bold text-zinc-600">Awaiting Gestures</span>
-          <span className="text-[10px] font-mono text-zinc-400">• Move hands into view</span>
+          <span className="text-[11px] font-bold text-zinc-500">Show your hands</span>
         </div>
       )}
 
       {/* 3. Action Controls: Streak counter + Retry + CONTINUE button */}
-      <div className="flex items-center gap-1.5 sm:gap-2 justify-between sm:justify-end flex-shrink-0 min-w-0">
+      <div className="flex flex-wrap xl:flex-nowrap items-center gap-1.5 sm:gap-2 justify-between sm:justify-end flex-shrink-0 min-w-0">
         {/* Streak Counter / Sign Academy Shortcut */}
         <button
           type="button"
@@ -195,6 +193,17 @@ export function LearnGuessPanel({
           <Flame className="w-3.5 h-3.5 text-[#78350F] fill-[#78350F] flex-shrink-0" />
           <span className="font-black">{masteredCount} Mastered</span>
         </button>
+
+        {untrained && onTrain && (
+          <button type="button" onClick={onTrain} className="duo-btn duo-btn-blue !py-1 !px-2 sm:!py-1.5 sm:!px-3 text-xs font-black flex-shrink-0">
+            <span>Train it</span>
+          </button>
+        )}
+        {untrained && onManualPass && !isMatched && (
+          <button type="button" onClick={onManualPass} className="duo-btn duo-btn-green !py-1 !px-2 sm:!py-1.5 sm:!px-3 text-xs font-black flex-shrink-0" title="Count this attempt yourself">
+            <span>I did it</span>
+          </button>
+        )}
 
         {/* Try Again Button */}
         <button

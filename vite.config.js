@@ -10,14 +10,7 @@ export default defineConfig({
     port: 5180,
     strictPort: false,
     watch: {
-      ignored: [
-        '**/public/onnx/**',
-        '**/public/mediapipe/**',
-        '**/public/models/**',
-        '**/public/signs/**',
-        '**/scratch/**',
-        '**/temp_*'
-      ]
+      ignored: ['**/public/onnx/**', '**/public/mediapipe/**', '**/public/models/**', '**/public/signs/**']
     },
     headers: {
       'Cross-Origin-Opener-Policy': 'same-origin',

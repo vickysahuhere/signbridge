@@ -97,7 +97,6 @@ export function useVisionWorker() {
             break;
 
           case 'WORKER_ERROR':
-            isProcessingFrameRef.current = false;
             setWorkerStatus('error');
             setWorkerError(data.error);
             setIsWorkerReady(false);
@@ -109,7 +108,6 @@ export function useVisionWorker() {
       };
 
       worker.onerror = (err) => {
-        isProcessingFrameRef.current = false;
         console.error('[useVisionWorker] Web Worker top-level error:', err);
         setWorkerStatus('error');
         setWorkerError(err.message || 'Worker thread execution error');
@@ -141,10 +139,15 @@ export function useVisionWorker() {
       return;
     }
 
-    let imageBitmap = null;
     try {
       isProcessingFrameRef.current = true;
-      imageBitmap = await createImageBitmap(videoElement);
+      // Models work at ~200px internally, so a 640px frame loses nothing and is much cheaper to move around
+      const vw = videoElement.videoWidth || 640;
+      const vh = videoElement.videoHeight || 480;
+      const scale = vw > 640 ? 640 / vw : 1;
+      const imageBitmap = scale < 1
+        ? await createImageBitmap(videoElement, { resizeWidth: Math.round(vw * scale), resizeHeight: Math.round(vh * scale), resizeQuality: 'low' })
+        : await createImageBitmap(videoElement);
       workerRef.current.postMessage(
         {
           type: 'PROCESS_FRAME',
@@ -156,11 +159,6 @@ export function useVisionWorker() {
       );
     } catch (err) {
       isProcessingFrameRef.current = false;
-      if (imageBitmap && typeof imageBitmap.close === 'function') {
-        try {
-          imageBitmap.close();
-        } catch (_) {}
-      }
       // Normal during video pauses or tab switching
     }
   }, [isWorkerReady]);

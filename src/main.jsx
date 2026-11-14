@@ -1,13 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
-import { ErrorBoundary } from './components/ErrorBoundary.jsx';
+import { SplashIntro } from './components/SplashIntro.jsx';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <ErrorBoundary title="Sanket Application Encountered an Issue" onReset={() => window.location.reload()}>
-      <App />
-    </ErrorBoundary>
+    <App />
+    <SplashIntro />
   </React.StrictMode>
 );
