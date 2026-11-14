@@ -488,3 +488,21 @@ Distributed under the **MIT License**. See `LICENSE` for more information.
 <p align="center">
   <b>Built with ❤️ for an accessible, inclusive, and barrier-free world.</b>
 </p>
+
+## Calls (Proto 4)
+Calls are code based. One person taps **Start a call** and gets a 6-character code; the other enters it under **Join with code**
+(or opens the `?join=CODE` link). Only one guest is admitted per code. Signalling uses the free PeerJS cloud server by default.
+To self-host or add a TURN server (recommended for mobile / strict networks) set, in `.env`:
+`VITE_PEER_HOST`, `VITE_PEER_PORT`, `VITE_PEER_PATH`, `VITE_PEER_SECURE`, `VITE_TURN_URL`, `VITE_TURN_USERNAME`, `VITE_TURN_CREDENTIAL`.
+
+## AI chatbot setup (Gemini, free)
+1. Get a key at https://aistudio.google.com/app/apikey
+2. Copy `.env.example` to `.env` and set `VITE_GEMINI_API_KEY=your_key`
+3. Restart `npm run dev` (Vite only reads `.env` at start)
+
+The chatbot has two tabs: **Chat** and **Voice AI** (speak, it answers out loud; use Chrome or Edge).
+
+## Deploy on Vercel
+1. Import this folder as a project (Framework: Vite is auto-detected; `vercel.json` sets headers).
+2. Project Settings > Environment Variables: add `VITE_GEMINI_API_KEY` (and optionally `VITE_GEMINI_MODEL`), then redeploy.
+3. Restrict the key to your Vercel domain in Google AI Studio, since VITE_ variables are visible in the browser.

@@ -16,8 +16,12 @@ import {
   Hand,
   Info,
   Bug,
-  MoreVertical
+  MoreVertical,
+  GraduationCap,
+  ClipboardCheck,
+  PhoneOff
 } from 'lucide-react';
+import { formatCallCode } from '../call/callCode.js';
 import { OtterLogoIcon } from './OtterLogo.jsx';
 
 export function Navbar({
@@ -35,13 +39,14 @@ export function Navbar({
   onOpenAbout,
   onOpenFeedback,
   onOpenChatbot,
-  roomId = '',
-  onSwitchRoom = null,
-  connectionMode = 'p2p',
-  rttMs = 18,
-  userName = 'User',
+  callCode = '',
+  inCall = false,
+  onLeaveCall,
+  rttMs = null,
   onCopyLink
 }) {
+  const roomId = callCode ? formatCallCode(callCode) : '';
+  const onSwitchRoom = null;
   const [copied, setCopied] = useState(false);
   const [isEditingRoom, setIsEditingRoom] = useState(false);
   const [roomInputValue, setRoomInputValue] = useState('');
@@ -148,31 +153,55 @@ export function Navbar({
               <span className="hidden xl:inline">Sign Call</span>
               <span className="xl:hidden">Call</span>
             </button>
+            <button
+              onClick={() => onPageChange && onPageChange('teach')}
+              className={`px-2 lg:px-3 py-1 rounded-lg sm:rounded-xl text-xs font-black transition-all flex items-center gap-1.5 flex-shrink-0 ${
+                currentPage === 'teach'
+                  ? 'bg-[#CE82FF] text-white border-2 border-[#CE82FF] border-b-[3px] border-b-[#A559D9]'
+                  : 'text-zinc-500 hover:text-zinc-800'
+              }`}
+              title="Teach Sanket your own signs"
+            >
+              <GraduationCap className="w-3.5 h-3.5 stroke-[2.5] flex-shrink-0" />
+              <span>Teach</span>
+            </button>
+            <button
+              onClick={() => onPageChange && onPageChange('test')}
+              className={`px-2 lg:px-3 py-1 rounded-lg sm:rounded-xl text-xs font-black transition-all flex items-center gap-1.5 flex-shrink-0 ${
+                currentPage === 'test'
+                  ? 'bg-[#FFC800] text-[#78350F] border-2 border-[#FFC800] border-b-[3px] border-b-[#E5A500]'
+                  : 'text-zinc-500 hover:text-zinc-800'
+              }`}
+              title="Test how well Sanket recognises your signs"
+            >
+              <ClipboardCheck className="w-3.5 h-3.5 stroke-[2.5] flex-shrink-0" />
+              <span>Testing</span>
+            </button>
           </div>
 
           {/* Mobile Current Mode Indicator Badge (< md) */}
           <div className="flex md:hidden items-center gap-1">
-            {currentPage === 'home' && (
-              <span className="duo-badge !py-0.5 !px-2 text-[10px] bg-amber-50 text-amber-900 border-amber-200 font-black">
-                ✨ Free Edge AI
-              </span>
-            )}
-            {currentPage === 'learn' && (
-              <span className="duo-badge !py-0.5 !px-2 text-[10px] bg-[#EEFDE5] text-[#2F7202] border-[#58CC02]/40 font-black">
-                📖 Learn Studio
-              </span>
-            )}
             {currentPage === 'chat' && (
               <div className="flex items-center gap-1">
                 <span className="duo-badge !py-0.5 !px-2 text-[10px] bg-[#DDF4FE] text-[#0284C7] border-[#1CB0F6]/40 font-black">
-                  📹 Call #{roomId || 'main'}
+                  📹 {roomId ? `Call ${roomId}` : 'Sign Call'}
                 </span>
               </div>
+            )}
+            {currentPage === 'teach' && (
+              <span className="duo-badge !py-0.5 !px-2 text-[10px] bg-[#F7ECFF] text-[#A559D9] border-[#CE82FF]/40 font-black">
+                🎓 Teach
+              </span>
+            )}
+            {currentPage === 'test' && (
+              <span className="duo-badge !py-0.5 !px-2 text-[10px] bg-[#FFF5D1] text-[#78350F] border-[#FFC800]/60 font-black">
+                🧪 Testing
+              </span>
             )}
           </div>
 
           {/* Mode Switcher Pills: Words vs A-Z Letters (only in active Chat/Call page on wide screens) */}
-          {currentPage === 'chat' && (
+          {(currentPage === 'chat' && inCall) && (
             <>
               <div className="h-5 w-[2px] bg-zinc-200 hidden xl:block flex-shrink-0" />
               <div className="hidden xl:flex items-center bg-[#F7F7F7] p-0.5 sm:p-1 rounded-2xl border-2 border-[#E5E5E5] flex-shrink-0">
@@ -209,14 +238,14 @@ export function Navbar({
             {!isEditingRoom ? (
               <>
                 <span className="text-[11px] font-mono font-bold text-zinc-500 truncate">
-                  Room <span className="text-[#3C3C3C]">#{roomId}</span>
+                  Code <span className="text-[#3C3C3C]">{roomId}</span>
                 </span>
                 <button
                   onClick={handleCopy}
                   className={`duo-btn !py-0.5 !px-2 text-[10px] font-bold ${
                     copied ? 'duo-btn-green' : 'bg-white hover:bg-zinc-50'
                   }`}
-                  title="Copy Shareable Room Link"
+                  title="Copy the call link"
                 >
                   {copied ? (
                     <>
@@ -230,6 +259,16 @@ export function Navbar({
                     </>
                   )}
                 </button>
+                {onLeaveCall && (
+                  <button
+                    onClick={onLeaveCall}
+                    className="duo-btn !py-0.5 !px-2 text-[10px] font-bold bg-[#FFDFDF] hover:bg-[#FF4B4B] hover:text-white text-[#EA2B2B]"
+                    title="Leave this call"
+                  >
+                    <PhoneOff className="w-2.5 h-2.5 stroke-[2.5]" />
+                    <span>Leave</span>
+                  </button>
+                )}
                 {onSwitchRoom && (
                   <button
                     onClick={() => {

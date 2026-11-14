@@ -23,6 +23,8 @@ import {
 } from 'lucide-react';
 import { SignSvgIllustration, hasSvgIllustration } from './SignSvgIllustrations.jsx';
 import { startCameraLoop } from '../vision/cameraLoop.js';
+import { SanketLoader } from './SanketLoader.jsx';
+import { useSmoothedLandmarks } from '../vision/useSmoothedLandmarks.js';
 import { drawSkeleton, checkBoundaryAlert, HAND_CONNECTIONS } from '../vision/drawSkeleton.js';
 
 export function LearnStage({
@@ -217,13 +219,14 @@ export function LearnStage({
     };
   }, [isCameraActive, onFrame, onFpsUpdate, syncCanvasDimensions]);
 
-  // Render Skeleton, Ghost Target & Boundary check on every landmark update
+  const shownLandmarks = useSmoothedLandmarks(latestLandmarks);
+  // Render Skeleton + Ghost Target (glides between detections)
   useEffect(() => {
     if (!canvasRef.current) return;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
 
-    drawSkeleton(ctx, showLiveSkeleton ? latestLandmarks : null, {
+    drawSkeleton(ctx, showLiveSkeleton ? shownLandmarks : null, {
       showGuide: true,
       showFace: true,
       showPose: true
@@ -265,11 +268,11 @@ export function LearnStage({
       if (targetSkeleton.rightHand) drawGhostHand(targetSkeleton.rightHand);
     }
 
-    if (latestLandmarks) {
-      const alertState = checkBoundaryAlert(latestLandmarks);
-      setBoundaryAlert(alertState);
-    }
-  }, [latestLandmarks, showLiveSkeleton, showGhostSkeleton, targetSkeleton]);
+  }, [shownLandmarks, showLiveSkeleton, showGhostSkeleton, targetSkeleton]);
+
+  useEffect(() => {
+    if (latestLandmarks) setBoundaryAlert(checkBoundaryAlert(latestLandmarks));
+  }, [latestLandmarks]);
 
   const hasLeftHand = Boolean(latestLandmarks?.leftHandLandmarks?.length > 0);
   const hasRightHand = Boolean(latestLandmarks?.rightHandLandmarks?.length > 0);
@@ -283,13 +286,8 @@ export function LearnStage({
             <Video className="w-3.5 h-3.5 stroke-[2.2]" />
           </div>
           <span className="font-black text-sm sm:text-base text-zinc-900 truncate">
-            Camera Feed &amp; Biometric HUD
+            Camera
           </span>
-          {isCameraActive && (
-            <span className="cartoon-badge !py-0.5 !px-2 text-xs bg-[#58CC02] text-white hidden sm:inline-flex font-bold">
-              ● Live Tracking (16:9)
-            </span>
-          )}
         </div>
 
         {/* Viewport Control Toggles */}
@@ -329,7 +327,7 @@ export function LearnStage({
             title="Toggle Skeleton Landmarks Overlay"
           >
             <Activity className="w-3.5 h-3.5 stroke-[2.2]" />
-            <span className="hidden md:inline">Live: {showLiveSkeleton ? 'ON' : 'OFF'}</span>
+            <span className="hidden md:inline">Skeleton</span>
           </button>
         </div>
       </div>
@@ -360,6 +358,13 @@ export function LearnStage({
             height={720}
             className="absolute inset-0 w-full h-full object-contain transform -scale-x-100 pointer-events-none z-10"
           />
+
+          {isCameraActive && !isWorkerReady && (
+            <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-2 bg-[#F5F4ED]">
+              <SanketLoader label="Loading hand tracking" />
+              <span className="text-xs font-extrabold uppercase tracking-wider text-[#11131C]/60">Loading hand tracking</span>
+            </div>
+          )}
 
         {/* Mobile Unified Top HUD Bar (< sm) - Prevents collision between Compound & Pass Goal */}
         <div className="sm:hidden absolute top-2 inset-x-2 z-20 flex items-center justify-between gap-1.5 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-xl border-2 border-zinc-900 shadow-cartoon-sm">

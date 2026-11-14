@@ -6,6 +6,12 @@ import { LiveGlossBar } from './components/LiveGlossBar.jsx';
 import { ChatPanel } from './components/ChatPanel.jsx';
 import { LearnSidebar } from './components/LearnSidebar.jsx';
 import { LearnStage } from './components/LearnStage.jsx';
+import { TeachStage } from './components/TeachStage.jsx';
+import { TestStage } from './components/TestStage.jsx';
+import { MobileBottomNav } from './components/MobileBottomNav.jsx';
+import { MovableChatbotLauncher } from './components/MovableChatbotLauncher.jsx';
+import { useCustomSigns } from './teach/customSignStore.js';
+import { useCustomSignMatcher } from './teach/useCustomSignMatcher.js';
 import { LearnGuessPanel } from './components/LearnGuessPanel.jsx';
 import { KeypointRecorderDrawer } from './components/KeypointRecorderDrawer.jsx';
 import { WordDictionaryModal } from './components/WordDictionaryModal.jsx';
@@ -14,18 +20,16 @@ import { HowItWorksModal } from './components/HowItWorksModal.jsx';
 import { FeedbackModal } from './components/FeedbackModal.jsx';
 import { captureDOMScreenshot } from './utils/screenshotCapture.js';
 import { useVisionWorker } from './hooks/useVisionWorker.js';
-import { useRoomConnection } from './hooks/useRoomConnection.js';
-import { useWebRTC } from './hooks/useWebRTC.js';
+import { useCall } from './call/useCall.js';
+import { readCodeFromUrl, formatCallCode } from './call/callCode.js';
+import { CallLobby } from './components/CallLobby.jsx';
 import { GlossBufferManager } from './nlp/glossBufferManager.js';
 import { formatIslSentence, formatRawGlosses } from './nlp/islSentenceFormatter.js';
 import { ISL_LEARN_ITEMS, getLearnItemByLabel } from './ai/islTargetLandmarks.js';
 import { getNextRecommendedSign } from './ai/islCourseCurriculum.js';
-import { AlertCircle, ShieldCheck, Video, MessageSquare, BookOpen, Compass, Bug, Sparkles, Lock, Globe } from 'lucide-react';
+import { AlertCircle, Video, Compass, Sparkles } from 'lucide-react';
 import { HomeChatbotPopup } from './components/HomeChatbotPopup.jsx';
-import { MovableChatbotLauncher } from './components/MovableChatbotLauncher.jsx';
-import { AnimatedOtterBar } from './components/AnimatedOtterBar.jsx';
 import { ErrorBoundary } from './components/ErrorBoundary.jsx';
-import { MobileBottomNav } from './components/MobileBottomNav.jsx';
 
 export function App() {
   const [fps, setFps] = useState(0);
@@ -34,10 +38,12 @@ export function App() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const p = params.get('page') || params.get('mode');
-      if (p === 'chat') return 'chat';
+      if (readCodeFromUrl(window.location.search) || p === 'chat') return 'chat';
       if (p === 'learn') return 'learn';
+      if (p === 'teach') return 'teach';
+      if (p === 'test') return 'test';
     }
-    return 'home'; // Home page is default
+    return 'home'; // Home page is default when no room or mode param is given
   });
   const [recognitionMode, setRecognitionMode] = useState('word'); // 'alphabet' | 'word'
   const [isRecorderOpen, setIsRecorderOpen] = useState(false);
@@ -89,7 +95,7 @@ export function App() {
         }
         const hasSeen = localStorage.getItem('sanket_has_seen_guide');
         const skip = localStorage.getItem('sanket_skip_guide_auto');
-        return !hasSeen && !skip;
+        return false;
       } catch (e) {
         return false;
       }
@@ -110,21 +116,28 @@ export function App() {
   const isInteractingWithCandidatesRef = useRef(false);
   const [localStream, setLocalStream] = useState(null);
 
-  // 1. Room Connection & Presence (NETW-01, NETW-03)
+  // 1. Code-based call (host creates a code, guest joins with it)
+  const [userName, setUserNameState] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('sanket_user_name');
+      if (saved) return saved;
+    } catch {}
+    return `Guest ${Math.floor(1000 + Math.random() * 9000)}`;
+  });
+  const setUserName = useCallback((name) => {
+    const n = (name || '').trim().slice(0, 24);
+    setUserNameState(n || 'Guest');
+    try { sessionStorage.setItem('sanket_user_name', n); } catch {}
+  }, []);
+  const [teachWord, setTeachWord] = useState('');
+  const [pendingJoinCode, setPendingJoinCode] = useState(() =>
+    typeof window !== 'undefined' ? readCodeFromUrl(window.location.search) : ''
+  );
+  const call = useCall({ userName, localStream });
   const {
-    roomId,
-    setRoomId,
-    userId,
-    userName,
-    setUserName,
+    phase: callPhase,
+    code: roomId,
     peerPresence,
-    channelInstance,
-    sendBroadcastMessage,
-    getRoomShareUrl
-  } = useRoomConnection(currentPage);
-
-  // 2. Peer-to-Peer WebRTC Data Channel & Video Stream (NETW-02, NETW-04)
-  const {
     connectionMode,
     rttMs,
     remoteStream,
@@ -134,14 +147,17 @@ export function App() {
     sendPartialSigning,
     sendCommittedSentence,
     sendTextReply
-  } = useWebRTC({
-    userId,
-    userName,
-    channelInstance,
-    sendBroadcastMessage,
-    peerPresence,
-    localStream
-  });
+  } = call;
+  const inCall = callPhase === 'connected';
+
+  const handlePageChange = useCallback((id) => {
+    if (inCall && id !== 'chat') {
+      if (!window.confirm('Leave the call?')) return;
+      call.leave();
+    }
+    if (!inCall && id !== 'chat' && callPhase !== 'idle') call.leave();
+    setCurrentPage(id);
+  }, [inCall, callPhase, call]);
 
   // 3. Vision Worker AI Tracking
   const {
@@ -150,10 +166,10 @@ export function App() {
     workerLatencyMs,
     latestLandmarks,
     latestNormalizedFeatures,
-    alphabetPredictions,
-    latestConfirmedLetter,
-    wordPredictions,
-    latestConfirmedWord,
+    alphabetPredictions: heuristicLetters,
+    latestConfirmedLetter: heuristicConfirmedLetter,
+    wordPredictions: heuristicWords,
+    latestConfirmedWord: heuristicConfirmedWord,
     motionState,
     bufferSize,
     workerError,
@@ -172,31 +188,72 @@ export function App() {
     sendFrame(videoElement, timestamp, recognitionMode);
   }, [sendFrame, recognitionMode]);
 
-  // Append confirmed word to active gloss buffer (LING-01) - Strictly in word mode
-  useEffect(() => {
-    if (recognitionMode === 'word' && latestConfirmedWord) {
-      const word = typeof latestConfirmedWord === 'object' ? latestConfirmedWord.word : latestConfirmedWord;
-      if (word && !/^[A-Z]$/.test(word.trim())) {
-        const added = glossBufferRef.current.push(word, 'word');
-        if (added) {
-          setGlosses([...glossBufferRef.current.getGlosses()]);
-        }
-      }
-    }
-  }, [recognitionMode, latestConfirmedWord]);
 
-  // In alphabet mode, append confirmed letter predictions from the hysteresis gate
-  useEffect(() => {
-    if (recognitionMode === 'alphabet' && latestConfirmedLetter) {
-      const letter = typeof latestConfirmedLetter === 'object' ? latestConfirmedLetter.letter : latestConfirmedLetter;
-      if (letter) {
-        const added = glossBufferRef.current.push(letter, 'letter');
-        if (added) {
-          setGlosses([...glossBufferRef.current.getGlosses()]);
-        }
+  // Recognition: matches live frames against the signs you have trained (Teach tab).
+  const customSigns = useCustomSigns();
+  const isLetter = (w) => /^[A-Z]$/.test(w);
+  const matchState = useCustomSignMatcher({
+    features: latestNormalizedFeatures,
+    signs: customSigns,
+    enabled: currentPage === 'chat' || currentPage === 'learn',
+    kind: recognitionMode === 'alphabet' ? 'letters' : 'words',
+    onConfirm: (word) => {
+      if (currentPage !== 'chat') return;
+      const letter = isLetter(word);
+      if ((recognitionMode === 'alphabet') !== letter) return;
+      if (glossBufferRef.current.push(word.replace(/_/g, ' '), letter ? 'letter' : 'word')) {
+        setGlosses([...glossBufferRef.current.getGlosses()]);
       }
     }
-  }, [recognitionMode, latestConfirmedLetter]);
+  });
+  const toCandidates = (list) =>
+    list.slice(0, 3).map((r) => ({ label: r.word.replace(/_/g, ' '), confidence: Math.max(0.05, Math.min(0.99, 1 - r.ratio * 0.45)), key: r.word }));
+  // Trained (kNN) candidates first, then the built-in ISL engine (1000+ sign vocabulary).
+  const mergeCands = (trained, engine) => {
+    const seen = new Set();
+    const out = [];
+    for (const c of [...trained, ...(engine || [])]) {
+      const k = (c.label || '').toUpperCase().replace(/[_\s]+/g, ' ');
+      if (!k || seen.has(k)) continue;
+      seen.add(k);
+      out.push(c);
+    }
+    return out.slice(0, 4);
+  };
+  const wordPredictions = useMemo(
+    () => ({
+      topCandidates: mergeCands(
+        toCandidates(matchState.ranking.filter((r) => !isLetter(r.word) && r.ratio < 1.6)),
+        (heuristicWords?.topCandidates || []).filter((c) => !c.isAlphabetHint && !/^[A-Z]$/.test(c.label?.trim()))
+      ),
+      confirmedWord: null
+    }),
+    [matchState, heuristicWords]
+  );
+  const alphabetPredictions = useMemo(
+    () => mergeCands(
+      toCandidates(matchState.ranking.filter((r) => isLetter(r.word) && r.ratio < 1.6)),
+      (heuristicLetters || []).filter((c) => /^[A-Z]$/.test(c.label?.trim()))
+    ),
+    [matchState, heuristicLetters]
+  );
+  const latestConfirmedWord = null;
+
+  // Engine-confirmed signs go into the call sentence too (trained signs confirm via the matcher above).
+  useEffect(() => {
+    if (currentPage !== 'chat' || recognitionMode !== 'word' || !heuristicConfirmedWord) return;
+    const w = typeof heuristicConfirmedWord === 'object' ? heuristicConfirmedWord.word : heuristicConfirmedWord;
+    if (w && !/^[A-Z]$/.test(w.trim()) && glossBufferRef.current.push(w, 'word')) {
+      setGlosses([...glossBufferRef.current.getGlosses()]);
+    }
+  }, [currentPage, recognitionMode, heuristicConfirmedWord]);
+  useEffect(() => {
+    if (currentPage !== 'chat' || recognitionMode !== 'alphabet' || !heuristicConfirmedLetter) return;
+    const l = typeof heuristicConfirmedLetter === 'object' ? heuristicConfirmedLetter.letter : heuristicConfirmedLetter;
+    if (l && glossBufferRef.current.push(l, 'letter')) {
+      setGlosses([...glossBufferRef.current.getGlosses()]);
+    }
+  }, [currentPage, recognitionMode, heuristicConfirmedLetter]);
 
   // Stabilize candidate predictions (hold for 3.5s so signs don't disappear immediately)
   useEffect(() => {
@@ -362,6 +419,12 @@ export function App() {
   const [stepSuccessFlash, setStepSuccessFlash] = useState(null);
   const [isSequenceMastered, setIsSequenceMastered] = useState(false);
   const stepTimeoutRef = useRef(null);
+  const flashTimerRef = useRef(null);
+  const flashLater = useCallback((ms) => {
+    if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
+    flashTimerRef.current = setTimeout(() => setStepSuccessFlash(null), ms);
+  }, []);
+  const [manualOk, setManualOk] = useState(false);
 
   // Reset practice repetitions, steps and mastery
   const handleResetPractice = useCallback(() => {
@@ -372,7 +435,7 @@ export function App() {
     setStepSuccessFlash({
       message: 'Practice reset! Sign 3 times to pass.'
     });
-    setTimeout(() => setStepSuccessFlash(null), 2000);
+    flashLater(2000);
     if (repHoldTimerRef.current) clearTimeout(repHoldTimerRef.current);
     if (stepHoldTimerRef.current) clearTimeout(stepHoldTimerRef.current);
     if (abortGraceTimerRef.current) clearTimeout(abortGraceTimerRef.current);
@@ -390,6 +453,8 @@ export function App() {
     setActiveStepIndex(0);
     setCompletedSteps([]);
     setStepSuccessFlash(null);
+    setManualOk(false);
+    if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
     setIsSequenceMastered(false);
     if (repHoldTimerRef.current) clearTimeout(repHoldTimerRef.current);
     if (stepHoldTimerRef.current) clearTimeout(stepHoldTimerRef.current);
@@ -431,7 +496,42 @@ export function App() {
     topCandidate.confidence >= 0.78
   );
 
-  const isStepSatisfied = isCurrentStepAligned || isAiGuessMatch;
+  const norm = (x) => (x || '').toUpperCase().replace(/[_\s]+/g, '_');
+  const targetKey = norm(activeStepTarget);
+  const trainedKey = Object.keys(customSigns).find((k) => norm(k) === targetKey);
+  const learnUntrained = false;
+  const trainedMatch = Boolean(trainedKey && matchState.best && norm(matchState.best.word) === norm(trainedKey));
+  // Trained sign matches win; otherwise the built-in per-sign checker (1000+ signs) decides.
+  const isStepSatisfied = trainedMatch || isCurrentStepAligned || isAiGuessMatch || manualOk;
+  const handleManualPass = useCallback(() => {
+    setManualOk(true);
+    setTimeout(() => setManualOk(false), 900);
+  }, []);
+
+  // Feedback for the Learn sidebar, driven by the same matcher that decides pass/fail
+  const learnEvaluation = useMemo(() => {
+    const hasHands = Boolean(
+      (latestLandmarks?.leftHandLandmarks?.length || 0) + (latestLandmarks?.rightHandLandmarks?.length || 0)
+    );
+    const pretty = (w) => (w || '').replace(/_/g, ' ');
+    if (!selectedLearnItem) return null;
+    if (!trainedKey) return postureEvaluation;
+    const entry = matchState.ranking.find((r) => norm(r.word) === norm(trainedKey));
+    if (!hasHands) {
+      return { matchScore: 0, isMatched: false, isPostureAligned: false, primaryGuidance: 'Show your hand to the camera.' };
+    }
+    if (trainedMatch) {
+      return { matchScore: Math.max(85, Math.round(100 * (1 - (entry?.ratio ?? 0.4) * 0.6))), isMatched: true, isPostureAligned: true, primaryGuidance: 'That is it. Hold it steady.' };
+    }
+    const score = entry ? Math.max(5, Math.min(80, Math.round(100 * (1 - entry.ratio * 0.6)))) : 5;
+    const other = matchState.best?.word;
+    return {
+      matchScore: score,
+      isMatched: false,
+      isPostureAligned: false,
+      primaryGuidance: other ? `That looks like ${pretty(other)}. Match the picture.` : 'Not quite. Copy the picture and hold it steady.'
+    };
+  }, [selectedLearnItem, trainedKey, trainedMatch, matchState, latestLandmarks, postureEvaluation]);
 
   // Multi-step compound state machine & 3-repetition mastery loop with asynchronous hold timer
   useEffect(() => {
@@ -497,21 +597,19 @@ export function App() {
               setStepSuccessFlash({
                 isPass: true,
                 repNumber: 3,
-                message: `${selectedLearnItem.name.toUpperCase()} PASSED! 3 of 3 complete! Outstanding!`
+                message: `${selectedLearnItem.name.toUpperCase()} PASSED! 3 of 3 complete! Outstanding! 🌟`
               });
             } else {
               setStepSuccessFlash({
                 isRep: true,
                 repNumber: next,
-                message: `Repetition ${next} of 3 complete! Relax hands and sign again!`
+                message: `Repetition ${next} of 3 complete! Relax hands and sign again! 👍`
               });
             }
             return next;
           });
 
-          setTimeout(() => {
-            setStepSuccessFlash(null);
-          }, 2400);
+          flashLater(2400);
         }, 500);
       }
       return;
@@ -537,9 +635,7 @@ export function App() {
           setActiveStepIndex(nextIdx);
           stepAwaitingReleaseRef.current = true;
 
-          setTimeout(() => {
-            setStepSuccessFlash(null);
-          }, 1800);
+          flashLater(1800);
 
           // Grace period: User has 8 seconds to perform next step
           if (stepTimeoutRef.current) clearTimeout(stepTimeoutRef.current);
@@ -551,7 +647,7 @@ export function App() {
               isTimeout: true,
               message: 'Sequence reset: Start with Part 1 again.'
             });
-            setTimeout(() => setStepSuccessFlash(null), 2200);
+            flashLater(2200);
           }, 8000);
         } else {
           // Final step of compound sign complete -> 1 full repetition complete!
@@ -567,7 +663,7 @@ export function App() {
               setStepSuccessFlash({
                 isPass: true,
                 repNumber: 3,
-                message: `${selectedLearnItem.name.toUpperCase()} PASSED! 3 of 3 complete!`
+                message: `${selectedLearnItem.name.toUpperCase()} PASSED! 3 of 3 complete! 🌟`
               });
             } else {
               setActiveStepIndex(0);
@@ -576,15 +672,13 @@ export function App() {
               setStepSuccessFlash({
                 isRep: true,
                 repNumber: next,
-                message: `Repetition ${next} of 3 complete! Now perform the full sequence again!`
+                message: `Repetition ${next} of 3 complete! Now perform the full sequence again! 👍`
               });
             }
             return next;
           });
 
-          setTimeout(() => {
-            setStepSuccessFlash(null);
-          }, 2400);
+          flashLater(2400);
         }
       }, 500);
     }
@@ -614,30 +708,25 @@ export function App() {
   }, [isSignMastered, selectedLearnItem]);
 
   const handleSelectLearnItem = useCallback((item) => {
-    handleResetPractice();
     setSelectedLearnItem(item);
     if (item.type === 'alphabet' && recognitionMode !== 'alphabet') {
       setRecognitionMode('alphabet');
     } else if (item.type === 'word' && recognitionMode !== 'word') {
       setRecognitionMode('word');
     }
-  }, [recognitionMode, handleResetPractice]);
+  }, [recognitionMode]);
 
   const handleNextSign = useCallback(() => {
-    // Advance along the tailored course path to the next recommended sign
+    // Advance along the course path; never fall back to the first sign (that made Continue loop on Hello)
     const nextGloss = getNextRecommendedSign(selectedLearnItem?.label, masteredSetRef.current, ISL_LEARN_ITEMS);
-    let nextItem = (nextGloss && getLearnItemByLabel(nextGloss)) || null;
-
-    // If nextItem is missing or resolves to the exact same sign we are currently practicing,
-    // advance sequentially to prevent getting stuck
-    if (!nextItem || nextItem.id === selectedLearnItem?.id) {
-      const currentIndex = ISL_LEARN_ITEMS.findIndex(item => item.id === selectedLearnItem?.id);
-      const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % ISL_LEARN_ITEMS.length : 0;
-      nextItem = ISL_LEARN_ITEMS[nextIndex];
-    }
-
-    if (nextItem) {
+    const clean = (nextGloss || '').trim().toUpperCase();
+    const nextItem = ISL_LEARN_ITEMS.find((i) => i.label.toUpperCase() === clean || i.label.toUpperCase().replace(/\s+/g, '_') === clean.replace(/\s+/g, '_'));
+    if (nextItem && nextItem.id !== selectedLearnItem?.id) {
       handleSelectLearnItem(nextItem);
+    } else {
+      const currentIndex = ISL_LEARN_ITEMS.findIndex(item => item.id === selectedLearnItem.id);
+      const nextIndex = (currentIndex + 1) % ISL_LEARN_ITEMS.length;
+      handleSelectLearnItem(ISL_LEARN_ITEMS[nextIndex]);
     }
   }, [selectedLearnItem, handleSelectLearnItem]);
 
@@ -696,7 +785,7 @@ export function App() {
       {/* 1. Playful Minimal Navbar */}
       <Navbar
         currentPage={currentPage}
-        onPageChange={setCurrentPage}
+        onPageChange={handlePageChange}
         fps={fps}
         workerStatus={workerStatus}
         workerLatencyMs={workerLatencyMs}
@@ -709,15 +798,13 @@ export function App() {
         onOpenAbout={() => setIsAboutOpen(true)}
         onOpenFeedback={handleOpenFeedback}
         onOpenChatbot={() => setIsChatbotOpen(true)}
-        roomId={roomId}
-        onSwitchRoom={setRoomId}
-        connectionMode={connectionMode}
+        callCode={inCall || callPhase === 'waiting' ? roomId : ''}
+        inCall={inCall}
+        onLeaveCall={call.leave}
         rttMs={rttMs}
-        userName={userName}
         onCopyLink={() => {
-          const shareUrl = getRoomShareUrl();
-          if (navigator.clipboard) {
-            navigator.clipboard.writeText(shareUrl);
+          if (roomId && navigator.clipboard) {
+            navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}?join=${roomId}`);
           }
         }}
       />
@@ -739,10 +826,9 @@ export function App() {
         {currentPage === 'home' && (
           <HomePage
             onSelectMode={(mode) => setCurrentPage(mode)}
-            roomId={roomId}
             extraState={{ masteredCount, roomId, recognitionMode }}
-            onJoinCustomRoom={(newRoom) => {
-              if (setRoomId) setRoomId(newRoom);
+            onJoinCode={(c) => {
+              setPendingJoinCode(c);
               setCurrentPage('chat');
             }}
             onOpenDictionary={() => setIsDictionaryOpen(true)}
@@ -770,7 +856,7 @@ export function App() {
                   }`}
                 >
                   <Video className="w-3.5 h-3.5 stroke-[2.2]" />
-                  <span>Skeleton Studio</span>
+                  <span>Practice</span>
                 </button>
                 <button
                   onClick={() => setMobileLearnTab('guide')}
@@ -781,7 +867,7 @@ export function App() {
                   }`}
                 >
                   <Compass className="w-3.5 h-3.5 stroke-[2.2]" />
-                  <span>Landmark Guide</span>
+                  <span>Lesson</span>
                 </button>
               </div>
             </div>
@@ -798,7 +884,7 @@ export function App() {
                   selectedItem={selectedLearnItem}
                   onSelectItem={handleSelectLearnItem}
                   latestLandmarks={latestLandmarks}
-                  evaluationResult={postureEvaluation}
+                  evaluationResult={learnEvaluation}
                   masteredSet={masteredSetRef.current}
                   isAcademyOpen={isAcademyOpen}
                   onOpenAcademy={() => setIsAcademyOpen(true)}
@@ -813,7 +899,7 @@ export function App() {
 
               {/* Center & Lower Right: Video/Skeleton Stage + Lower AI Guessing Hub */}
               <div
-                className={`flex-1 min-h-0 flex flex-col gap-2.5 sm:gap-3 overflow-hidden ${
+                className={`flex-1 min-h-0 flex flex-col gap-3 overflow-hidden ${
                   mobileLearnTab === 'stage' ? 'flex' : 'hidden md:flex'
                 }`}
               >
@@ -854,6 +940,13 @@ export function App() {
                   successfulReps={successfulReps}
                   targetReps={TARGET_REPETITIONS}
                   onResetPractice={handleResetPractice}
+                  untrained={learnUntrained}
+                  targetMatched={trainedMatch}
+                  onManualPass={handleManualPass}
+                  onTrain={() => {
+                    setTeachWord((selectedLearnItem?.label || '').toUpperCase());
+                    handlePageChange('teach');
+                  }}
                 />
               </div>
             </div>
@@ -863,7 +956,43 @@ export function App() {
         {/* =========================================================================
             PAGE 2: LIVE CALL & AUTO-TRANSLATOR (Dual-Camera Hub)
             ========================================================================= */}
-        {currentPage === 'chat' && (
+        {currentPage === 'teach' && (
+          <TeachStage
+            onFrame={handleFrame}
+            latestLandmarks={latestLandmarks}
+            latestNormalizedFeatures={latestNormalizedFeatures}
+            isWorkerReady={isWorkerReady}
+            initialWord={teachWord}
+          />
+        )}
+
+        {currentPage === 'test' && (
+          <ErrorBoundary title="Testing Error" onReset={() => setCurrentPage('test')}>
+            <TestStage
+              onFrame={handleFrame}
+              latestLandmarks={latestLandmarks}
+              latestNormalizedFeatures={latestNormalizedFeatures}
+              isWorkerReady={isWorkerReady}
+              onGoTeach={() => handlePageChange('teach')}
+              engineLetters={alphabetPredictions}
+              engineWords={wordPredictions?.topCandidates || []}
+            />
+          </ErrorBoundary>
+        )}
+
+        {currentPage === 'chat' && !inCall && (
+          <CallLobby
+            call={call}
+            localStream={localStream}
+            onStreamChange={setLocalStream}
+            userName={userName}
+            onNameChange={setUserName}
+            initialCode={pendingJoinCode}
+            onCodeConsumed={() => setPendingJoinCode('')}
+          />
+        )}
+
+        {currentPage === 'chat' && inCall && (
           <ErrorBoundary title="Calling & Translation Stage Error" onReset={() => setCurrentPage('chat')}>
             <div className="flex flex-col h-full min-h-0 overflow-hidden">
               {/* Mobile Tab Switcher in Sign Call Mode */}
@@ -947,15 +1076,20 @@ export function App() {
                     currentGlosses={glosses}
                     onUndo={handleUndo}
                     onClear={handleClear}
-                    roomId={roomId}
-                    onSwitchRoom={setRoomId}
+                    roomId={formatCallCode(roomId)}
                     onCopyLink={() => {
-                      const shareUrl = getRoomShareUrl();
                       if (navigator.clipboard) {
-                        navigator.clipboard.writeText(shareUrl);
+                        navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}?join=${roomId}`);
                       }
                     }}
                   />
+
+                  {Object.keys(customSigns).length === 0 && (
+                    <div className="duo-card px-4 py-3 flex items-center justify-between gap-3 flex-shrink-0">
+                      <span className="text-sm font-bold text-[#636A62]">No signs trained yet</span>
+                      <button type="button" className="duo-btn duo-btn-blue !py-1.5 !px-4 !text-xs" onClick={() => handlePageChange('teach')}>Train</button>
+                    </div>
+                  )}
 
                   <LiveGlossBar
                     glosses={glosses}
@@ -996,13 +1130,6 @@ export function App() {
           </ErrorBoundary>
         )}
       </main>
-
-      {/* 3. Lower Bar: Minimal Animated Otter Mascot Track (Home page only) */}
-      {currentPage === 'home' && (
-        <footer className="h-7 sm:h-7.5 w-full bg-white/75 backdrop-blur-md border-t border-zinc-200/80 flex items-center overflow-hidden relative select-none z-30">
-          <AnimatedOtterBar />
-        </footer>
-      )}
 
       {/* Developer Training / Keypoint Dataset Recorder Drawer */}
       <KeypointRecorderDrawer
@@ -1066,7 +1193,7 @@ export function App() {
       {/* Mobile Bottom Navigation Dock (< md: thumb navigation) */}
       <MobileBottomNav
         currentPage={currentPage}
-        onPageChange={setCurrentPage}
+        onPageChange={handlePageChange}
         onOpenDictionary={() => setIsDictionaryOpen(true)}
         onOpenChatbot={() => setIsChatbotOpen(true)}
         masteredCount={masteredCount}

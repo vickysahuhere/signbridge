@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, BookOpen, Video, BookMarked, Sparkles } from 'lucide-react';
+import { Home, BookOpen, Video, BookMarked, Sparkles, GraduationCap, ClipboardCheck } from 'lucide-react';
 
 export function MobileBottomNav({
   currentPage = 'home',
@@ -90,19 +90,43 @@ export function MobileBottomNav({
         <span className="text-[10px] mt-0.5 tracking-tight leading-none">Call</span>
       </button>
 
-      {/* 4. Dictionary */}
+      {/* 4. Teach */}
       <button
         type="button"
-        onClick={onOpenDictionary}
-        className="flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl text-zinc-400 hover:text-zinc-600 font-bold transition-all"
+        onClick={() => onPageChange && onPageChange('teach')}
+        className={`flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all ${
+          currentPage === 'teach' ? 'text-[#A559D9] font-black' : 'text-zinc-400 hover:text-zinc-600 font-bold'
+        }`}
       >
-        <div className="w-9 h-7 rounded-lg flex items-center justify-center">
-          <BookMarked className="w-4 h-4 stroke-[2.3]" />
+        <div
+          className={`w-9 h-7 rounded-lg flex items-center justify-center transition-all ${
+            currentPage === 'teach' ? 'bg-[#CE82FF] text-white border-2 border-[#A559D9] border-b-[3px] shadow-xs' : ''
+          }`}
+        >
+          <GraduationCap className="w-4 h-4 stroke-[2.5]" />
         </div>
-        <span className="text-[10px] mt-0.5 tracking-tight leading-none">Signs</span>
+        <span className="text-[10px] mt-0.5 tracking-tight leading-none">Teach</span>
       </button>
 
-      {/* 5. Ask AI Guide */}
+      {/* 5. Testing */}
+      <button
+        type="button"
+        onClick={() => onPageChange && onPageChange('test')}
+        className={`flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all ${
+          currentPage === 'test' ? 'text-[#78350F] font-black' : 'text-zinc-400 hover:text-zinc-600 font-bold'
+        }`}
+      >
+        <div
+          className={`w-9 h-7 rounded-lg flex items-center justify-center transition-all ${
+            currentPage === 'test' ? 'bg-[#FFC800] text-[#78350F] border-2 border-[#E5A500] border-b-[3px] shadow-xs' : ''
+          }`}
+        >
+          <ClipboardCheck className="w-4 h-4 stroke-[2.5]" />
+        </div>
+        <span className="text-[10px] mt-0.5 tracking-tight leading-none">Testing</span>
+      </button>
+
+      {/* 6. Ask AI Guide */}
       <button
         type="button"
         onClick={onOpenChatbot}

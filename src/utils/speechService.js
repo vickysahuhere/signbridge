@@ -440,11 +440,13 @@ export function speakText(text = '', { rate = 1.05, pitch = 1.0, lang = 'en-US',
     utterance.pitch = pitch;
     utterance.lang = lang;
 
-    // Pick a natural English voice if available
+    // Pick a natural voice that matches the requested language (e.g. hi-IN -> Hindi voice)
+    const prefix = (lang || 'en').slice(0, 2).toLowerCase();
     const voices = window.speechSynthesis.getVoices?.() || [];
-    const preferredVoice = voices.find(v => 
-      (v.lang.startsWith('en') && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Premium') || v.name.includes('Samantha')))
-    ) || voices.find(v => v.lang.startsWith('en'));
+    const inLang = voices.filter(v => v.lang.toLowerCase().startsWith(prefix));
+    const preferredVoice = inLang.find(v => v.lang.toLowerCase() === lang.toLowerCase() && /Google|Natural|Premium|Neural|Microsoft/.test(v.name))
+      || inLang.find(v => /Google|Natural|Premium|Neural|Microsoft|Samantha/.test(v.name))
+      || inLang[0];
 
     if (preferredVoice) {
       utterance.voice = preferredVoice;

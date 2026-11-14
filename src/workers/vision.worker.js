@@ -1,4 +1,4 @@
-import { FilesetResolver, HolisticLandmarker } from '@mediapipe/tasks-vision';
+import { FilesetResolver, HolisticLandmarker, HandLandmarker } from '@mediapipe/tasks-vision';
 import * as ort from 'onnxruntime-web';
 
 // Polyfill custom_dbg required by MediaPipe Emscripten debug logging in strict mode
@@ -9,6 +9,7 @@ if (typeof globalThis !== 'undefined') {
   globalThis.custom_dbg = console.warn.bind(console);
 }
 import { extractAndNormalizeFrame, getLandmarkArray } from '../vision/normalizeLandmarks.js';
+import { LandmarkOneEuro } from '../vision/oneEuro.js';
 import { RingBuffer } from '../vision/RingBuffer.js';
 import { VelocityGate } from '../vision/velocityGate.js';
 import { getTopKPredictions } from '../ai/softmax.js';
@@ -18,6 +19,51 @@ import { ConsecutiveConfirmationGate } from '../ai/consecutiveConfirmation.js';
 import { classifyIslAlphabet, classifyIslWord } from '../ai/islGestureEngine.js';
 
 let holisticLandmarker = null;
+let handLandmarker = null;
+// One Euro filters per side; reset when the hand disappears
+const handFilters = { left: new LandmarkOneEuro(), right: new LandmarkOneEuro() };
+let lastHolistic = null;
+let holisticTick = 0;
+const HOLISTIC_EVERY = 3; // body + face change slowly; hands are tracked every frame
+
+function smoothHand(side, pts, t) {
+  if (!pts || pts.length === 0) {
+    handFilters[side].reset();
+    return [];
+  }
+  return handFilters[side].filter(pts, t);
+}
+
+/**
+ * Hands come from the dedicated HandLandmarker (full-frame palm detector + full landmark model).
+ * Side is decided geometrically: on an un-mirrored camera frame the person's LEFT hand is on the
+ * image's right. Pose wrists are used when available.
+ */
+function assignHands(handResult, pose) {
+  const hands = (handResult?.landmarks || []).filter((h) => h && h.length === 21);
+  let left = [];
+  let right = [];
+  if (hands.length === 1) {
+    const h = hands[0];
+    const lw = pose?.[15];
+    const rw = pose?.[16];
+    let isLeft;
+    if (lw && rw && (lw.visibility ?? 1) > 0.3 && (rw.visibility ?? 1) > 0.3) {
+      const dl = Math.hypot(h[0].x - lw.x, h[0].y - lw.y);
+      const dr = Math.hypot(h[0].x - rw.x, h[0].y - rw.y);
+      isLeft = dl < dr;
+    } else {
+      const cat = handResult?.handedness?.[0]?.[0]?.categoryName;
+      isLeft = cat ? cat === 'Right' : h[0].x > 0.5; // tasks API labels assume a mirrored image
+    }
+    if (isLeft) left = h; else right = h;
+  } else if (hands.length >= 2) {
+    const sorted = [...hands].sort((a, b) => b[0].x - a[0].x);
+    left = sorted[0];
+    right = sorted[1];
+  }
+  return { left, right };
+}
 let isInitialized = false;
 
 let alphabetSession = null;
@@ -282,6 +328,25 @@ async function initVision(config = {}) {
       });
     }
 
+    // Dedicated hand model (much steadier than holistic's wrist-seeded hand crop)
+    try {
+      if (!self.ModuleFactory && cachedFactory) self.ModuleFactory = cachedFactory;
+      const handUrl = baseOrigin ? `${baseOrigin}/models/hand_landmarker.task` : '/models/hand_landmarker.task';
+      const handPath = await fetchAndCacheModel(handUrl);
+      handLandmarker = await HandLandmarker.createFromOptions(vision, {
+        baseOptions: { modelAssetPath: handPath, delegate },
+        runningMode: 'VIDEO',
+        numHands: 2,
+        minHandDetectionConfidence: 0.5,
+        minHandPresenceConfidence: 0.5,
+        minTrackingConfidence: 0.5
+      });
+      console.log('[vision.worker] HandLandmarker ready (' + delegate + ')');
+    } catch (handErr) {
+      console.warn('[vision.worker] HandLandmarker unavailable, using holistic hands:', handErr);
+      handLandmarker = null;
+    }
+
     // Run WebGL shader compilation warm-up
     await runShaderWarmUp(holisticLandmarker);
 
@@ -323,12 +388,32 @@ async function processFrame(imageBitmap, timestamp, recognitionMode = 'word') {
 
   try {
     const tHolisticStart = performance.now();
-    const results = holisticLandmarker.detectForVideo(imageBitmap, timestamp);
+    const runHolistic = !handLandmarker || !lastHolistic || holisticTick++ % HOLISTIC_EVERY === 0;
+    let results;
+    if (runHolistic) {
+      results = holisticLandmarker.detectForVideo(imageBitmap, timestamp);
+      lastHolistic = results;
+    } else {
+      results = lastHolistic;
+    }
+    if (handLandmarker) {
+      try {
+        const handResult = handLandmarker.detectForVideo(imageBitmap, timestamp);
+        const poseArr = getLandmarkArray(results.poseLandmarks);
+        const { left, right } = assignHands(handResult, poseArr);
+        results = {
+          ...results,
+          leftHandLandmarks: smoothHand('left', left, timestamp),
+          rightHandLandmarks: smoothHand('right', right, timestamp)
+        };
+      } catch (he) {
+        console.warn('[vision.worker] hand detect error:', he?.message);
+      }
+    }
     const holisticMs = Math.round((performance.now() - tHolisticStart) * 10) / 10;
 
     // Free transferred GPU bitmap immediately
     imageBitmap.close();
-    imageBitmap = null;
 
     const tNormStart = performance.now();
     // 1. Normalize 80 keypoints into 240 floats (translation & scale invariant)
@@ -473,10 +558,7 @@ async function processFrame(imageBitmap, timestamp, recognitionMode = 'word') {
     });
   } catch (err) {
     if (imageBitmap && typeof imageBitmap.close === 'function') {
-      try {
-        imageBitmap.close();
-      } catch (_) {}
-      imageBitmap = null;
+      imageBitmap.close();
     }
     console.error('[vision.worker] Frame detection error:', err);
     self.postMessage({

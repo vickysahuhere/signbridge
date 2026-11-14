@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Sparkles, GripVertical } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 const STORAGE_KEY = 'sanket_ai_launcher_pos';
 
@@ -35,6 +35,10 @@ export function MovableChatbotLauncher({ isOpen, onOpen, currentPage }) {
     const btnH = 46;
     const margin = 20;
 
+    // On wide screens, tuck it into the empty part of the navbar so it never covers page controls
+    if (currentPage !== 'home' && window.innerWidth >= 1280) {
+      return { x: window.innerWidth - btnW - 130, y: 14 };
+    }
     // For Learn page, place it in the upper-right corner below navbar so it never obstructs bottom ranking cards
     const defaultY = currentPage === 'learn'
       ? 76
@@ -61,13 +65,9 @@ export function MovableChatbotLauncher({ isOpen, onOpen, currentPage }) {
       });
     };
 
-    if (!position) {
-      setPosition(getDefaultPosition());
-    }
-
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [getDefaultPosition, position]);
+  }, [getDefaultPosition]);
 
   const handlePointerDown = (e) => {
     // Only drag with primary mouse button or touch
@@ -160,15 +160,14 @@ export function MovableChatbotLauncher({ isOpen, onOpen, currentPage }) {
         touchAction: 'none'
       }}
       className="hidden md:flex fixed z-40 select-none cursor-grab active:cursor-grabbing items-center gap-1.5 px-3 py-2 rounded-2xl bg-[#FFD15C] hover:bg-[#F5C240] border-2 border-zinc-900 shadow-cartoon text-xs sm:text-sm font-black text-zinc-900 transition-shadow active:shadow-cartoon-sm hover:scale-[1.02] active:scale-[0.98]"
-      title="Drag to move anywhere • Click to ask Sanket AI"
+      title="Ask Sanket AI"
       aria-label="Ask Sanket AI Chatbot (Draggable button)"
     >
-      <GripVertical className="w-3.5 h-3.5 text-zinc-700/70 -ml-0.5 flex-shrink-0" />
       <div className="relative flex-shrink-0">
         <Sparkles className="w-4 h-4 text-zinc-900 fill-zinc-900 animate-subtle-bounce" />
         <span className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-500 rounded-full border border-zinc-900" />
       </div>
-      <span className="font-black whitespace-nowrap">Ask Sanket AI</span>
+      <span className="font-black whitespace-nowrap">Ask AI</span>
     </div>
   );
 }

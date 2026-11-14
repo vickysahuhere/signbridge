@@ -11,9 +11,11 @@ import {
   Hash,
   HelpCircle,
   MessageSquare,
-  Hand
+  Hand,
+  GraduationCap,
+  ClipboardCheck
 } from 'lucide-react';
-import { HomeChatbotPopup } from './HomeChatbotPopup.jsx';
+import { normalizeCallCode, CODE_LENGTH } from '../call/callCode.js';
 import AnimatedHeroOtter from './AnimatedHeroOtter.jsx';
 
 /**
@@ -1079,8 +1081,7 @@ function HeroMascotArt({ className = 'w-20 h-20 sm:w-24 sm:h-24' }) {
  */
 export function HomePage({
   onSelectMode,
-  roomId = '',
-  onJoinCustomRoom,
+  onJoinCode,
   onOpenDictionary,
   onOpenAbout,
   onOpenGuide,
@@ -1094,9 +1095,9 @@ export function HomePage({
 
   const handleJoinSubmit = (e) => {
     e.preventDefault();
-    const clean = customRoomInput.trim().toLowerCase().replace(/[^a-z0-9-_]/g, '');
-    if (clean && onJoinCustomRoom) {
-      onJoinCustomRoom(clean);
+    const clean = normalizeCallCode(customRoomInput);
+    if (clean.length === CODE_LENGTH && onJoinCode) {
+      onJoinCode(clean);
     } else {
       onSelectMode('chat');
     }
@@ -1111,10 +1112,6 @@ export function HomePage({
           {/* Mitra 24 FPS Mascot */}
           <div className="relative flex-shrink-0">
             <AnimatedHeroOtter className="w-16 h-16 sm:w-20 sm:h-20" />
-            <span className="absolute -bottom-1 -right-0.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-white border border-[#18181B] text-[8px] font-black text-[#15803D] shadow-xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] animate-pulse" />
-              <span>AI</span>
-            </span>
           </div>
 
           <div className="min-w-0 flex-1">
@@ -1131,30 +1128,6 @@ export function HomePage({
           </div>
         </div>
 
-        {/* Right: Quick App Guide & AI Chatbot Launchers */}
-        <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-end pt-1 sm:pt-0 border-t sm:border-t-0 border-zinc-100">
-          {onOpenGuide && (
-            <button
-              type="button"
-              onClick={onOpenGuide}
-              className="duo-btn duo-btn-gold !py-2 !px-3 sm:!px-4 text-xs font-black shadow-sm flex items-center gap-1.5 flex-shrink-0"
-              title="Open interactive application guide and walkthrough"
-            >
-              <HelpCircle className="w-4 h-4 stroke-[2.5]" />
-              <span>Quick Guide</span>
-              <ArrowRight className="w-3 h-3 stroke-[2.5]" />
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={onOpenChatbot}
-            className="duo-btn bg-white hover:bg-[#FFF9E5] border-2 border-zinc-900 text-zinc-900 !py-2 !px-3 sm:!px-4 text-xs font-black shadow-sm flex items-center gap-1.5 transition-all flex-shrink-0"
-            title="Open Sanket AI Chatbot"
-          >
-            <Sparkles className="w-4 h-4 text-amber-500 fill-amber-500" />
-            <span>Ask AI Guide</span>
-          </button>
-        </div>
       </div>
 
       {/* Mobile Tab Switcher for Quick Arena Jump (< md) */}
@@ -1200,16 +1173,7 @@ export function HomePage({
           onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onSelectMode('learn')}
         >
           {/* Card Accent Top Banner */}
-          <div className="flex items-center justify-between mb-2 flex-shrink-0">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EEFDE5] border-2 border-[#58CC02] text-[11px] font-black text-[#388402]">
-              <Compass className="w-3.5 h-3.5 text-[#58CC02] stroke-[2.5]" />
-              <span>PRACTICE &amp; MASTER</span>
-            </div>
-            <span className="text-[11px] font-bold text-zinc-400 font-mono">
-              7 Levels • Self-Paced
-            </span>
-          </div>
-
+          
           {/* Dedicated Artwork Stage Frame */}
           <div className="w-full h-[145px] sm:h-[160px] my-2 rounded-2xl bg-gradient-to-b from-amber-50/50 via-emerald-50/30 to-emerald-50/50 border border-emerald-100 flex items-center justify-center p-2 group-hover:scale-[1.02] transition-transform duration-200 overflow-hidden flex-shrink-0">
             <ArtisticLearnIllustration className="w-full h-full object-contain" />
@@ -1218,13 +1182,13 @@ export function HomePage({
           {/* Content Block */}
           <div className="mt-2 text-left flex flex-col flex-grow">
             <h2 className="text-lg sm:text-xl font-black text-[#3C3C3C] tracking-tight flex items-center justify-between">
-              <span>Learn ISL Curriculum</span>
+              <span>Learn</span>
               <span className="text-xs sm:text-sm font-black text-[#58CC02] group-hover:translate-x-1 transition-transform flex items-center gap-0.5">
                 Start <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
               </span>
             </h2>
             <p className="mt-1.5 text-xs sm:text-[13.5px] text-zinc-600 font-bold leading-relaxed">
-              Interactive 7-level progressive course: start with Namaste, master two-handed A–Z fingerspelling, and practice 1,000+ signs with instant AI feedback.
+              Practice 1,000+ signs with instant feedback.
             </p>
           </div>
 
@@ -1239,7 +1203,7 @@ export function HomePage({
               className="w-full duo-btn duo-btn-green !py-3 text-xs sm:text-sm font-black flex items-center justify-center gap-2 shadow-sm"
             >
               <BookOpen className="w-4 h-4 stroke-[2.5]" />
-              <span>START LEARNING (LEVEL 1)</span>
+              <span>START LEARNING</span>
               <ArrowRight className="w-4 h-4 stroke-[2.5] group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
@@ -1258,16 +1222,7 @@ export function HomePage({
           onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onSelectMode('chat')}
         >
           {/* Card Accent Top Banner */}
-          <div className="flex items-center justify-between mb-2 flex-shrink-0">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#DDF4FE] border-2 border-[#1CB0F6] text-[11px] font-black text-[#0284C7]">
-              <Video className="w-3.5 h-3.5 text-[#1CB0F6] stroke-[2.5]" />
-              <span>SIGN VIDEO CALL</span>
-            </div>
-            <span className="text-[11px] font-bold text-zinc-400 font-mono">
-              P2P Encrypted • &lt;20ms
-            </span>
-          </div>
-
+          
           {/* Dedicated Artwork Stage Frame */}
           <div className="w-full h-[145px] sm:h-[160px] my-2 rounded-2xl bg-gradient-to-b from-sky-50/50 via-blue-50/30 to-sky-50/50 border border-sky-100 flex items-center justify-center p-2 group-hover:scale-[1.02] transition-transform duration-200 overflow-hidden flex-shrink-0">
             <ArtisticCallIllustration className="w-full h-full object-contain" />
@@ -1276,13 +1231,13 @@ export function HomePage({
           {/* Content Block */}
           <div className="mt-2 text-left flex flex-col flex-grow">
             <h2 className="text-lg sm:text-xl font-black text-[#3C3C3C] tracking-tight flex items-center justify-between">
-              <span>Sign Video Call &amp; Auto-Translator</span>
+              <span>Sign Call</span>
               <span className="text-xs sm:text-sm font-black text-[#1CB0F6] group-hover:translate-x-1 transition-transform flex items-center gap-0.5">
-                Start Call <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                Start <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
               </span>
             </h2>
             <p className="mt-1.5 text-xs sm:text-[13.5px] text-zinc-600 font-bold leading-relaxed">
-              Direct peer-to-peer video calling with real-time on-device sign detection and automatic ISL-to-English grammar translation.
+              Video call with live sign-to-text.
             </p>
           </div>
 
@@ -1309,7 +1264,7 @@ export function HomePage({
                     setShowRoomInput(true);
                   }}
                   className="cartoon-btn bg-white hover:bg-zinc-100 !py-2.5 !px-3 text-xs font-bold flex items-center gap-1.5 flex-shrink-0 border-2 border-zinc-900 shadow-sm"
-                  title="Join an existing room code"
+                  title="Join with a call code"
                 >
                   <Hash className="w-4 h-4 text-zinc-700 flex-shrink-0" />
                   <span>Join</span>
@@ -1325,7 +1280,7 @@ export function HomePage({
                   type="text"
                   value={customRoomInput}
                   onChange={(e) => setCustomRoomInput(e.target.value)}
-                  placeholder="Enter room code..."
+                  placeholder="6-character code"
                   autoFocus
                   className="flex-1 px-3 py-2 text-xs font-bold bg-[#FAF8F5] border-2 border-zinc-900 rounded-xl focus:outline-none min-w-0"
                 />
@@ -1346,6 +1301,38 @@ export function HomePage({
             )}
           </div>
         </div>
+      </div>
+
+      {/* 3. Train & Test: teach Sanket your own signs, then check how well it knows them */}
+      <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-4 max-w-4xl">
+        <button
+          type="button"
+          onClick={() => onSelectMode('teach')}
+          className="duo-card bg-white p-3.5 sm:p-4 flex items-center gap-3 text-left cursor-pointer hover:-translate-y-0.5 hover:shadow-lg transition-all duration-150"
+        >
+          <span className="w-12 h-12 rounded-2xl bg-[#F7ECFF] border-2 border-[#CE82FF] border-b-[4px] flex items-center justify-center flex-shrink-0">
+            <GraduationCap className="w-6 h-6 text-[#A559D9] stroke-[2.4]" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-base font-black text-[#3C3C3C] leading-tight">Teach</span>
+            <span className="block text-xs font-bold text-zinc-500 mt-0.5">Record your own signs.</span>
+          </span>
+          <ArrowRight className="w-4 h-4 text-[#A559D9] stroke-[3] flex-shrink-0" />
+        </button>
+        <button
+          type="button"
+          onClick={() => onSelectMode('test')}
+          className="duo-card bg-white p-3.5 sm:p-4 flex items-center gap-3 text-left cursor-pointer hover:-translate-y-0.5 hover:shadow-lg transition-all duration-150"
+        >
+          <span className="w-12 h-12 rounded-2xl bg-[#FFF5D1] border-2 border-[#FFC800] border-b-[4px] flex items-center justify-center flex-shrink-0">
+            <ClipboardCheck className="w-6 h-6 text-[#78350F] stroke-[2.4]" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-base font-black text-[#3C3C3C] leading-tight">Testing</span>
+            <span className="block text-xs font-bold text-zinc-500 mt-0.5">Live view and quiz.</span>
+          </span>
+          <ArrowRight className="w-4 h-4 text-[#E5A500] stroke-[3] flex-shrink-0" />
+        </button>
       </div>
     </div>
   );
