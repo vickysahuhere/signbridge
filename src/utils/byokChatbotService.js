@@ -11,6 +11,7 @@
  */
 
 import { buildPageSystemInstruction, PAGE_DEFINITIONS, getSignStepByStepGuide } from './pageContextManager.js';
+import { cleanTextForSpeech } from './speechService.js';
 
 export const STORAGE_KEYS = {
   API_KEY: 'sanket_chatbot_byok_api_key',
@@ -30,13 +31,13 @@ export const PROVIDERS = [
     keyPlaceholder: 'AIzaSy...',
     keyUrl: 'https://aistudio.google.com/app/apikey',
     keyUrlLabel: 'Get Free Gemini Key',
-    defaultModel: 'gemini-2.5-flash',
+    defaultModel: 'gemini-2.5-flash-lite',
     endpoint: 'https://generativelanguage.googleapis.com/v1beta',
     models: [
-      { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (Recommended, Multimodal & Voice)' },
-      { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash-Lite (Ultra Fast)' },
-      { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash' },
+      { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash-Lite (Recommended — Ultra Fast & Responsive)' },
+      { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (Deep Multimodal & Reasoning)' },
       { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Flash-Lite' },
+      { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash' },
       { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash' }
     ]
   },
@@ -124,8 +125,8 @@ export const SUPPORTED_MODELS = PROVIDERS.flatMap(p =>
  */
 export const PROVIDER_CANDIDATE_MODELS = {
   gemini: [
-    'gemini-2.5-flash',
     'gemini-2.5-flash-lite',
+    'gemini-2.5-flash',
     'gemini-3.5-flash-lite',
     'gemini-3.5-flash',
     'gemini-3-flash-preview',
@@ -411,11 +412,11 @@ export function getByokConfig() {
     const storage = getStorage();
     const apiKey = storage.getItem(STORAGE_KEYS.API_KEY) || '';
     const provider = storage.getItem(STORAGE_KEYS.PROVIDER) || 'gemini';
-    let model = storage.getItem(STORAGE_KEYS.MODEL) || 'gemini-3.5-flash-lite';
+    let model = storage.getItem(STORAGE_KEYS.MODEL) || 'gemini-2.5-flash-lite';
     // Automatically upgrade ancient decommissioned Gemini 1.0 models to the active production model
     if (provider === 'gemini' && (model === 'gemini-1.0-pro' || model === 'gemini-1.5-pro' || model === 'gemini-pro')) {
-      model = 'gemini-3.5-flash-lite';
-      storage.setItem(STORAGE_KEYS.MODEL, 'gemini-3.5-flash-lite');
+      model = 'gemini-2.5-flash-lite';
+      storage.setItem(STORAGE_KEYS.MODEL, 'gemini-2.5-flash-lite');
     }
     const endpoint = storage.getItem(STORAGE_KEYS.ENDPOINT) || '';
 
@@ -908,7 +909,9 @@ export async function sendChatbotMessage({
 
   // 1. Google Gemini API (Automatic Model Discovery & Cascading Fallback)
   if (config.provider === 'gemini') {
-    const liveModels = await fetchLiveActiveModels('gemini', trimmedKey);
+    // Populate model cache asynchronously in background without delaying this message
+    fetchLiveActiveModels('gemini', trimmedKey).catch(() => {});
+    const liveModels = fetchedModelsCache.get(`gemini:${trimmedKey.slice(-6)}`);
     const staticCandidates = PROVIDER_CANDIDATE_MODELS.gemini;
 
     let candidateModels = [];
@@ -1013,44 +1016,6 @@ export async function sendChatbotMessage({
           }
 
           candidateText = cleanModelOutput(candidateText.trim());
-
-          // If user wanted audio feedback and the model only returned text, generate native speech with Gemini TTS
-          if (wantsAudio && candidateText && !audioData) {
-            try {
-              const ttsUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${trimmedKey}`;
-              const ttsRes = await fetch(ttsUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  contents: [{ parts: [{ text: `Read the following transcript aloud verbatim: ${candidateText.slice(0, 300)}` }] }],
-                  generationConfig: {
-                    responseModalities: ['AUDIO'],
-                    speechConfig: {
-                      voiceConfig: {
-                        prebuiltVoiceConfig: {
-                          voiceName: 'Puck'
-                        }
-                      }
-                    }
-                  }
-                })
-              });
-              if (ttsRes.ok) {
-                const ttsData = await ttsRes.json();
-                const audioPart = ttsData?.candidates?.[0]?.content?.parts?.find(p => p.inlineData?.data)?.inlineData;
-                if (audioPart && audioPart.data) {
-                  audioData = {
-                    mimeType: audioPart.mimeType || 'audio/pcm;rate=24000',
-                    base64: audioPart.data
-                  };
-                }
-              } else {
-                console.warn('[byokChatbotService] Gemini TTS status:', ttsRes.status);
-              }
-            } catch (ttsErr) {
-              console.warn('[BYOK] Native TTS synthesis skipped, will use browser speech:', ttsErr);
-            }
-          }
 
           if (!candidateText && audioData) {
             candidateText = "[Gemini Voice Answer]";
@@ -1327,4 +1292,59 @@ export async function sendChatbotMessage({
     isFromLlm: false,
     provider: 'local-fallback'
   };
+}
+
+/**
+ * Asynchronously synthesizes high-fidelity Google Studio voice audio (Puck)
+ * for a text reply in the background without blocking the UI or text rendering.
+ *
+ * @param {string} rawText - Text or markdown to synthesize
+ * @param {string} apiKey - Gemini API key
+ * @returns {Promise<{ base64: string, mimeType: string } | null>}
+ */
+export async function synthesizeGeminiStudioVoice(rawText, apiKey) {
+  if (!apiKey || !apiKey.trim() || !rawText) return null;
+  const cleanProse = cleanTextForSpeech(rawText).trim();
+  if (!cleanProse) return null;
+
+  // Extract the first clean conversational sentence(s) up to ~220 characters for sub-second TTS synthesis
+  const speechSnippet = cleanProse.slice(0, 220).trim();
+  if (!speechSnippet) return null;
+
+  try {
+    const ttsUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey.trim()}`;
+    const ttsRes = await fetch(ttsUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: `Read the following transcript aloud verbatim: ${speechSnippet}` }] }],
+        generationConfig: {
+          responseModalities: ['AUDIO'],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: {
+                voiceName: 'Puck'
+              }
+            }
+          }
+        }
+      })
+    });
+
+    if (ttsRes.ok) {
+      const ttsData = await ttsRes.json();
+      const audioPart = ttsData?.candidates?.[0]?.content?.parts?.find(p => p.inlineData?.data)?.inlineData;
+      if (audioPart && audioPart.data) {
+        return {
+          mimeType: audioPart.mimeType || 'audio/pcm;rate=24000',
+          base64: audioPart.data
+        };
+      }
+    } else {
+      console.warn('[byokChatbotService] Gemini Studio TTS status:', ttsRes.status);
+    }
+  } catch (err) {
+    console.warn('[byokChatbotService] synthesizeGeminiStudioVoice error:', err);
+  }
+  return null;
 }

@@ -42,6 +42,7 @@ import {
   saveChatHistory,
   clearChatHistory,
   sendChatbotMessage,
+  synthesizeGeminiStudioVoice,
   downloadChatTranscript,
   PROVIDERS,
   SUPPORTED_MODELS
@@ -72,7 +73,7 @@ export function HomeChatbotPopup({
   // BYOK Configuration State
   const [byokConfig, setByokConfig] = useState(getByokConfig);
   const [apiKeyInput, setApiKeyInput] = useState(() => byokConfig.apiKey || '');
-  const [selectedModel, setSelectedModel] = useState(() => byokConfig.model || 'gemini-2.5-flash');
+  const [selectedModel, setSelectedModel] = useState(() => byokConfig.model || 'gemini-2.5-flash-lite');
   const [selectedProvider, setSelectedProvider] = useState(() => byokConfig.provider || 'gemini');
   const [customEndpoint, setCustomEndpoint] = useState(() => byokConfig.endpoint || '');
   const [showKeyText, setShowKeyText] = useState(false);
@@ -83,7 +84,7 @@ export function HomeChatbotPopup({
   useEffect(() => {
     const envKey = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GEMINI_API_KEY || '').trim();
     if (envKey && !byokConfig.hasKey) {
-      const defaultMod = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GEMINI_MODEL) || 'gemini-2.5-flash';
+      const defaultMod = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GEMINI_MODEL) || 'gemini-2.5-flash-lite';
       saveByokConfig({
         apiKey: envKey,
         provider: 'gemini',
@@ -514,6 +515,37 @@ export function HomeChatbotPopup({
           });
         }
       });
+    } else if (byokConfig.hasKey && byokConfig.provider === 'gemini') {
+      synthesizeGeminiStudioVoice(msg.text, byokConfig.apiKey)
+        .then(audioData => {
+          if (audioData && audioData.base64) {
+            msg.audio = audioData;
+            playGeminiAudio(audioData.base64, audioData.mimeType, {
+              onStart: () => setIsSpeaking(true),
+              onEnd: onDone,
+              onError: () => {
+                speakText(msg.text, {
+                  onStart: () => setIsSpeaking(true),
+                  onEnd: onDone,
+                  onError: onDone
+                });
+              }
+            });
+          } else {
+            speakText(msg.text, {
+              onStart: () => setIsSpeaking(true),
+              onEnd: onDone,
+              onError: onDone
+            });
+          }
+        })
+        .catch(() => {
+          speakText(msg.text, {
+            onStart: () => setIsSpeaking(true),
+            onEnd: onDone,
+            onError: onDone
+          });
+        });
     } else {
       speakText(msg.text, {
         onStart: () => setIsSpeaking(true),
@@ -627,7 +659,7 @@ export function HomeChatbotPopup({
         page: currentPage,
         extraState,
         screenshotDataUrl,
-        wantsAudio: Boolean(shouldVocalize),
+        wantsAudio: false, // Text returns immediately in sub-second time; voice is synthesized asynchronously
         audioInputBase64: options.audioInputBase64 || null,
         audioInputMimeType: options.audioInputMimeType || 'audio/webm'
       });
@@ -643,7 +675,9 @@ export function HomeChatbotPopup({
         audio: response.audio || null
       };
 
+      // IMMEDIATELY render the answer on screen! The user sees the reply in ~1s!
       setMessages(prev => [...prev, assistantMessage]);
+      setIsLoading(false);
 
       // If user spoke or voice mode is enabled, speak the answer aloud
       if (shouldVocalize) {
@@ -663,23 +697,44 @@ export function HomeChatbotPopup({
           }
         };
 
-        // If Gemini returned native AI studio audio, play Gemini's actual studio voice!
-        if (response.audio && response.audio.base64) {
-          playGeminiAudio(response.audio.base64, response.audio.mimeType, {
-            onStart: () => setIsSpeaking(true),
-            onEnd: onFinishedSpeaking,
-            onError: (err) => {
-              console.warn('[HomeChatbotPopup] Gemini native audio error, falling back to TTS:', err);
-              // Fallback to browser TTS if audio playback failed
+        if (byokConfig.hasKey && byokConfig.provider === 'gemini') {
+          // Asynchronously synthesize Google Studio voice (Puck) in background without blocking UI
+          synthesizeGeminiStudioVoice(response.reply, byokConfig.apiKey)
+            .then(audioData => {
+              if (audioData && audioData.base64) {
+                // Attach to message for future replay
+                setMessages(prev => prev.map(m => m.id === assistantMessage.id ? { ...m, audio: audioData } : m));
+                playGeminiAudio(audioData.base64, audioData.mimeType, {
+                  onStart: () => setIsSpeaking(true),
+                  onEnd: onFinishedSpeaking,
+                  onError: (err) => {
+                    console.warn('[HomeChatbotPopup] Gemini studio audio playback error, falling back to TTS:', err);
+                    speakText(response.reply, {
+                      onStart: () => setIsSpeaking(true),
+                      onEnd: onFinishedSpeaking,
+                      onError: onFinishedSpeaking
+                    });
+                  }
+                });
+              } else {
+                // Instant fallback to browser speech synthesis
+                speakText(response.reply, {
+                  onStart: () => setIsSpeaking(true),
+                  onEnd: onFinishedSpeaking,
+                  onError: onFinishedSpeaking
+                });
+              }
+            })
+            .catch(err => {
+              console.warn('[HomeChatbotPopup] Studio voice failed, using browser speech:', err);
               speakText(response.reply, {
                 onStart: () => setIsSpeaking(true),
                 onEnd: onFinishedSpeaking,
                 onError: onFinishedSpeaking
               });
-            }
-          });
+            });
         } else {
-          // Other keys (Groq, OpenAI, OpenRouter) or local fallback: use browser TTS
+          // Other keys (Groq, OpenAI, OpenRouter) or local fallback: use browser TTS directly
           speakText(response.reply, {
             onStart: () => setIsSpeaking(true),
             onEnd: onFinishedSpeaking,

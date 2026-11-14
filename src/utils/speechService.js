@@ -76,7 +76,7 @@ export class VoiceRecognizer {
     onError,
     onStart,
     onEnd,
-    autoCommitMs = 1100,
+    autoCommitMs = 750,
     lang = ''
   } = {}) {
     this.onResult = onResult;
