@@ -1116,32 +1116,33 @@ export function HomeChatbotPopup({
 
       {/* Main Popup Window */}
       <div
-        className={`cartoon-card bg-[#EDF7EC] border-2 border-zinc-900 shadow-cartoon-lg flex flex-col overflow-hidden transition-all duration-200 ${
+        className={`cartoon-card bg-[#F8FAF9] border-2 border-zinc-900 shadow-cartoon-lg flex flex-col overflow-hidden transition-all duration-200 font-['Nunito',sans-serif] ${
           isExpanded
-            ? 'w-full h-[96dvh] sm:w-[540px] sm:h-[680px] sm:max-h-[90vh]'
-            : 'w-full h-[90dvh] max-h-[90dvh] sm:w-[420px] sm:h-[540px] sm:max-h-[85vh]'
-        } rounded-t-2xl sm:rounded-2xl`}
+            ? 'w-full h-[96dvh] sm:w-[560px] sm:h-[700px] sm:max-h-[90vh]'
+            : 'w-full h-[90dvh] max-h-[90dvh] sm:w-[440px] sm:h-[560px] sm:max-h-[85vh]'
+        } rounded-t-3xl sm:rounded-3xl`}
       >
         {/* =========================================================================
             1. POPUP TITLE BAR (Movable / Draggable on Desktop)
             ========================================================================= */}
         <div
           onPointerDown={handlePointerDown}
-          className="px-3.5 py-2.5 bg-white border-b-2 border-zinc-900 flex items-center justify-between gap-2 flex-shrink-0 sm:cursor-grab active:sm:cursor-grabbing select-none"
+          className="px-3.5 py-2.5 bg-white border-b-2 border-zinc-200 flex items-center justify-between gap-2 flex-shrink-0 sm:cursor-grab active:sm:cursor-grabbing select-none"
           title="Click and drag to move window"
         >
           <div className="flex items-center gap-2 min-w-0">
-            <GripHorizontal className="w-3.5 h-3.5 text-zinc-400 hidden sm:block flex-shrink-0" />
-            <div className="w-7 h-7 rounded-lg bg-[#FFD15C] border-2 border-zinc-900 flex items-center justify-center flex-shrink-0 shadow-cartoon-sm">
-              <Sparkles className="w-3.5 h-3.5 text-zinc-900 fill-zinc-900" />
+            <GripHorizontal className="w-4 h-4 text-zinc-300 hidden sm:block flex-shrink-0" />
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-400 to-amber-500 border-2 border-amber-600/30 flex items-center justify-center flex-shrink-0 shadow-2xs">
+              <Sparkles className="w-4 h-4 text-white fill-white" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <h3 className="font-black text-xs sm:text-sm text-zinc-900 truncate">
+                <h3 className="font-black text-sm sm:text-base text-zinc-900 truncate tracking-tight">
                   Sanket AI
                 </h3>
+                <span className="w-2 h-2 rounded-full bg-[#58CC02] animate-pulse shrink-0" />
               </div>
-              <p className="text-[10px] text-zinc-500 font-bold truncate">
+              <p className="text-[11px] text-zinc-500 font-bold truncate">
                 {currentPage === 'learn'
                   ? `Learn: ${currentSignName} (${extraState.successfulReps || 0}/3 reps)`
                   : currentPage === 'chat'
@@ -1152,19 +1153,38 @@ export function HomeChatbotPopup({
           </div>
 
           {/* Action Tools */}
-          <div className="flex items-center gap-1 flex-shrink-0">
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            {/* Quick Audio Mute / Unmute Button */}
+            <button
+              type="button"
+              onClick={handleToggleAutoSpeak}
+              className={`p-1.5 rounded-xl border-2 transition-all cursor-pointer shadow-2xs ${
+                autoSpeak
+                  ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                  : 'bg-zinc-50 border-zinc-200 text-zinc-400 hover:text-zinc-600'
+              }`}
+              title={autoSpeak ? "Spoken voice output is ON (click to mute)" : "Spoken voice output is MUTED (click to unmute)"}
+              aria-label="Toggle spoken voice"
+            >
+              {autoSpeak ? (
+                <Volume2 className="w-4 h-4 stroke-[2.5]" />
+              ) : (
+                <VolumeX className="w-4 h-4 stroke-[2]" />
+              )}
+            </button>
+
             {/* BYOK Key Toggle */}
             <button
               type="button"
               onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-              className={`px-2 py-1 text-[11px] font-extrabold rounded-lg border-2 border-zinc-900 flex items-center gap-1 shadow-cartoon-sm transition-all ${
+              className={`px-2.5 py-1 text-xs font-black rounded-xl border-2 flex items-center gap-1.5 shadow-2xs transition-all ${
                 byokConfig.hasKey
-                  ? 'bg-[#DCFCE7] text-[#15803D]'
-                  : 'bg-[#FFF9E5] text-zinc-800'
+                  ? 'bg-[#DCFCE7] border-[#86EFAC] text-[#15803D]'
+                  : 'bg-[#FFF9E5] border-amber-300 text-amber-900'
               }`}
               title="Configure AI API Key"
             >
-              <Key className="w-3 h-3 stroke-[2.5]" />
+              <Key className="w-3.5 h-3.5 stroke-[2.5]" />
               <span className="hidden xs:inline">
                 {byokConfig.hasKey
                   ? `Key: ${PROVIDERS.find(p => p.id === byokConfig.provider)?.name?.split(' ')[0] || 'Active'}`
@@ -1182,8 +1202,8 @@ export function HomeChatbotPopup({
               <button
                 type="button"
                 onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
-                className={`w-7 h-7 rounded-lg border-2 border-zinc-900 flex items-center justify-center shadow-cartoon-sm transition-all ${
-                  isMoreMenuOpen ? 'bg-amber-100' : 'bg-white hover:bg-zinc-100 text-zinc-800'
+                className={`w-8 h-8 rounded-xl border-2 border-zinc-200 hover:border-zinc-300 flex items-center justify-center shadow-2xs transition-all cursor-pointer ${
+                  isMoreMenuOpen ? 'bg-amber-100 border-amber-300' : 'bg-white hover:bg-zinc-50 text-zinc-800'
                 }`}
                 title="More Tools & Options"
                 aria-label="More options"
@@ -1311,13 +1331,14 @@ export function HomeChatbotPopup({
             <button
               type="button"
               onClick={() => setIsExpanded(!isExpanded)}
-              className="hidden sm:flex w-7 h-7 rounded-lg border-2 border-zinc-900 bg-white hover:bg-zinc-100 items-center justify-center shadow-cartoon-sm"
+              className="hidden sm:flex w-8 h-8 rounded-xl border-2 border-zinc-200 hover:border-zinc-300 bg-white hover:bg-zinc-50 items-center justify-center shadow-2xs transition-all cursor-pointer"
               title={isExpanded ? 'Restore size' : 'Expand window'}
+              aria-label="Expand or minimize"
             >
               {isExpanded ? (
-                <Minimize2 className="w-3.5 h-3.5 stroke-[2] text-zinc-700" />
+                <Minimize2 className="w-4 h-4 stroke-[2.2] text-zinc-600" />
               ) : (
-                <Maximize2 className="w-3.5 h-3.5 stroke-[2] text-zinc-700" />
+                <Maximize2 className="w-4 h-4 stroke-[2.2] text-zinc-600" />
               )}
             </button>
 
@@ -1325,10 +1346,11 @@ export function HomeChatbotPopup({
             <button
               type="button"
               onClick={onClose}
-              className="w-7 h-7 rounded-lg border-2 border-zinc-900 bg-white hover:bg-[#FEECEC] hover:text-red-600 flex items-center justify-center shadow-cartoon-sm"
+              className="w-8 h-8 rounded-xl border-2 border-zinc-200 hover:border-rose-300 bg-white hover:bg-rose-50 hover:text-rose-600 flex items-center justify-center shadow-2xs transition-all cursor-pointer text-zinc-700"
               title="Close Chatbot"
+              aria-label="Close"
             >
-              <X className="w-4 h-4 stroke-[2.5] text-zinc-900" />
+              <X className="w-4 h-4 stroke-[2.5]" />
             </button>
           </div>
         </div>
@@ -1451,37 +1473,37 @@ export function HomeChatbotPopup({
         {/* =========================================================================
             3. MEMORY OPTION & EXPORT BAR
             ========================================================================= */}
-        <div className="px-3 py-1.5 bg-[#E5F3E4] border-b border-zinc-300 flex items-center justify-between text-xs flex-shrink-0">
-          <label className="flex items-center gap-1.5 font-bold text-zinc-700 cursor-pointer select-none">
+        <div className="px-3.5 py-2 bg-[#F0FDF4] border-b border-emerald-100 flex items-center justify-between text-xs flex-shrink-0 font-['Nunito',sans-serif]">
+          <label className="flex items-center gap-2 font-bold text-emerald-950 cursor-pointer select-none">
             <input
               type="checkbox"
               checked={saveInMemory}
               onChange={handleToggleMemory}
-              className="w-3.5 h-3.5 accent-[#FFD15C] rounded border-2 border-zinc-900 cursor-pointer"
+              className="w-4 h-4 accent-[#58CC02] rounded-md cursor-pointer"
             />
-            <Database className="w-3 h-3 text-zinc-600" />
-            <span>Save chat in memory</span>
+            <Database className="w-3.5 h-3.5 text-emerald-700" />
+            <span className="text-[12px] sm:text-[13px]">Save conversation memory</span>
           </label>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <button
               type="button"
               onClick={() => handleExportChat('txt')}
-              className="font-bold text-[10px] text-zinc-700 hover:text-amber-800 flex items-center gap-1 hover:underline cursor-pointer"
+              className="font-black text-xs text-emerald-800 hover:text-emerald-950 flex items-center gap-1 transition-colors cursor-pointer"
               title="Save all chat messages as .txt"
             >
-              <Download className="w-3 h-3 text-amber-600 stroke-[2.5]" />
-              <span>Save .txt</span>
+              <Download className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
+              <span>.txt</span>
             </button>
-            <span className="text-zinc-300 font-normal">|</span>
+            <span className="text-emerald-200 font-bold">|</span>
             <button
               type="button"
               onClick={() => handleExportChat('doc')}
-              className="font-bold text-[10px] text-zinc-700 hover:text-sky-800 flex items-center gap-1 hover:underline cursor-pointer"
+              className="font-black text-xs text-sky-700 hover:text-sky-900 flex items-center gap-1 transition-colors cursor-pointer"
               title="Save all chat messages as Word .doc"
             >
-              <FileDown className="w-3 h-3 text-sky-600 stroke-[2.5]" />
-              <span>Save .doc</span>
+              <FileDown className="w-3.5 h-3.5 text-sky-600 stroke-[2.5]" />
+              <span>.doc</span>
             </button>
           </div>
         </div>
@@ -1521,68 +1543,73 @@ export function HomeChatbotPopup({
               }`}
             >
               <div
-                className={`max-w-[88%] p-2.5 rounded-xl border-2 border-zinc-900 text-xs leading-relaxed select-text ${
+                className={`max-w-[90%] p-3.5 sm:p-4 rounded-3xl border-2 select-text transition-all ${
                   msg.role === 'user'
-                    ? 'bg-[#FFD15C] text-zinc-900 shadow-cartoon-sm font-semibold rounded-br-xs'
-                    : 'bg-white text-zinc-900 shadow-cartoon-sm rounded-bl-xs'
+                    ? 'bg-[#FFDE59] text-zinc-950 border-[#E5A500] border-b-4 rounded-tr-md shadow-xs font-bold'
+                    : 'bg-white text-zinc-900 border-zinc-200 border-b-4 rounded-tl-md shadow-xs'
                 }`}
               >
                 {/* User message screenshot badge or voice badge */}
                 {msg.role === 'user' && (msg.hasScreenshot || msg.isVoiceInput) && (
-                  <div className="flex items-center gap-2 mb-1 pb-0.5 text-[9px] font-black text-amber-950/70 border-b border-amber-400/40">
+                  <div className="flex items-center gap-2 mb-1.5 pb-1 text-[11px] font-black text-amber-950/80 border-b border-amber-400/50">
                     {msg.isVoiceInput && (
-                      <span className="flex items-center gap-0.5 text-rose-900">
-                        <Mic className="w-2.5 h-2.5 stroke-[2.5]" />
+                      <span className="flex items-center gap-1 text-rose-900">
+                        <Mic className="w-3 h-3 stroke-[2.5]" />
                         <span>Voice Question</span>
                       </span>
                     )}
                     {msg.hasScreenshot && (
-                      <span className="flex items-center gap-0.5">
-                        <Eye className="w-2.5 h-2.5 stroke-[2.5]" />
+                      <span className="flex items-center gap-1 text-sky-950">
+                        <Eye className="w-3 h-3 stroke-[2.5]" />
                         <span>Screen Attached</span>
                       </span>
                     )}
                   </div>
                 )}
 
-                {/* Assistant header tag */}
+                {/* Assistant header tag — clean, modern, Duolingo aesthetic with SVG avatar and sound visualizer */}
                 {msg.role === 'assistant' && (
-                  <div className="flex items-center justify-between gap-2 mb-1 pb-1 border-b border-zinc-100 text-[10px] font-black text-zinc-500">
-                    <span className="flex items-center gap-1 text-zinc-800">
-                      <Sparkles className="w-3 h-3 text-amber-500" />
-                      <span>Sanket Guide</span>
-                      {msg.modelUsed && (
-                        <span className="text-[9px] font-mono font-medium text-amber-950 bg-amber-100 px-1 rounded border border-amber-300">
-                          {msg.modelUsed.split('/').pop()}
+                  <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-zinc-100 select-none">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-amber-400 to-amber-500 border border-amber-600/30 flex items-center justify-center text-white shadow-xs shrink-0">
+                        <Sparkles className="w-3.5 h-3.5 fill-white text-white" />
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-black text-xs sm:text-[13px] text-zinc-900 tracking-wide font-['Nunito',sans-serif]">
+                          Sanket AI
                         </span>
-                      )}
-                      {msg.audio && (
-                        <span className="text-[9px] font-bold text-rose-800 bg-rose-100 px-1 rounded border border-rose-300 flex items-center gap-0.5">
-                          <Radio className="w-2.5 h-2.5 animate-pulse text-rose-600" />
-                          <span>Gemini Voice</span>
-                        </span>
-                      )}
-                    </span>
-                    <div className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#58CC02]" />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1">
                       <button
                         type="button"
                         onClick={() => handleSpeakMessage(msg)}
-                        className={`p-0.5 rounded hover:bg-zinc-100 transition-colors cursor-pointer ${
-                          activeSpeakingId === msg.id ? 'text-amber-600' : 'text-zinc-400 hover:text-zinc-700'
+                        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-black transition-all cursor-pointer ${
+                          activeSpeakingId === msg.id
+                            ? 'bg-amber-100 border-amber-400 text-amber-900 shadow-xs'
+                            : 'bg-zinc-50 hover:bg-zinc-100 border-zinc-200 text-zinc-600 hover:text-zinc-900'
                         }`}
-                        title={activeSpeakingId === msg.id ? "Stop reading aloud" : "Read message aloud"}
+                        title={activeSpeakingId === msg.id ? "Stop voice playback" : "Listen to this answer"}
                       >
                         {activeSpeakingId === msg.id ? (
-                          <VolumeX className="w-3 h-3 stroke-[2.5] animate-pulse" />
+                          <>
+                            {/* Animated SVG Audio Wave Visualizer */}
+                            <span className="flex items-center gap-0.5 h-3">
+                              <span className="w-0.5 h-2.5 bg-amber-600 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                              <span className="w-0.5 h-3.5 bg-amber-600 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                              <span className="w-0.5 h-2 bg-amber-600 rounded-full animate-bounce [animation-delay:0s]" />
+                            </span>
+                            <span className="text-[11px] font-black">Playing</span>
+                          </>
                         ) : (
-                          <Volume2 className="w-3 h-3 stroke-[2]" />
+                          <>
+                            <Volume2 className="w-3.5 h-3.5 stroke-[2.5]" />
+                            <span className="text-[11px] font-bold">Listen</span>
+                          </>
                         )}
                       </button>
-                      <span className="font-mono text-[9px] text-zinc-400">
-                        {msg.isFromLlm
-                          ? (msg.modelUsed ? msg.modelUsed.split('/').pop() : 'Auto-Model')
-                          : 'Page Grounded'}
-                      </span>
                     </div>
                   </div>
                 )}
@@ -1595,7 +1622,7 @@ export function HomeChatbotPopup({
               </div>
 
               {/* Timestamp */}
-              <span className="text-[9px] text-zinc-400 mt-0.5 px-1 font-mono">
+              <span className="text-[10px] sm:text-[11px] text-zinc-400 mt-1 px-1.5 font-bold font-['Nunito',sans-serif]">
                 {msg.timestamp}
               </span>
             </div>
@@ -1604,9 +1631,11 @@ export function HomeChatbotPopup({
           {/* Thinking / Streaming Indicator */}
           {isLoading && (
             <div className="flex items-start">
-              <div className="p-2.5 rounded-xl border-2 border-zinc-900 bg-white shadow-cartoon-sm text-xs flex items-center gap-2 text-zinc-700">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-spin" />
-                <span className="font-bold">Sanket AI is thinking...</span>
+              <div className="p-3 rounded-2xl border-2 border-zinc-200 border-b-4 bg-white shadow-xs text-sm flex items-center gap-2.5 text-zinc-700 font-bold font-['Nunito',sans-serif]">
+                <div className="w-5 h-5 rounded-lg bg-amber-100 flex items-center justify-center text-amber-600 shrink-0">
+                  <Sparkles className="w-3.5 h-3.5 animate-spin text-amber-500 fill-amber-500" />
+                </div>
+                <span>Sanket AI is thinking...</span>
               </div>
             </div>
           )}
@@ -1672,10 +1701,10 @@ export function HomeChatbotPopup({
             <button
               type="button"
               onClick={() => handleSendMessage(`How do I sign ${currentSignName} step-by-step?`)}
-              className="cartoon-badge !py-1 !px-2.5 text-[10px] font-black bg-[#FFF9E5] hover:bg-[#FFD15C] text-zinc-900 border-2 border-zinc-900 transition-colors flex-shrink-0 cursor-pointer shadow-cartoon-sm flex items-center gap-1.5"
+              className="bg-white hover:bg-amber-50 text-zinc-900 border-2 border-amber-300 border-b-4 active:border-b-2 active:translate-y-[2px] rounded-full px-3.5 py-1.5 text-xs font-black transition-all flex items-center gap-1.5 shadow-2xs shrink-0 cursor-pointer font-['Nunito',sans-serif]"
               title={`Get step-by-step physical instructions for ${currentSignName}`}
             >
-              <BookOpen className="w-3 h-3 stroke-[2.5]" />
+              <BookOpen className="w-3.5 h-3.5 text-amber-600 stroke-[2.5]" />
               <span>How to Sign {currentSignName}</span>
             </button>
           )}
@@ -1686,40 +1715,42 @@ export function HomeChatbotPopup({
               key={i}
               type="button"
               onClick={() => handleSendMessage(prompt)}
-              className="cartoon-badge !py-1 !px-2 text-[10px] font-bold bg-white hover:bg-[#FFF9E5] hover:border-zinc-900 transition-colors flex-shrink-0 cursor-pointer"
+              className="bg-white hover:bg-[#F0FDF4] text-zinc-800 hover:text-[#58CC02] border-2 border-zinc-200 hover:border-[#58CC02]/50 border-b-4 active:border-b-2 active:translate-y-[2px] rounded-full px-3.5 py-1.5 text-xs font-extrabold transition-all flex items-center gap-1.5 shadow-2xs shrink-0 cursor-pointer font-['Nunito',sans-serif]"
             >
-              {prompt}
+              <Sparkles className="w-3 h-3 text-[#58CC02]" />
+              <span>{prompt}</span>
             </button>
           ))}
         </div>
 
         {/* =========================================================================
-            6. MESSAGE INPUT BAR
+            6. MESSAGE INPUT BAR — Duolingo 3D Tactile Design System
             ========================================================================= */}
-        <div className="p-2.5 bg-white border-t-2 border-zinc-900 flex-shrink-0">
+        <div className="p-3 bg-white border-t-2 border-zinc-200 flex-shrink-0 font-['Nunito',sans-serif]">
           {/* Subtle Screen Capture Feedback */}
           {isCapturingScreen && (
-            <div className="mb-2 px-2.5 py-1 bg-sky-50 border-2 border-sky-400 rounded-xl flex items-center gap-2 text-[11px] text-sky-950 font-bold animate-pulse">
-              <Eye className="w-3.5 h-3.5 text-sky-600 animate-spin" />
-              <span>Capturing screen snapshot for Gemini multimodal analysis...</span>
+            <div className="mb-2.5 px-3 py-1.5 bg-sky-50 border-2 border-sky-400 rounded-2xl flex items-center gap-2 text-xs text-sky-950 font-bold animate-pulse shadow-2xs">
+              <Eye className="w-4 h-4 text-sky-600 animate-spin" />
+              <span>Capturing screen snapshot for multimodal analysis...</span>
             </div>
           )}
 
-          <div className="flex items-center gap-1.5">
-            {/* Instant Screen Analysis Button */}
+          <div className="flex items-center gap-2">
+            {/* Instant Screen Analysis Button (Duolingo Sky Blue Pill) */}
             <button
               type="button"
               onClick={handleAskAboutScreen}
               disabled={isLoading || isCapturingScreen}
-              className={`cartoon-btn !py-1.5 !px-2 text-xs font-black flex items-center justify-center transition-all ${
-                isCapturingScreen ? 'bg-sky-200 text-sky-950 animate-pulse' : 'bg-white hover:bg-sky-50 text-sky-800'
+              className={`w-11 h-11 rounded-2xl border-2 border-sky-400 border-b-4 active:border-b-2 active:translate-y-[2px] flex items-center justify-center shrink-0 shadow-2xs transition-all cursor-pointer disabled:opacity-40 ${
+                isCapturingScreen ? 'bg-sky-200 text-sky-950 animate-pulse' : 'bg-sky-50 hover:bg-sky-100 text-sky-600'
               }`}
-              title="Instant Screen Vision: Inspect camera & DOM"
+              title="Screen Vision: Instant multimodal analysis of screen & camera"
+              aria-label="Inspect screen vision"
             >
-              <Eye className="w-3.5 h-3.5 stroke-[2.5]" />
+              <Eye className="w-5 h-5 stroke-[2.5]" />
             </button>
 
-            {/* Input Field */}
+            {/* Input Field Container */}
             <div className="relative flex-1 flex items-center">
               <input
                 ref={inputRef}
@@ -1729,19 +1760,19 @@ export function HomeChatbotPopup({
                 onKeyDown={handleKeyDown}
                 placeholder={
                   isLiveConnecting
-                    ? 'Connecting to Gemini Live...'
+                    ? 'Connecting to voice...'
                     : isLiveConnected
-                    ? (isSpeaking ? 'Gemini is speaking aloud...' : 'Gemini Live active — speak anytime...')
+                    ? (isSpeaking ? 'Gemini is speaking...' : 'Voice loop active — speak anytime...')
                     : isListening
                     ? (inputText || 'Listening... speak to dictate')
                     : isSpeaking
                     ? 'Speaking answer aloud...'
                     : isLoading
                     ? 'Sanket AI is thinking...'
-                    : 'Ask or dictate about this page or signs...'
+                    : 'Ask or dictate anything...'
                 }
                 disabled={isLoading}
-                className="w-full pl-3 pr-8 py-1.5 text-xs font-semibold bg-[#FAF8F5] border-2 border-zinc-900 rounded-xl focus:outline-none focus:shadow-cartoon-sm disabled:opacity-50"
+                className="w-full h-11 pl-4 pr-11 text-[15px] font-bold text-zinc-900 placeholder:text-zinc-400 placeholder:font-semibold bg-[#FAFAFA] border-2 border-zinc-200 focus:bg-white focus:border-[#58CC02] focus:ring-4 focus:ring-[#58CC02]/15 border-b-4 transition-all rounded-2xl disabled:opacity-50"
               />
 
               {/* 1. Speech-to-Text (STT) Inline Microphone Dictation Icon */}
@@ -1749,10 +1780,10 @@ export function HomeChatbotPopup({
                 type="button"
                 onClick={handleToggleStt}
                 disabled={isLoading}
-                className={`absolute right-1.5 p-1 rounded-lg transition-all ${
+                className={`absolute right-2 p-1.5 rounded-xl transition-all cursor-pointer ${
                   isListening && !isContinuousVoice && !isLiveConnected
                     ? 'text-rose-600 bg-rose-100 animate-pulse'
-                    : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/60'
+                    : 'text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100'
                 }`}
                 title={
                   isListening && !isContinuousVoice && !isLiveConnected
@@ -1762,93 +1793,88 @@ export function HomeChatbotPopup({
                 aria-label="Dictate message with microphone"
               >
                 {isListening && !isContinuousVoice && !isLiveConnected ? (
-                  <Mic className="w-3.5 h-3.5 stroke-[2.5] text-rose-600 animate-bounce" />
+                  <Mic className="w-4 h-4 stroke-[2.5] text-rose-600 animate-bounce" />
                 ) : (
-                  <Mic className="w-3.5 h-3.5 stroke-[2]" />
+                  <Mic className="w-4 h-4 stroke-[2.2]" />
                 )}
               </button>
             </div>
 
-            {/* Text Send Button */}
+            {/* Text Send Button (Duolingo 3D Green) */}
             <button
               type="button"
               onClick={() => handleSendMessage()}
               disabled={!inputText.trim() || isLoading}
-              className="cartoon-btn cartoon-btn-primary !py-1.5 !px-3 text-xs font-black disabled:opacity-40"
-              title="Send text message"
+              className="w-11 h-11 rounded-2xl bg-[#58CC02] hover:bg-[#61E002] border-2 border-[#46A302] border-b-4 active:border-b-2 active:translate-y-[2px] text-white flex items-center justify-center shrink-0 shadow-2xs transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
+              title="Send message"
+              aria-label="Send message"
             >
-              <Send className="w-3.5 h-3.5 stroke-[2.5]" />
+              <Send className="w-5 h-5 stroke-[2.5] -translate-x-0.5" />
             </button>
 
-            {/* 2. Live Bidirectional Voice Chat Callout Button (Circular waveform with sparkle) */}
+            {/* 2. Live Bidirectional Voice Chat Callout Button (Duolingo 3D Waveform) */}
             <button
               type="button"
               onClick={handleToggleLiveVoice}
               disabled={isLoading}
-              className={`relative rounded-full p-2 border-2 border-zinc-900 transition-all flex items-center justify-center flex-shrink-0 cursor-pointer ${
-                isLiveConnecting
-                  ? 'bg-amber-400 text-white animate-pulse border-amber-950 shadow-cartoon-sm'
-                  : isLiveConnected
-                  ? 'bg-rose-500 text-white animate-pulse border-rose-950 shadow-cartoon-sm'
-                  : isContinuousVoice
-                  ? 'bg-emerald-500 text-white animate-pulse border-emerald-950 shadow-cartoon-sm'
-                  : 'bg-white hover:bg-[#FFF9E5] text-zinc-900 hover:border-zinc-950 shadow-cartoon-sm active:scale-95'
+              className={`w-11 h-11 rounded-2xl border-2 border-b-4 active:border-b-2 active:translate-y-[2px] transition-all flex items-center justify-center shrink-0 cursor-pointer shadow-2xs ${
+                isContinuousVoice
+                  ? 'bg-gradient-to-tr from-emerald-500 to-[#58CC02] border-emerald-700 text-white ring-4 ring-emerald-400/30'
+                  : 'bg-white hover:bg-emerald-50 border-zinc-200 hover:border-emerald-300 text-zinc-700 hover:text-emerald-700'
               }`}
               title={
-                isLiveConnecting
-                  ? 'Connecting to Gemini Live Voice Chat...'
-                  : isLiveConnected
-                  ? 'Gemini Live Voice Chat active. Click to end voice conversation.'
-                  : isContinuousVoice
-                  ? 'Voice chat active. Click to end conversation.'
-                  : 'Start Live Voice Chat (Real-time spoken AI conversation)'
+                isContinuousVoice
+                  ? 'Voice Loop Active — Click to pause'
+                  : 'Start Voice Loop (Continuous hands-free spoken conversation)'
               }
               aria-label="Start Real-Time Voice Conversation"
             >
-              <div className="relative flex items-center justify-center">
-                <AudioWaveform className={`w-4 h-4 stroke-[2.2] ${
-                  isLiveConnected || isContinuousVoice ? 'text-white animate-pulse' : 'text-zinc-900'
-                }`} />
-                <Sparkles className="w-2 h-2 text-amber-500 fill-amber-500 absolute -top-1 -right-1" />
-              </div>
+              {isContinuousVoice ? (
+                <div className="flex items-center gap-0.5 h-4">
+                  <span className="w-1 h-3 bg-white rounded-full animate-bounce [animation-delay:-0.3s]" />
+                  <span className="w-1 h-4 bg-white rounded-full animate-bounce [animation-delay:-0.15s]" />
+                  <span className="w-1 h-2.5 bg-white rounded-full animate-bounce [animation-delay:0s]" />
+                </div>
+              ) : (
+                <div className="relative flex items-center justify-center">
+                  <AudioWaveform className="w-5 h-5 stroke-[2.2]" />
+                  <Sparkles className="w-2.5 h-2.5 text-amber-500 fill-amber-500 absolute -top-1 -right-1" />
+                </div>
+              )}
             </button>
           </div>
 
-          <div className="mt-1.5 flex items-center justify-between text-[10px] text-zinc-400 font-semibold px-0.5">
+          <div className="mt-2 flex items-center justify-between text-xs px-1">
             <div className="flex items-center gap-2">
-              <span>
-                {isLiveConnecting
-                  ? 'Connecting to Gemini Live...'
-                  : isLiveConnected
-                  ? 'Gemini Real-Time Voice Active'
-                  : isContinuousVoice
-                  ? 'Voice Loop Active'
-                  : 'Enter or speak to send'}
-              </span>
-              {autoSpeak && !isContinuousVoice && (
-                <span className="text-emerald-700 font-bold flex items-center gap-0.5">
-                  <Volume2 className="w-2.5 h-2.5" />
-                  <span>Voice On</span>
+              {isContinuousVoice ? (
+                <span className="flex items-center gap-1.5 text-emerald-700 font-black">
+                  <span className="w-2 h-2 rounded-full bg-[#58CC02] animate-ping" />
+                  <span>Voice Loop Active</span>
                 </span>
-              )}
-              {screenVisionEnabled && (
-                <span className="text-sky-700 font-bold flex items-center gap-0.5">
-                  <Eye className="w-2.5 h-2.5" />
-                  <span>Screen Vision</span>
+              ) : isListening ? (
+                <span className="flex items-center gap-1.5 text-rose-600 font-black">
+                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+                  <span>Listening to speech...</span>
+                </span>
+              ) : (
+                <span className="text-zinc-400 font-bold">
+                  Speak or type your question
                 </span>
               )}
             </div>
-            <span>
+
+            <div>
               {byokConfig.hasKey ? (
-                <span className="text-emerald-600 font-bold">
-                  ✓ API Key Active
+                <span className="text-[#58CC02] font-black flex items-center gap-1 text-xs">
+                  <CheckCircle2 className="w-3.5 h-3.5 stroke-[3]" />
+                  <span>API Key Active</span>
                 </span>
               ) : (
-                <span className="text-zinc-500">
-                  Offline mode • Add API key for live LLM
+                <span className="text-zinc-400 font-bold text-[11px]">
+                  Offline Fallback
                 </span>
               )}
-            </span>
+            </div>
           </div>
         </div>
       </div>

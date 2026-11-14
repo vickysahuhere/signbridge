@@ -1,5 +1,5 @@
-import React from 'react';
-import { AlertCircle, Lightbulb, Info, Quote } from 'lucide-react';
+import React, { useState } from 'react';
+import { AlertCircle, Lightbulb, Info, Quote, Copy, Check } from 'lucide-react';
 import {
   parseInlineTokens,
   parseMessageBlocks
@@ -8,10 +8,11 @@ import {
 /**
  * ChatTextFormatter.jsx
  *
- * Rich, zero-dependency Markdown & text formatter tailored for the Sanket
- * on-device chatbot assistant and user speech bubbles.
+ * Rich, playful, high-readability Markdown formatter tailored for the Sanket
+ * assistant in Duolingo / Modern Cartoon aesthetic.
  *
- * Renders AST blocks and inline tokens with retro/cartoon styling.
+ * Features larger typography, crisp line heights, playful 3D step badges,
+ * and high-contrast readable content.
  */
 
 /**
@@ -28,10 +29,10 @@ export function renderInlineContent(text, isUser = false) {
         return (
           <code
             key={`c-${idx}`}
-            className={`font-mono text-[11px] px-1 py-0.5 rounded border select-all ${
+            className={`font-mono text-xs sm:text-[13px] px-2 py-0.5 rounded-lg border font-bold select-all shadow-2xs ${
               isUser
-                ? 'bg-amber-200/70 text-zinc-950 border-amber-400'
-                : 'bg-zinc-100 text-amber-950 border-zinc-300 font-semibold'
+                ? 'bg-amber-200/90 text-amber-950 border-amber-400'
+                : 'bg-emerald-50 text-emerald-950 border-emerald-300'
             }`}
           >
             {token.content}
@@ -39,7 +40,7 @@ export function renderInlineContent(text, isUser = false) {
         );
       case 'bold_italic':
         return (
-          <strong key={`bi-${idx}`} className="font-black text-zinc-900">
+          <strong key={`bi-${idx}`} className={`font-black ${isUser ? 'text-zinc-950' : 'text-zinc-900'}`}>
             <em className="italic">{token.content}</em>
           </strong>
         );
@@ -47,14 +48,14 @@ export function renderInlineContent(text, isUser = false) {
         return (
           <strong
             key={`b-${idx}`}
-            className={`font-bold ${isUser ? 'text-zinc-950 font-black' : 'text-zinc-900'}`}
+            className={`font-black ${isUser ? 'text-zinc-950' : 'text-zinc-900'}`}
           >
             {token.content}
           </strong>
         );
       case 'italic':
         return (
-          <em key={`i-${idx}`} className="italic">
+          <em key={`i-${idx}`} className="italic font-medium">
             {token.content}
           </em>
         );
@@ -65,7 +66,7 @@ export function renderInlineContent(text, isUser = false) {
             href={token.url}
             target="_blank"
             rel="noopener noreferrer"
-            className={`underline font-medium hover:opacity-80 break-all ${
+            className={`underline font-bold hover:opacity-80 break-all transition-opacity ${
               isUser ? 'text-blue-900' : 'text-blue-600'
             }`}
           >
@@ -79,7 +80,7 @@ export function renderInlineContent(text, isUser = false) {
             href={token.url}
             target="_blank"
             rel="noopener noreferrer"
-            className={`underline font-medium hover:opacity-80 break-all ${
+            className={`underline font-bold hover:opacity-80 break-all transition-opacity ${
               isUser ? 'text-blue-900' : 'text-blue-600'
             }`}
           >
@@ -93,6 +94,40 @@ export function renderInlineContent(text, isUser = false) {
   });
 }
 
+function CodeBlockItem({ code, language }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    try {
+      navigator.clipboard.writeText(code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {}
+  };
+
+  return (
+    <div className="my-2.5 overflow-hidden rounded-2xl border-2 border-zinc-900 bg-zinc-950 text-zinc-100 shadow-[0_3px_0_0_#18181B]">
+      <div className="bg-zinc-900/90 px-3 py-1.5 text-xs font-mono font-bold text-zinc-400 border-b border-zinc-800 flex items-center justify-between">
+        <span className="uppercase tracking-wider text-[11px] text-zinc-300">
+          {language || 'code'}
+        </span>
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="flex items-center gap-1 text-[11px] font-bold text-zinc-400 hover:text-white transition-colors cursor-pointer"
+          title="Copy code to clipboard"
+        >
+          {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+          <span>{copied ? 'Copied!' : 'Copy'}</span>
+        </button>
+      </div>
+      <pre className="p-3 text-xs sm:text-[13px] font-mono overflow-x-auto leading-relaxed">
+        <code>{code}</code>
+      </pre>
+    </div>
+  );
+}
+
 /**
  * Main ChatTextFormatter component
  */
@@ -102,7 +137,7 @@ export default function ChatTextFormatter({ text = '', isUser = false, className
   const blocks = parseMessageBlocks(text);
 
   return (
-    <div className={`chat-formatted-text ${className}`}>
+    <div className={`chat-formatted-text font-['Nunito',sans-serif] ${className}`}>
       {blocks.map((block, i) => {
         switch (block.type) {
           case 'heading': {
@@ -110,9 +145,10 @@ export default function ChatTextFormatter({ text = '', isUser = false, className
               return (
                 <h3
                   key={`h1-${i}`}
-                  className="text-xs font-black text-zinc-900 border-b border-zinc-200 pb-1 mt-2.5 mb-1 flex items-center gap-1.5"
+                  className="text-base sm:text-lg font-black text-zinc-900 border-b-2 border-zinc-100 pb-1.5 mt-3 mb-2 flex items-center gap-2"
                 >
-                  {renderInlineContent(block.content, isUser)}
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#58CC02]" />
+                  <span>{renderInlineContent(block.content, isUser)}</span>
                 </h3>
               );
             }
@@ -120,9 +156,10 @@ export default function ChatTextFormatter({ text = '', isUser = false, className
               return (
                 <h4
                   key={`h2-${i}`}
-                  className="text-xs font-black text-zinc-900 mt-2 mb-1 flex items-center gap-1.5"
+                  className="text-sm sm:text-base font-black text-zinc-900 mt-2.5 mb-1.5 flex items-center gap-2"
                 >
-                  {renderInlineContent(block.content, isUser)}
+                  <span className="w-2 h-2 rounded-full bg-amber-400" />
+                  <span>{renderInlineContent(block.content, isUser)}</span>
                 </h4>
               );
             }
@@ -130,9 +167,9 @@ export default function ChatTextFormatter({ text = '', isUser = false, className
               return (
                 <h5
                   key={`h3-${i}`}
-                  className="text-[11px] font-black uppercase tracking-wider text-zinc-800 border-b border-zinc-100 pb-0.5 mt-2 mb-1 flex items-center gap-1.5"
+                  className="text-xs sm:text-[13px] font-black uppercase tracking-wider text-emerald-800 border-b border-zinc-100 pb-1 mt-2.5 mb-1.5 flex items-center gap-1.5"
                 >
-                  <span className="w-1.5 h-1.5 bg-amber-500 rounded-full inline-block shrink-0" />
+                  <span className="w-1.5 h-1.5 bg-[#58CC02] rounded-full inline-block shrink-0" />
                   <span>{renderInlineContent(block.content, isUser)}</span>
                 </h5>
               );
@@ -140,7 +177,7 @@ export default function ChatTextFormatter({ text = '', isUser = false, className
             return (
               <h6
                 key={`h4-${i}`}
-                className="text-[11px] font-bold text-zinc-700 mt-1.5 mb-0.5"
+                className="text-xs sm:text-[13px] font-extrabold text-zinc-800 mt-2 mb-1"
               >
                 {renderInlineContent(block.content, isUser)}
               </h6>
@@ -156,20 +193,24 @@ export default function ChatTextFormatter({ text = '', isUser = false, className
             return (
               <div
                 key={`alert-${i}`}
-                className={`p-2 rounded-lg border text-[11px] leading-relaxed my-1.5 flex items-start gap-1.5 shadow-xs ${
+                className={`p-3.5 rounded-2xl border-2 text-[14px] sm:text-[15px] leading-relaxed my-2 flex items-start gap-3 shadow-xs ${
                   isUser
                     ? 'bg-amber-100 border-amber-400 text-zinc-900'
                     : block.alertType === 'warning'
-                    ? 'bg-rose-50 border-rose-300 text-rose-950'
-                    : 'bg-amber-50 border-amber-300 text-amber-950'
+                    ? 'bg-rose-50 border-rose-300 text-rose-950 shadow-[0_3px_0_0_#FDA4AF]'
+                    : block.alertType === 'tip'
+                    ? 'bg-amber-50 border-amber-300 text-amber-950 shadow-[0_3px_0_0_#FCD34D]'
+                    : 'bg-sky-50 border-sky-300 text-sky-950 shadow-[0_3px_0_0_#7DD3FC]'
                 }`}
               >
-                <AlertIcon className={`w-3.5 h-3.5 flex-shrink-0 mt-0.5 ${
-                  block.alertType === 'warning' ? 'text-rose-600' :
-                  block.alertType === 'tip' ? 'text-amber-600' :
-                  block.alertType === 'info' ? 'text-blue-600' : 'text-zinc-500'
-                }`} />
-                <div className="flex-1 break-words">
+                <div className={`p-1 rounded-lg shrink-0 mt-0.5 ${
+                  block.alertType === 'warning' ? 'bg-rose-200 text-rose-800' :
+                  block.alertType === 'tip' ? 'bg-amber-200 text-amber-900' :
+                  block.alertType === 'info' ? 'bg-sky-200 text-sky-900' : 'bg-zinc-200 text-zinc-700'
+                }`}>
+                  <AlertIcon className="w-4 h-4 stroke-[2.5]" />
+                </div>
+                <div className="flex-1 break-words font-semibold">
                   {renderInlineContent(cleanContent, isUser)}
                 </div>
               </div>
@@ -178,17 +219,17 @@ export default function ChatTextFormatter({ text = '', isUser = false, className
 
           case 'ordered':
             return (
-              <div key={`ol-${i}`} className="flex items-start gap-1.5 my-1">
+              <div key={`ol-${i}`} className="flex items-start gap-2.5 my-1.5">
                 <span
-                  className={`font-mono font-bold text-[10px] px-1 py-0.2 rounded border select-none leading-tight mt-0.5 shrink-0 ${
+                  className={`w-6 h-6 rounded-full font-black text-xs flex items-center justify-center shrink-0 select-none mt-0.5 ${
                     isUser
-                      ? 'bg-amber-300 text-zinc-950 border-amber-500'
-                      : 'bg-zinc-100 text-zinc-800 border-zinc-300'
+                      ? 'bg-amber-400 text-zinc-950 shadow-[0_2px_0_0_#D97706]'
+                      : 'bg-[#58CC02] text-white shadow-[0_2px_0_0_#46A302]'
                   }`}
                 >
                   {block.number}
                 </span>
-                <div className="flex-1 break-words">
+                <div className="flex-1 text-[15px] sm:text-[16px] font-semibold text-zinc-800 break-words leading-relaxed">
                   {renderInlineContent(block.content, isUser)}
                 </div>
               </div>
@@ -199,53 +240,35 @@ export default function ChatTextFormatter({ text = '', isUser = false, className
               return (
                 <div
                   key={`subli-${i}`}
-                  className={`flex items-start gap-1.5 my-0.5 ml-3.5 pl-1.5 border-l-2 ${
-                    isUser ? 'border-amber-400/80 text-zinc-900' : 'border-zinc-200 text-zinc-700'
+                  className={`flex items-start gap-2 my-1 ml-5 pl-2.5 border-l-2 ${
+                    isUser ? 'border-amber-400/80 text-zinc-900' : 'border-[#58CC02]/40 text-zinc-700'
                   }`}
                 >
-                  <span className="text-zinc-400 font-bold text-[10px] select-none mt-0.5 shrink-0">
-                    ◦
-                  </span>
-                  <div className="flex-1 break-words">
+                  <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 mt-2 shrink-0" />
+                  <div className="flex-1 text-sm sm:text-[15px] font-semibold break-words leading-relaxed">
                     {renderInlineContent(block.content, isUser)}
                   </div>
                 </div>
               );
             }
             return (
-              <div key={`li-${i}`} className="flex items-start gap-1.5 my-1">
+              <div key={`li-${i}`} className="flex items-start gap-2.5 my-1.5">
                 <span
-                  className={`font-black text-xs leading-none select-none mt-0.5 shrink-0 ${
-                    isUser ? 'text-zinc-950' : 'text-amber-500'
+                  className={`w-2.5 h-2.5 rounded-full mt-2 shrink-0 ${
+                    isUser ? 'bg-zinc-950' : 'bg-[#58CC02] shadow-[0_1px_0_0_#46A302]'
                   }`}
-                >
-                  •
-                </span>
-                <div className="flex-1 break-words">
+                />
+                <div className="flex-1 text-[15px] sm:text-[16px] font-semibold text-zinc-800 break-words leading-relaxed">
                   {renderInlineContent(block.content, isUser)}
                 </div>
               </div>
             );
 
           case 'codeblock':
-            return (
-              <div
-                key={`codeblock-${i}`}
-                className="my-1.5 overflow-hidden rounded-lg border-2 border-zinc-900 bg-zinc-950 text-zinc-100 shadow-sm"
-              >
-                {block.language && (
-                  <div className="bg-zinc-900 px-2.5 py-1 text-[10px] font-mono text-zinc-400 border-b border-zinc-800">
-                    {block.language}
-                  </div>
-                )}
-                <pre className="p-2.5 text-[11px] font-mono overflow-x-auto leading-relaxed">
-                  <code>{block.code}</code>
-                </pre>
-              </div>
-            );
+            return <CodeBlockItem key={`codeblock-${i}`} code={block.code} language={block.language} />;
 
           case 'hr':
-            return <hr key={`hr-${i}`} className="my-2 border-zinc-200" />;
+            return <hr key={`hr-${i}`} className="my-2.5 border-zinc-200" />;
 
           case 'empty':
             return <div key={`empty-${i}`} className="h-1.5" />;
@@ -253,7 +276,12 @@ export default function ChatTextFormatter({ text = '', isUser = false, className
           case 'paragraph':
           default:
             return (
-              <p key={`p-${i}`} className="my-1 leading-relaxed break-words">
+              <p
+                key={`p-${i}`}
+                className={`my-1 text-[15px] sm:text-[16px] leading-[1.65] break-words ${
+                  isUser ? 'font-bold text-zinc-950' : 'font-semibold text-zinc-800'
+                }`}
+              >
                 {renderInlineContent(block.content, isUser)}
               </p>
             );
