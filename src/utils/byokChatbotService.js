@@ -1022,7 +1022,7 @@ export async function sendChatbotMessage({
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  contents: [{ parts: [{ text: candidateText.slice(0, 300) }] }],
+                  contents: [{ parts: [{ text: `Read the following transcript aloud verbatim: ${candidateText.slice(0, 300)}` }] }],
                   generationConfig: {
                     responseModalities: ['AUDIO'],
                     speechConfig: {
