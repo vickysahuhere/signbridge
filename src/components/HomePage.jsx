@@ -132,7 +132,7 @@ function ArtisticLearnIllustration({ className = 'w-full h-auto' }) {
         <rect x="0" y="2" width="86" height="30" rx="10" fill="#46A302" stroke="#18181B" strokeWidth="2.4" />
         <rect x="0" y="0" width="86" height="28" rx="10" fill="url(#duoMintFacet)" stroke="#18181B" strokeWidth="2.4" />
         {/* Glowing Radar Pip */}
-        <circle cx="14" cy="14" r="4.5" fill="#22C55E" />
+        <circle cx="14" cy="14" r="4.5" fill="#22C55E" className="animate-pulse" />
         <circle cx="14" cy="14" r="7.5" stroke="#22C55E" strokeWidth="1.4" strokeDasharray="2 2" opacity="0.7" />
         {/* Text */}
         <text
@@ -359,6 +359,9 @@ function ArtisticLearnIllustration({ className = 'w-full h-auto' }) {
 
         {/* 7. MediaPipe AI Vision Skeleton (Precision Scaled to Otter Paws) */}
         <g id="ai-vision-skeleton">
+          {/* Ambient AI Recognition Aura behind Namaste Prayer Paws */}
+          <circle cx="180" cy="122" r="26" fill="#22C55E" fillOpacity="0.12" />
+
           {/* Palm Linkages (Wrist to Knuckles) */}
           <line x1="164" y1="132" x2="162" y2="122" stroke="#22C55E" strokeWidth="1.6" strokeDasharray="2 2" />
           <line x1="164" y1="132" x2="168" y2="120" stroke="#22C55E" strokeWidth="1.6" strokeDasharray="2 2" />
@@ -458,14 +461,20 @@ function ArtisticCallIllustration({ className = 'w-full h-auto' }) {
           <stop offset="0%" stopColor="#F0F9FF" />
           <stop offset="100%" stopColor="#E0F2FE" />
         </linearGradient>
+        {/* Camera Lens Reflection Gradient */}
+        <linearGradient id="lensFacet" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#1E293B" />
+          <stop offset="50%" stopColor="#0F172A" />
+          <stop offset="100%" stopColor="#0369A1" />
+        </linearGradient>
         {/* Otter Coat Rich Gradients (Otter's Natural Colors) */}
-        <linearGradient id="otterFurMain" x1="50%" y1="10%" x2="50%" y2="100%">
+        <linearGradient id="otterFurMainCall" x1="50%" y1="10%" x2="50%" y2="100%">
           <stop offset="0%" stopColor="#9E6439" />
           <stop offset="48%" stopColor="#844F27" />
           <stop offset="100%" stopColor="#643613" />
         </linearGradient>
 
-        <linearGradient id="otterBibMain" x1="50%" y1="0%" x2="50%" y2="100%">
+        <linearGradient id="otterBibMainCall" x1="50%" y1="0%" x2="50%" y2="100%">
           <stop offset="0%" stopColor="#FFFDF7" />
           <stop offset="45%" stopColor="#FFF4DF" />
           <stop offset="100%" stopColor="#F5DFBD" />
@@ -473,18 +482,18 @@ function ArtisticCallIllustration({ className = 'w-full h-auto' }) {
       </defs>
 
       {/* 1. Ambient Communication Glow & Orbital Guides */}
-      <circle cx="180" cy="110" r="82" fill="url(#duoCallAura)" />
-      <circle cx="180" cy="110" r="66" stroke="#BAE6FD" strokeWidth="1.6" strokeDasharray="5 5" opacity="0.8" />
+      <circle cx="180" cy="112" r="82" fill="url(#duoCallAura)" />
+      <circle cx="180" cy="112" r="66" stroke="#BAE6FD" strokeWidth="1.6" strokeDasharray="5 5" opacity="0.8" />
 
       {/* Real-Time P2P Waveform Stream */}
       <path
-        d="M 80 114 C 112 86, 140 134, 180 112 C 220 90, 248 136, 280 112"
+        d="M 80 118 C 114 90, 142 138, 180 114 C 218 90, 246 138, 280 116"
         stroke="#0284C7"
         strokeWidth="3.2"
         strokeLinecap="round"
       />
       <path
-        d="M 86 120 C 116 94, 142 140, 180 118 C 218 96, 244 142, 274 118"
+        d="M 86 124 C 118 96, 144 144, 180 120 C 216 96, 242 144, 274 122"
         stroke="#38BDF8"
         strokeWidth="1.8"
         strokeLinecap="round"
@@ -493,85 +502,39 @@ function ArtisticCallIllustration({ className = 'w-full h-auto' }) {
       />
 
       {/* Data Packet Nodes */}
-      <circle cx="128" cy="102" r="4" fill="#FFC800" stroke="#18181B" strokeWidth="1.8" />
-      <circle cx="234" cy="126" r="4" fill="#22C55E" stroke="#18181B" strokeWidth="1.8" />
+      <circle cx="132" cy="106" r="4" fill="#FFC800" stroke="#18181B" strokeWidth="1.8" />
+      <circle cx="228" cy="130" r="4" fill="#22C55E" stroke="#18181B" strokeWidth="1.8" />
 
-      {/* 2. Top-Center: Live Translated Subtitle Speech Ribbon (Duolingo Style) */}
-      <g transform="translate(42, 12)">
-        {/* Drop Shadow */}
-        <rect x="4" y="4" width="276" height="42" rx="14" fill="#18181B" />
-        {/* Speech Card Body */}
-        <rect x="0" y="2" width="276" height="42" rx="14" fill="#46A302" stroke="#18181B" strokeWidth="2.5" />
-        <rect x="0" y="0" width="276" height="40" rx="14" fill="#FFFFFF" stroke="#18181B" strokeWidth="2.5" />
-        {/* Soft Mint Inset Surface */}
-        <rect x="3" y="3" width="270" height="34" rx="11" fill="#F0FDF4" />
-
-        {/* Live Broadcast Indicator (Pulsing Green Dot) */}
-        <circle cx="18" cy="20" r="4.5" fill="#22C55E" />
-        <circle cx="18" cy="20" r="8" stroke="#22C55E" strokeWidth="1.4" strokeDasharray="2 2" opacity="0.6" />
-
-        {/* Subtitle Text */}
-        <text
-          x="32"
-          y="24.5"
-          fontSize="13"
-          fontWeight="900"
-          fontFamily="system-ui, -apple-system, sans-serif"
-          fill="#18181B"
-          letterSpacing="-0.01em"
-        >
-          "Namaste! How are you?"
-        </text>
-
-        {/* ISL -> ENG Translation Badge */}
-        <rect x="216" y="10" width="50" height="20" rx="7" fill="#DCFCE7" stroke="#16A34A" strokeWidth="1.4" />
-        <text
-          x="241"
-          y="23"
-          textAnchor="middle"
-          fontSize="8.5"
-          fontWeight="900"
-          fontFamily="system-ui, -apple-system, sans-serif"
-          fill="#15803D"
-        >
-          ISL ⇄ EN
-        </text>
-
-        {/* Speech Bubble Tail pointing down towards the Signer */}
-        <polygon points="76,40 84,50 92,40" fill="#FFFFFF" stroke="#18181B" strokeWidth="2" />
-        <polygon points="77,39 84,47 91,39" fill="#F0FDF4" />
-      </g>
-
-      {/* 3. Left Side: Mitra the ISL Otter Signer (Anatomically Polished Mascot) */}
+      {/* 2. Left Side: Mitra the ISL Otter Signer (Anatomically Polished Mascot) */}
       <g id="duo-signer">
         {/* Curved Otter Tail peeking out on left */}
         <path
-          d="M 36 142 C 22 145, 12 153, 10 162 C 9 168, 16 171, 26 168 C 34 165, 40 156, 40 148 Z"
+          d="M 30 148 C 16 151, 8 159, 6 167 C 5 173, 12 176, 22 173 C 30 170, 36 161, 36 153 Z"
           fill="#522C0E"
           stroke="#18181B"
           strokeWidth="2.4"
           strokeLinejoin="round"
         />
 
-        {/* Signer Torso / Sporty Jersey (Duolingo Macaw Blue) - Natural Pear-Shaped Body, No Donut! */}
+        {/* Signer Torso / Sporty Jersey (Duolingo Macaw Blue) - Natural Pear-Shaped Body */}
         <path
-          d="M 52 82 C 40 90, 36 104, 34 122 C 32 140, 30 154, 36 160 C 42 165, 92 165, 98 160 C 102 154, 100 140, 98 122 C 96 104, 92 90, 80 82 Z"
+          d="M 46 90 C 34 98, 30 112, 28 130 C 26 148, 24 162, 30 168 C 36 173, 86 173, 92 168 C 96 162, 94 148, 92 130 C 90 112, 86 98, 74 90 Z"
           fill="#18181B"
         />
         <path
-          d="M 52 80 C 40 88, 36 102, 34 120 C 32 138, 30 152, 36 158 C 42 163, 92 163, 98 158 C 102 152, 100 138, 98 120 C 96 102, 92 88, 80 80 Z"
+          d="M 46 88 C 34 96, 30 110, 28 128 C 26 146, 24 160, 30 166 C 36 171, 86 171, 92 166 C 96 160, 94 146, 92 128 C 90 110, 86 96, 74 88 Z"
           fill="#1CB0F6"
           stroke="#18181B"
           strokeWidth="2.6"
           strokeLinejoin="round"
         />
         {/* Sporty Jersey Accent Stripe & Collar */}
-        <path d="M 33 138 C 45 142, 87 142, 99 138 L 99 146 C 87 150, 45 150, 33 146 Z" fill="#1899D6" />
-        <path d="M 58 80 L 66 94 L 74 80" stroke="#FFFFFF" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <path d="M 27 146 C 39 150, 81 150, 93 146 L 93 154 C 81 158, 39 158, 27 154 Z" fill="#1899D6" />
+        <path d="M 52 88 L 60 102 L 68 88" stroke="#FFFFFF" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
 
         {/* Left Arm Resting at side */}
         <path
-          d="M 40 98 C 33 108, 32 120, 35 130 C 37 136, 42 136, 44 132 C 45 124, 46 112, 48 104 Z"
+          d="M 34 106 C 27 116, 26 128, 29 138 C 31 144, 36 144, 38 140 C 39 132, 40 120, 42 112 Z"
           fill="#1899D6"
           stroke="#18181B"
           strokeWidth="2.2"
@@ -580,112 +543,112 @@ function ArtisticCallIllustration({ className = 'w-full h-auto' }) {
 
         {/* Right Arm Actively Raised in Signing Gesture */}
         <path
-          d="M 88 98 C 96 104, 104 110, 110 114 C 114 117, 118 115, 118 110 C 116 103, 108 97, 98 90 Z"
+          d="M 82 106 C 90 112, 98 118, 104 122 C 108 125, 112 123, 112 118 C 110 111, 102 105, 92 98 Z"
           fill="#1899D6"
           stroke="#18181B"
           strokeWidth="2.2"
           strokeLinejoin="round"
         />
 
-        {/* Otter Head */}
-        <ellipse cx="66" cy="56" rx="28" ry="24" fill="#18181B" />
-        <ellipse cx="66" cy="54" rx="28" ry="23" fill="url(#otterFurMain)" stroke="#18181B" strokeWidth="2.6" />
+        {/* Otter Head Base & Ears (Positioned comfortably with generous top clearance) */}
+        <ellipse cx="60" cy="64" rx="27" ry="23" fill="#18181B" />
+        <ellipse cx="60" cy="62" rx="27" ry="22" fill="url(#otterFurMainCall)" stroke="#18181B" strokeWidth="2.6" />
 
         {/* Rounded Otter Ears */}
         <g>
-          <path d="M 38 46 C 31 41, 31 30, 41 32 C 47 34, 48 44, 44 49 Z" fill="#7A451E" stroke="#18181B" strokeWidth="2.2" strokeLinejoin="round" />
-          <path d="M 37 44 C 34 41, 35 35, 40 37 C 43 38, 44 42, 41 45 Z" fill="#FCE2C4" />
+          <path d="M 33 55 C 26 50, 26 39, 36 41 C 42 43, 43 53, 39 58 Z" fill="#7A451E" stroke="#18181B" strokeWidth="2.2" strokeLinejoin="round" />
+          <path d="M 32 53 C 29 50, 30 44, 35 46 C 38 47, 39 51, 36 54 Z" fill="#FCE2C4" />
         </g>
         <g>
-          <path d="M 94 46 C 101 41, 101 30, 91 32 C 85 34, 84 44, 88 49 Z" fill="#7A451E" stroke="#18181B" strokeWidth="2.2" strokeLinejoin="round" />
-          <path d="M 95 44 C 98 41, 97 35, 92 37 C 89 38, 88 42, 91 45 Z" fill="#FCE2C4" />
+          <path d="M 87 55 C 94 50, 94 39, 84 41 C 78 43, 77 53, 81 58 Z" fill="#7A451E" stroke="#18181B" strokeWidth="2.2" strokeLinejoin="round" />
+          <path d="M 88 53 C 91 50, 90 44, 85 46 C 82 47, 81 51, 84 54 Z" fill="#FCE2C4" />
         </g>
 
         {/* Broad Cream Muzzle */}
         <path
-          d="M 48 58 C 48 50, 56 47, 63 51 C 64 52, 68 52, 69 51 C 76 47, 84 50, 84 58 C 86 68, 77 73, 66 73 C 55 73, 46 68, 48 58 Z"
-          fill="url(#otterBibMain)"
+          d="M 43 67 C 43 59, 50 56, 57 60 C 58 61, 62 61, 63 60 C 70 56, 77 59, 77 67 C 79 77, 71 82, 60 82 C 49 82, 41 77, 43 67 Z"
+          fill="url(#otterBibMainCall)"
           stroke="#18181B"
           strokeWidth="2.2"
           strokeLinejoin="round"
         />
 
         {/* Rosy Cheeks */}
-        <circle cx="45" cy="61" r="4.5" fill="#FFAA8A" opacity="0.85" />
-        <circle cx="87" cy="61" r="4.5" fill="#FFAA8A" opacity="0.85" />
+        <circle cx="39" cy="70" r="4.5" fill="#FFAA8A" opacity="0.85" />
+        <circle cx="81" cy="70" r="4.5" fill="#FFAA8A" opacity="0.85" />
 
         {/* Sparkling Expressive Eyes (Looking toward the Video Call) */}
-        <ellipse cx="55" cy="50" rx="5.5" ry="7" fill="#18181B" />
-        <circle cx="56" cy="48" r="2.4" fill="#FFFFFF" />
-        <circle cx="58" cy="52" r="1.1" fill="#FFFFFF" />
+        <ellipse cx="49" cy="59" rx="5.5" ry="7" fill="#18181B" />
+        <circle cx="50" cy="57" r="2.4" fill="#FFFFFF" />
+        <circle cx="52" cy="61" r="1.1" fill="#FFFFFF" />
 
-        <ellipse cx="77" cy="50" rx="5.5" ry="7" fill="#18181B" />
-        <circle cx="78" cy="48" r="2.4" fill="#FFFFFF" />
-        <circle cx="80" cy="52" r="1.1" fill="#FFFFFF" />
+        <ellipse cx="71" cy="59" rx="5.5" ry="7" fill="#18181B" />
+        <circle cx="72" cy="57" r="2.4" fill="#FFFFFF" />
+        <circle cx="74" cy="61" r="1.1" fill="#FFFFFF" />
 
         {/* Otter Button Nose */}
         <path
-          d="M 62 57 C 62 53, 70 53, 70 57 C 70 61, 67 63, 66 63 C 65 63, 62 61, 62 57 Z"
+          d="M 56 66 C 56 62, 64 62, 64 66 C 64 70, 61 72, 60 72 C 59 72, 56 70, 56 66 Z"
           fill="#1F1713"
           stroke="#18181B"
           strokeWidth="1.6"
         />
-        <circle cx="65" cy="55.5" r="1.2" fill="#FFFFFF" opacity="0.85" />
+        <circle cx="59" cy="64.5" r="1.2" fill="#FFFFFF" opacity="0.85" />
 
         {/* Cheerful Smile */}
-        <path d="M 66 63 L 66 65.5" stroke="#18181B" strokeWidth="1.8" strokeLinecap="round" />
-        <path d="M 60 65.5 C 63 68, 66 68, 66 65.5 C 66 68, 69 68, 72 65.5" stroke="#18181B" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+        <path d="M 60 72 L 60 74.5" stroke="#18181B" strokeWidth="1.8" strokeLinecap="round" />
+        <path d="M 54 74.5 C 57 77, 60 77, 60 74.5 C 60 77, 63 77, 66 74.5" stroke="#18181B" strokeWidth="1.8" strokeLinecap="round" fill="none" />
 
         {/* Cute Whiskers */}
-        <path d="M 50 62 L 38 63" stroke="#4A260F" strokeWidth="1" strokeLinecap="round" opacity="0.8" />
-        <path d="M 51 66 L 39 69" stroke="#4A260F" strokeWidth="1" strokeLinecap="round" opacity="0.8" />
-        <path d="M 82 62 L 94 63" stroke="#4A260F" strokeWidth="1" strokeLinecap="round" opacity="0.8" />
-        <path d="M 81 66 L 93 69" stroke="#4A260F" strokeWidth="1" strokeLinecap="round" opacity="0.8" />
+        <path d="M 44 71 L 32 72" stroke="#4A260F" strokeWidth="1" strokeLinecap="round" opacity="0.8" />
+        <path d="M 45 75 L 33 78" stroke="#4A260F" strokeWidth="1" strokeLinecap="round" opacity="0.8" />
+        <path d="M 76 71 L 88 72" stroke="#4A260F" strokeWidth="1" strokeLinecap="round" opacity="0.8" />
+        <path d="M 75 75 L 87 78" stroke="#4A260F" strokeWidth="1" strokeLinecap="round" opacity="0.8" />
 
-        {/* Raised Expressive Otter Signing Paw (Proportionate & Cute) */}
+        {/* Raised Expressive Otter Signing Paw (Proportionate, Cute & High-Tech) */}
         <g id="signer-signing-paw">
           {/* Fur wrist cuff */}
-          <ellipse cx="114" cy="112" rx="5" ry="3" fill="#643613" stroke="#18181B" strokeWidth="1.8" />
+          <ellipse cx="108" cy="120" rx="5" ry="3" fill="#643613" stroke="#18181B" strokeWidth="1.8" />
           {/* Paw palm & signing digits */}
           <path
-            d="M 112 112 C 108 104, 107 96, 110 90 C 112 86, 117 87, 118 91 C 119 95, 119 100, 120 104 C 122 99, 125 93, 128 94 C 131 95, 131 100, 129 105 C 130 108, 128 114, 122 115 Z"
+            d="M 106 120 C 102 112, 101 104, 104 98 C 106 94, 111 95, 112 99 C 113 103, 113 108, 114 112 C 116 107, 119 101, 122 102 C 125 103, 125 108, 123 113 C 124 116, 122 122, 116 123 Z"
             fill="#FFEAD8"
             stroke="#18181B"
             strokeWidth="2"
             strokeLinejoin="round"
           />
           {/* Soft Paw Pad */}
-          <ellipse cx="117" cy="106" rx="2.8" ry="3.5" fill="#FCE2C4" />
+          <ellipse cx="111" cy="114" rx="2.8" ry="3.5" fill="#FCE2C4" />
 
           {/* AI Vision Landmark Overlay on Otter's Paw */}
-          <line x1="114" y1="112" x2="112" y2="103" stroke="#22C55E" strokeWidth="1.4" strokeDasharray="2 2" />
-          <line x1="114" y1="112" x2="119" y2="102" stroke="#22C55E" strokeWidth="1.4" strokeDasharray="2 2" />
-          <line x1="114" y1="112" x2="125" y2="104" stroke="#22C55E" strokeWidth="1.4" strokeDasharray="2 2" />
+          <line x1="108" y1="120" x2="106" y2="111" stroke="#22C55E" strokeWidth="1.4" strokeDasharray="2 2" />
+          <line x1="108" y1="120" x2="113" y2="110" stroke="#22C55E" strokeWidth="1.4" strokeDasharray="2 2" />
+          <line x1="108" y1="120" x2="119" y2="112" stroke="#22C55E" strokeWidth="1.4" strokeDasharray="2 2" />
 
-          <line x1="112" y1="103" x2="110" y2="90" stroke="#0284C7" strokeWidth="1.4" strokeDasharray="2 2" />
-          <line x1="119" y1="102" x2="118" y2="88" stroke="#0284C7" strokeWidth="1.4" strokeDasharray="2 2" />
-          <line x1="125" y1="104" x2="128" y2="93" stroke="#0284C7" strokeWidth="1.4" strokeDasharray="2 2" />
+          <line x1="106" y1="111" x2="104" y2="98" stroke="#0284C7" strokeWidth="1.4" strokeDasharray="2 2" />
+          <line x1="113" y1="110" x2="112" y2="96" stroke="#0284C7" strokeWidth="1.4" strokeDasharray="2 2" />
+          <line x1="119" y1="112" x2="122" y2="101" stroke="#0284C7" strokeWidth="1.4" strokeDasharray="2 2" />
 
-          <circle cx="114" cy="112" r="2.8" fill="#22C55E" stroke="#18181B" strokeWidth="1.2" />
-          <circle cx="112" cy="103" r="2" fill="#FFC800" stroke="#18181B" strokeWidth="1.2" />
-          <circle cx="119" cy="102" r="2" fill="#FFC800" stroke="#18181B" strokeWidth="1.2" />
-          <circle cx="125" cy="104" r="2" fill="#FFC800" stroke="#18181B" strokeWidth="1.2" />
+          <circle cx="108" cy="120" r="2.8" fill="#22C55E" stroke="#18181B" strokeWidth="1.2" />
+          <circle cx="106" cy="111" r="2" fill="#FFC800" stroke="#18181B" strokeWidth="1.2" />
+          <circle cx="113" cy="110" r="2" fill="#FFC800" stroke="#18181B" strokeWidth="1.2" />
+          <circle cx="119" cy="112" r="2" fill="#FFC800" stroke="#18181B" strokeWidth="1.2" />
 
           {/* Fingertips Reticles */}
-          <circle cx="110" cy="90" r="3" fill="#38BDF8" stroke="#18181B" strokeWidth="1.2" />
-          <circle cx="110" cy="90" r="1" fill="#FFFFFF" />
-          <circle cx="128" cy="93" r="3" fill="#38BDF8" stroke="#18181B" strokeWidth="1.2" />
-          <circle cx="128" cy="93" r="1" fill="#FFFFFF" />
+          <circle cx="104" cy="98" r="3" fill="#38BDF8" stroke="#18181B" strokeWidth="1.2" />
+          <circle cx="104" cy="98" r="1" fill="#FFFFFF" />
+          <circle cx="122" cy="101" r="3" fill="#38BDF8" stroke="#18181B" strokeWidth="1.2" />
+          <circle cx="122" cy="101" r="1" fill="#FFFFFF" />
 
           {/* Main Target Reticle on Index */}
-          <circle cx="118" cy="88" r="5" stroke="#38BDF8" strokeWidth="1.2" strokeDasharray="2 2" />
-          <circle cx="118" cy="88" r="3" fill="#38BDF8" stroke="#18181B" strokeWidth="1.4" />
-          <circle cx="118" cy="88" r="1.1" fill="#FFFFFF" />
+          <circle cx="112" cy="96" r="5" stroke="#38BDF8" strokeWidth="1.2" strokeDasharray="2 2" />
+          <circle cx="112" cy="96" r="3" fill="#38BDF8" stroke="#18181B" strokeWidth="1.4" />
+          <circle cx="112" cy="96" r="1.1" fill="#FFFFFF" />
         </g>
       </g>
 
-      {/* 4. Right Side: The Otter Hearing Partner inside Video Call Screen */}
-      <g id="duo-partner-screen" transform="translate(230, 54)">
+      {/* 3. Right Side: The Otter Hearing Partner inside Video Call Screen */}
+      <g id="duo-partner-screen" transform="translate(242, 54)">
         {/* Video Tablet / Screen Frame */}
         <rect x="4" y="4" width="102" height="116" rx="14" fill="#18181B" />
         <rect x="0" y="2" width="102" height="116" rx="14" fill="#E5E5E5" stroke="#18181B" strokeWidth="2.6" />
@@ -694,7 +657,7 @@ function ArtisticCallIllustration({ className = 'w-full h-auto' }) {
 
         {/* Clipped video viewport content */}
         <g clipPath="url(#screenViewportClip)">
-          {/* Partner Torso wearing cozy amber sweater - Natural shoulders grounded in frame, No Donut! */}
+          {/* Partner Torso wearing cozy amber sweater */}
           <path
             d="M 34 82 C 26 88, 20 96, 16 108 L 86 108 C 82 96, 76 88, 68 82 Z"
             fill="#18181B"
@@ -710,12 +673,12 @@ function ArtisticCallIllustration({ className = 'w-full h-auto' }) {
 
           {/* Otter Head */}
           <ellipse cx="51" cy="58" rx="22" ry="19" fill="#18181B" />
-          <ellipse cx="51" cy="56" rx="22" ry="18" fill="url(#otterFurMain)" stroke="#18181B" strokeWidth="2.2" />
+          <ellipse cx="51" cy="56" rx="22" ry="18" fill="url(#otterFurMainCall)" stroke="#18181B" strokeWidth="2.2" />
 
           {/* Broad Cream Muzzle */}
           <path
             d="M 37 60 C 37 53, 43 51, 49 54 C 50 55, 52 55, 53 54 C 59 51, 65 53, 65 60 C 67 68, 59 72, 51 72 C 43 72, 35 68, 37 60 Z"
-            fill="url(#otterBibMain)"
+            fill="url(#otterBibMainCall)"
             stroke="#18181B"
             strokeWidth="1.8"
             strokeLinejoin="round"
@@ -761,16 +724,17 @@ function ArtisticCallIllustration({ className = 'w-full h-auto' }) {
         <circle cx="62" cy="9" r="1.8" fill="#22C55E" />
 
         {/* Active Equalizer Soundwaves Blooming from Peer */}
-        <g transform="translate(10, 24)">
+        <g transform="translate(8, 24)">
           <rect x="0" y="8" width="3" height="12" rx="1.5" fill="#38BDF8" stroke="#18181B" strokeWidth="1" />
           <rect x="5" y="2" width="3" height="24" rx="1.5" fill="#22C55E" stroke="#18181B" strokeWidth="1" />
           <rect x="10" y="10" width="3" height="9" rx="1.5" fill="#FFC800" stroke="#18181B" strokeWidth="1" />
           <rect x="15" y="0" width="3" height="28" rx="1.5" fill="#FF4B4B" stroke="#18181B" strokeWidth="1" />
+          <rect x="20" y="5" width="3" height="17" rx="1.5" fill="#CE82FF" stroke="#18181B" strokeWidth="1" />
         </g>
       </g>
 
-      {/* 5. Center Hub: Smart Video Camera & P2P Engine */}
-      <g transform="translate(156, 92)">
+      {/* 4. Center Hub: Smart Video Camera & P2P Engine */}
+      <g transform="translate(160, 94)">
         {/* Camera Drop Shadow */}
         <rect x="3" y="3" width="46" height="34" rx="9" fill="#18181B" />
         <polygon points="49,20 59,14 59,30 49,24" fill="#18181B" />
@@ -780,17 +744,20 @@ function ArtisticCallIllustration({ className = 'w-full h-auto' }) {
         <rect x="0" y="0" width="46" height="32" rx="9" fill="#18181B" stroke="#18181B" strokeWidth="2.2" />
         <polygon points="46,16 56,10 56,26 46,20" fill="#18181B" stroke="#18181B" strokeWidth="2" strokeLinejoin="round" />
 
-        {/* Lens Optics */}
-        <circle cx="19" cy="16" r="10" fill="#0F172A" stroke="#38BDF8" strokeWidth="2" />
-        <circle cx="17" cy="14" r="4" fill="#38BDF8" fillOpacity="0.8" />
-        <circle cx="16" cy="13" r="1.8" fill="#FFFFFF" />
+        {/* Studio Optical Glass Lens with Multi-Coated Reflections */}
+        <circle cx="19" cy="16" r="10" fill="url(#lensFacet)" stroke="#38BDF8" strokeWidth="2" />
+        <circle cx="19" cy="16" r="7" stroke="#0284C7" strokeWidth="1.2" opacity="0.6" />
+        <circle cx="16" cy="13" r="3.5" fill="#38BDF8" fillOpacity="0.85" />
+        <circle cx="15" cy="12" r="1.4" fill="#FFFFFF" />
+        <circle cx="23" cy="20" r="0.9" fill="#FFFFFF" opacity="0.7" />
 
         {/* Live Red Recording LED */}
         <circle cx="38" cy="8" r="2.8" fill="#EF4444" />
+        <circle cx="38" cy="8" r="4.5" stroke="#EF4444" strokeWidth="1" strokeDasharray="1.5 1.5" opacity="0.6" />
       </g>
 
-      {/* 6. Latency Speed Tag below Camera (< 20ms) */}
-      <g transform="translate(150, 142)">
+      {/* 5. Latency Speed Tag below Camera (< 20ms) */}
+      <g transform="translate(154, 144)">
         <rect x="2" y="2" width="58" height="20" rx="6" fill="#18181B" />
         <rect x="0" y="1" width="58" height="20" rx="6" fill="#46A302" stroke="#18181B" strokeWidth="1.8" />
         <rect x="0" y="0" width="58" height="19" rx="6" fill="#FFFFFF" stroke="#18181B" strokeWidth="1.8" />
@@ -810,17 +777,67 @@ function ArtisticCallIllustration({ className = 'w-full h-auto' }) {
         </text>
       </g>
 
+      {/* 6. Top: Live Translated Subtitle Speech Ribbon (Zero-Occlusion, 100% Crisp & High-Z) */}
+      <g transform="translate(82, 8)" className="transition-transform duration-200 group-hover:-translate-y-0.5">
+        {/* Drop Shadow */}
+        <rect x="3" y="3" width="272" height="38" rx="13" fill="#18181B" />
+        {/* Speech Card 3D Depth */}
+        <rect x="0" y="2" width="272" height="38" rx="13" fill="#46A302" stroke="#18181B" strokeWidth="2.4" />
+        <rect x="0" y="0" width="272" height="36" rx="13" fill="#FFFFFF" stroke="#18181B" strokeWidth="2.4" />
+        {/* Soft Mint Inset Surface */}
+        <rect x="3" y="3" width="266" height="30" rx="10" fill="#F0FDF4" />
+
+        {/* Live Broadcast Indicator (Pill badge) */}
+        <g transform="translate(8, 9)">
+          <rect width="36" height="18" rx="6" fill="#DCFCE7" stroke="#16A34A" strokeWidth="1.2" />
+          <circle cx="8" cy="9" r="3" fill="#22C55E" className="animate-pulse" />
+          <text x="15" y="12.5" fontSize="7.5" fontWeight="900" fontFamily="system-ui, -apple-system, sans-serif" fill="#15803D" letterSpacing="0.04em">LIVE</text>
+        </g>
+
+        {/* Subtitle Text with Prominent 'Namaste!' Highlighting */}
+        <text
+          x="49"
+          y="22.5"
+          fontSize="12.5"
+          fontWeight="900"
+          fontFamily="system-ui, -apple-system, sans-serif"
+          letterSpacing="-0.01em"
+        >
+          <tspan fill="#15803D" fontWeight="900">“Namaste!</tspan>
+          <tspan fill="#18181B" fontWeight="800"> How are you?”</tspan>
+        </text>
+
+        {/* ISL -> ENG Translation Badge */}
+        <rect x="206" y="9" width="56" height="18" rx="6" fill="#E0F2FE" stroke="#0284C7" strokeWidth="1.2" />
+        <text
+          x="234"
+          y="21.5"
+          textAnchor="middle"
+          fontSize="8"
+          fontWeight="900"
+          fontFamily="system-ui, -apple-system, sans-serif"
+          fill="#0369A1"
+          letterSpacing="0.04em"
+        >
+          ISL ⇄ EN
+        </text>
+
+        {/* Speech Bubble Tail pointing smoothly down toward Mitra the Signer */}
+        <polygon points="18,36 10,47 26,36" fill="#FFFFFF" stroke="#18181B" strokeWidth="2" strokeLinejoin="round" />
+        <polygon points="19,35 11,44 25,35" fill="#F0FDF4" />
+      </g>
+
       {/* 7. Decorative Duolingo Sparkles & Rays */}
-      <g transform="translate(44, 38)">
+      <g transform="translate(42, 38)">
         <path d="M5 0 L6 4 L10 5 L6 6 L5 10 L4 6 L0 5 L4 4 Z" fill="#38BDF8" />
       </g>
-      <g transform="translate(304, 32)">
+      <g transform="translate(306, 30)">
         <path d="M5 0 L6 4 L10 5 L6 6 L5 10 L4 6 L0 5 L4 4 Z" fill="#FFC800" />
       </g>
-      <g transform="translate(142, 68)">
+      <g transform="translate(144, 72)">
         <path d="M4 0 L5 3 L8 4 L5 5 L4 8 L3 5 L0 4 L3 3 Z" fill="#22C55E" />
       </g>
-      <g transform="translate(216, 70)">
+      <g transform="translate(226, 74)">
         <path d="M4 0 L5 3 L8 4 L5 5 L4 8 L3 5 L0 4 L3 3 Z" fill="#FF4B4B" />
       </g>
     </svg>
@@ -1187,9 +1204,18 @@ export function HomePage({
                 Start <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
               </span>
             </h2>
-            <p className="mt-1.5 text-xs sm:text-[13.5px] text-zinc-600 font-bold leading-relaxed">
+            <p className="mt-1 text-xs sm:text-[13.5px] text-zinc-600 font-bold leading-relaxed">
               Practice 1,000+ signs with instant feedback.
             </p>
+            {/* Value Highlights */}
+            <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-black bg-emerald-50 text-emerald-800 border border-emerald-200/80">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> 1,000+ Signs
+              </span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-black bg-amber-50 text-amber-800 border border-amber-200/80">
+                <Sparkles className="w-2.5 h-2.5 text-amber-600" /> Instant AI Feedback
+              </span>
+            </div>
           </div>
 
           {/* Primary CTA Button */}
@@ -1236,9 +1262,18 @@ export function HomePage({
                 Start <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
               </span>
             </h2>
-            <p className="mt-1.5 text-xs sm:text-[13.5px] text-zinc-600 font-bold leading-relaxed">
+            <p className="mt-1 text-xs sm:text-[13.5px] text-zinc-600 font-bold leading-relaxed">
               Video call with live sign-to-text.
             </p>
+            {/* Value Highlights */}
+            <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-black bg-sky-50 text-sky-800 border border-sky-200/80">
+                <Zap className="w-2.5 h-2.5 text-sky-600 fill-sky-600" /> &lt; 20ms P2P
+              </span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-black bg-emerald-50 text-emerald-800 border border-emerald-200/80">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live Subtitles
+              </span>
+            </div>
           </div>
 
           {/* Primary CTA Button & Join Trigger */}

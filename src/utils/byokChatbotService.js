@@ -1294,6 +1294,18 @@ export async function sendChatbotMessage({
   };
 }
 
+// Memory cache for active working TTS model
+let cachedWorkingTtsModel = null;
+
+// High-speed Google Studio TTS candidate waterfall:
+// Prioritizes modern high-throughput flash-tts models with separate quota pools
+const TTS_CANDIDATE_MODELS = [
+  'gemini-3.8-flash-lite-tts',
+  'gemini-3.8-flash-tts',
+  'gemini-3.1-flash-tts-preview',
+  'gemini-2.5-flash-preview-tts'
+];
+
 /**
  * Asynchronously synthesizes high-fidelity Google Studio voice audio (Puck)
  * for a text reply in the background without blocking the UI or text rendering.
@@ -1307,44 +1319,58 @@ export async function synthesizeGeminiStudioVoice(rawText, apiKey) {
   const cleanProse = cleanTextForSpeech(rawText).trim();
   if (!cleanProse) return null;
 
-  // Extract the first clean conversational sentence(s) up to ~220 characters for sub-second TTS synthesis
-  const speechSnippet = cleanProse.slice(0, 220).trim();
-  if (!speechSnippet) return null;
+  // Do NOT truncate words mid-sentence! Allow full conversational prose up to 1000 characters.
+  let speechText = cleanProse;
+  if (speechText.length > 1000) {
+    const cutIndex = speechText.lastIndexOf('.', 950);
+    speechText = cutIndex > 300 ? speechText.slice(0, cutIndex + 1) : speechText.slice(0, 950);
+  }
+  speechText = speechText.trim();
+  if (!speechText) return null;
 
-  try {
-    const ttsUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey.trim()}`;
-    const ttsRes = await fetch(ttsUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: `Read the following transcript aloud verbatim: ${speechSnippet}` }] }],
-        generationConfig: {
-          responseModalities: ['AUDIO'],
-          speechConfig: {
-            voiceConfig: {
-              prebuiltVoiceConfig: {
-                voiceName: 'Puck'
+  // Build candidate list prioritizing the already-known working model
+  const modelsToTry = cachedWorkingTtsModel
+    ? [cachedWorkingTtsModel, ...TTS_CANDIDATE_MODELS.filter(m => m !== cachedWorkingTtsModel)]
+    : TTS_CANDIDATE_MODELS;
+
+  for (const model of modelsToTry) {
+    try {
+      const ttsUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey.trim()}`;
+      const ttsRes = await fetch(ttsUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: `Read the following transcript aloud verbatim: ${speechText}` }] }],
+          generationConfig: {
+            responseModalities: ['AUDIO'],
+            speechConfig: {
+              voiceConfig: {
+                prebuiltVoiceConfig: {
+                  voiceName: 'Puck'
+                }
               }
             }
           }
-        }
-      })
-    });
+        })
+      });
 
-    if (ttsRes.ok) {
-      const ttsData = await ttsRes.json();
-      const audioPart = ttsData?.candidates?.[0]?.content?.parts?.find(p => p.inlineData?.data)?.inlineData;
-      if (audioPart && audioPart.data) {
-        return {
-          mimeType: audioPart.mimeType || 'audio/pcm;rate=24000',
-          base64: audioPart.data
-        };
+      if (ttsRes.ok) {
+        const ttsData = await ttsRes.json();
+        const audioPart = ttsData?.candidates?.[0]?.content?.parts?.find(p => p.inlineData?.data)?.inlineData;
+        if (audioPart && audioPart.data) {
+          cachedWorkingTtsModel = model;
+          return {
+            mimeType: audioPart.mimeType || 'audio/pcm;rate=24000',
+            base64: audioPart.data
+          };
+        }
+      } else {
+        console.warn(`[byokChatbotService] TTS model ${model} returned status:`, ttsRes.status);
       }
-    } else {
-      console.warn('[byokChatbotService] Gemini Studio TTS status:', ttsRes.status);
+    } catch (err) {
+      console.warn(`[byokChatbotService] TTS model ${model} error:`, err?.message || err);
     }
-  } catch (err) {
-    console.warn('[byokChatbotService] synthesizeGeminiStudioVoice error:', err);
   }
+
   return null;
 }

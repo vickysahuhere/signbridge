@@ -515,43 +515,49 @@ export function HomeChatbotPopup({
           });
         }
       });
-    } else if (byokConfig.hasKey && byokConfig.provider === 'gemini') {
-      synthesizeGeminiStudioVoice(msg.text, byokConfig.apiKey)
-        .then(audioData => {
-          if (audioData && audioData.base64) {
-            msg.audio = audioData;
-            playGeminiAudio(audioData.base64, audioData.mimeType, {
-              onStart: () => setIsSpeaking(true),
-              onEnd: onDone,
-              onError: () => {
-                speakText(msg.text, {
-                  onStart: () => setIsSpeaking(true),
-                  onEnd: onDone,
-                  onError: onDone
-                });
-              }
-            });
-          } else {
+    } else {
+      const liveConfig = getByokConfig();
+      const geminiApiKey = liveConfig.apiKey || byokConfig.apiKey || ((typeof import.meta !== 'undefined' && import.meta.env?.VITE_GEMINI_API_KEY) || '').trim();
+      const isGemini = (liveConfig.provider === 'gemini') || (byokConfig.provider === 'gemini') || Boolean(geminiApiKey);
+
+      if (isGemini && geminiApiKey) {
+        synthesizeGeminiStudioVoice(msg.text, geminiApiKey)
+          .then(audioData => {
+            if (audioData && audioData.base64) {
+              msg.audio = audioData;
+              playGeminiAudio(audioData.base64, audioData.mimeType, {
+                onStart: () => setIsSpeaking(true),
+                onEnd: onDone,
+                onError: () => {
+                  speakText(msg.text, {
+                    onStart: () => setIsSpeaking(true),
+                    onEnd: onDone,
+                    onError: onDone
+                  });
+                }
+              });
+            } else {
+              speakText(msg.text, {
+                onStart: () => setIsSpeaking(true),
+                onEnd: onDone,
+                onError: onDone
+              });
+            }
+          })
+          .catch(() => {
             speakText(msg.text, {
               onStart: () => setIsSpeaking(true),
               onEnd: onDone,
               onError: onDone
             });
-          }
-        })
-        .catch(() => {
-          speakText(msg.text, {
-            onStart: () => setIsSpeaking(true),
-            onEnd: onDone,
-            onError: onDone
           });
+      } else {
+        speakText(msg.text, {
+          onStart: () => setIsSpeaking(true),
+          onEnd: onDone,
+          onError: onDone
         });
-    } else {
-      speakText(msg.text, {
-        onStart: () => setIsSpeaking(true),
-        onEnd: onDone,
-        onError: onDone
-      });
+      }
     }
   };
 
@@ -697,9 +703,13 @@ export function HomeChatbotPopup({
           }
         };
 
-        if (byokConfig.hasKey && byokConfig.provider === 'gemini') {
+        const liveConfig = getByokConfig();
+        const geminiApiKey = liveConfig.apiKey || byokConfig.apiKey || ((typeof import.meta !== 'undefined' && import.meta.env?.VITE_GEMINI_API_KEY) || '').trim();
+        const isGemini = (liveConfig.provider === 'gemini') || (byokConfig.provider === 'gemini') || (response.provider === 'gemini') || Boolean(geminiApiKey);
+
+        if (isGemini && geminiApiKey) {
           // Asynchronously synthesize Google Studio voice (Puck) in background without blocking UI
-          synthesizeGeminiStudioVoice(response.reply, byokConfig.apiKey)
+          synthesizeGeminiStudioVoice(response.reply, geminiApiKey)
             .then(audioData => {
               if (audioData && audioData.base64) {
                 // Attach to message for future replay
