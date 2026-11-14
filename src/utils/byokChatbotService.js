@@ -30,12 +30,13 @@ export const PROVIDERS = [
     keyPlaceholder: 'AIzaSy...',
     keyUrl: 'https://aistudio.google.com/app/apikey',
     keyUrlLabel: 'Get Free Gemini Key',
-    defaultModel: 'gemini-3.5-flash-lite',
+    defaultModel: 'gemini-2.5-flash',
     endpoint: 'https://generativelanguage.googleapis.com/v1beta',
     models: [
-      { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Flash-Lite (Recommended, Ultra-Fast)' },
-      { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview' },
+      { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (Recommended, Multimodal & Voice)' },
+      { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash-Lite (Ultra Fast)' },
       { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash' },
+      { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Flash-Lite' },
       { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash' }
     ]
   },
@@ -123,9 +124,11 @@ export const SUPPORTED_MODELS = PROVIDERS.flatMap(p =>
  */
 export const PROVIDER_CANDIDATE_MODELS = {
   gemini: [
+    'gemini-2.5-flash',
+    'gemini-2.5-flash-lite',
     'gemini-3.5-flash-lite',
-    'gemini-3-flash-preview',
     'gemini-3.5-flash',
+    'gemini-3-flash-preview',
     'gemini-3.8-flash',
     'gemma-4-26b-a4b-it'
   ],
@@ -1014,7 +1017,7 @@ export async function sendChatbotMessage({
           // If user wanted audio feedback and the model only returned text, generate native speech with Gemini TTS
           if (wantsAudio && candidateText && !audioData) {
             try {
-              const ttsUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash-lite-tts:generateContent?key=${trimmedKey}`;
+              const ttsUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${trimmedKey}`;
               const ttsRes = await fetch(ttsUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1037,10 +1040,12 @@ export async function sendChatbotMessage({
                 const audioPart = ttsData?.candidates?.[0]?.content?.parts?.[0]?.inlineData;
                 if (audioPart && audioPart.data) {
                   audioData = {
-                    mimeType: audioPart.mimeType || 'audio/wav',
+                    mimeType: audioPart.mimeType || 'audio/L16;codec=pcm;rate=24000',
                     base64: audioPart.data
                   };
                 }
+              } else {
+                console.warn('[byokChatbotService] Gemini TTS status:', ttsRes.status);
               }
             } catch (ttsErr) {
               console.warn('[BYOK] Native TTS synthesis skipped, will use browser speech:', ttsErr);
