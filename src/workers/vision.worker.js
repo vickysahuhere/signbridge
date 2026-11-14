@@ -120,7 +120,6 @@ const DEFAULT_WORD_MODEL_URL = '/models/isl_include_50.onnx';
  * Initialize Two-Handed ISL Alphabet MLP Model
  */
 async function initAlphabetModel(modelPath = DEFAULT_ALPHABET_MODEL_URL) {
-  return; // no trained model ships; recognition uses the signs you train in the Teach tab
   try {
     console.log('[vision.worker] Initializing ISL Alphabet MLP from:', modelPath);
     let modelData;
@@ -162,7 +161,6 @@ async function initAlphabetModel(modelPath = DEFAULT_ALPHABET_MODEL_URL) {
  * Initialize AI4Bharat INCLUDE-50 Temporal Word Model
  */
 async function initWordModel(modelPath = DEFAULT_WORD_MODEL_URL) {
-  return; // see above
   try {
     console.log('[vision.worker] Initializing AI4Bharat INCLUDE-50 temporal model from:', modelPath);
     let modelData;
