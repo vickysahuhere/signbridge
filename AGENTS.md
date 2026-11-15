@@ -50,7 +50,7 @@ Whenever you edit or generate code in this repository, you **MUST STRICTLY SATIS
 │                        THE 8 GOLDEN INVARIANTS                         │
 ├────────────────────────────────────────────────────────────────────────┤
 │ 1. ZERO BACKEND SERVERS        │ Never introduce Node/Python backends   │
-│ 2. OFF-MAIN-THREAD AI          │ MediaPipe & ONNX live ONLY in Worker   │
+│ 2. OFF-MAIN-THREAD AI          │ MediaPipe & Kinematics in Worker       │
 │ 3. 240-FLOAT NORMALIZATION     │ Strictly Float32Array(240); no NaN!    │
 │ 4. TEMPORAL MOTION GATING      │ 30-frame window; 1.2s auto-commit pause│
 │ 5. CONFIRMATION HYSTERESIS     │ Multi-frame debounce; lock until reset │
@@ -65,7 +65,7 @@ Whenever you edit or generate code in this repository, you **MUST STRICTLY SATIS
 - All vision tracking, neural network inference, and grammar restructuring run **locally in client-side JavaScript**.
 
 ### Invariant 2: AI Computations Belong Strictly in the Web Worker
-- `src/workers/vision.worker.js` runs MediaPipe Holistic Landmarker and ONNX Runtime Web.
+- `src/workers/vision.worker.js` runs MediaPipe Holistic Landmarker and biometric kinematic gesture classification (with scaffolded ONNX hooks for future models).
 - **DO NOT** import `@mediapipe/tasks-vision` or `onnxruntime-web` into React components or the main thread.
 - Frame transmission from React to Worker uses `createImageBitmap(videoElement)` with transferable objects.
 - `createImageBitmap` objects **MUST** be explicitly closed (`imageBitmap.close()`) in both worker execution paths and exception handlers to avoid browser GPU memory leaks.
@@ -121,12 +121,12 @@ signbridge-isl/
 │   ├── mediapipe/wasm/                 # Google MediaPipe WASM binaries & loaders
 │   ├── models/
 │   │   ├── holistic_landmarker.task   # MediaPipe Holistic bundle (hands + pose + face)
-│   │   ├── isl_alphabet_mlp.onnx       # A-Z ISL fingerspelling neural net
-│   │   └── isl_include_50.onnx         # 50-word temporal sequence model
-│   └── onnx/                           # ONNX Runtime Web WASM SIMD & thread workers
+│   │   ├── hand_landmarker.task       # MediaPipe Hand landmarker bundle
+│   │   └── gesture_recognizer.task    # MediaPipe Gesture recognizer bundle
+│   └── onnx/                           # ONNX Runtime Web WASM binaries (scaffolded)
 ├── scripts/
-│   ├── generate_alphabet_model.js      # Pure JS protobuf generator for alphabet ONNX
-│   └── generate_word_model.js          # Pure JS protobuf generator for temporal ONNX
+│   ├── extract_keypoints.py            # Keypoint extractor for training datasets
+│   └── train_word_model.py             # PyTorch training script for temporal models
 ├── src/
 │   ├── ai/
 │   │   ├── consecutiveConfirmation.js  # Hysteresis confirmation gate
@@ -274,7 +274,7 @@ signbridge-isl/
 | **Bypassing `ConsecutiveConfirmationGate`** | Single-frame outputs cause rapid flickering/hallucination between adjacent classes. | Route raw candidate outputs through the confirmation gate. |
 | **Removing BroadcastChannel fallback** | Breaks unit tests (`npm test`) and makes local development impossible without live Supabase cloud keys. | Always maintain dual-mode support in `src/network/supabaseClient.js`. |
 | **Adding border-radius or modern Tailwind rounded classes** | Violates the project's core design system identity and visual styling. | Use strict 0px radius, 3D outset/inset bevels, and vintage system colors. |
-| **Overwriting `.onnx` files without testing** | Corrupts model dimensions expected by the worker (`[1, 240]` or `[1, 7200]`). | If generating models, run `node scripts/generate_*.js` and verify with `npm test`. |
+| **Shipping fake or untrained `.onnx` files** | Violates project integrity by presenting random or untrained weights as working AI. | All live recognition uses authentic 3D joint kinematics (`islGestureEngine.js`). Only real, validated models trained on authentic datasets may be added. |
 
 ---
 

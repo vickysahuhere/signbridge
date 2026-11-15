@@ -59,7 +59,7 @@ flowchart LR
 ## 💡 Why SignBridge? (The Problem & Edge Solution)
 
 ### The Problem
-* **Over 18 million Deaf people in India** communicate through Indian Sign Language (ISL), yet very few hearing people understand sign language.
+* **Between 18 to 50+ million Deaf and hard-of-hearing people in India** communicate through Indian Sign Language (ISL), yet fewer than 0.5% of hearing people understand sign language.
 * Traditional AI computer vision solutions stream raw camera feeds to cloud servers hosting expensive GPU clusters. This introduces:
   1. 💸 **High Recurring Costs**: Thousands of dollars in cloud GPU compute bills every month.
   2. ⏳ **High Latency**: Network round-trip delays (300ms–1,000ms) that make natural two-way conversation feel disconnected.
@@ -102,7 +102,7 @@ SignBridge is structured into five dedicated, tactile interfaces:
 - Export and import trained sign sets as JSON for data sharing.
 
 ### 5. 🧪 Testing Arena (Live Benchmark & Quiz)
-- **100+ Testable Signs**: Combines built-in neural and geometric classifiers with user-taught custom signs.
+- **100+ Testable Signs**: Combines built-in biometric kinematic classifiers with user-taught custom signs.
 - **Live View Mode**: Real-time continuous detection readouts with candidate rankings.
 - **Timed Quiz Challenge**: 10-question rounds with countdown timer, streak tracker, instant pass/fail feedback, and final accuracy scoring.
 
@@ -117,7 +117,7 @@ All automated agents, contributors, and core updates **must strictly satisfy** t
 │                        THE 8 GOLDEN INVARIANTS                         │
 ├────────────────────────────────────────────────────────────────────────┤
 │ 1. ZERO BACKEND SERVERS        │ 100% client-side edge execution        │
-│ 2. OFF-MAIN-THREAD AI          │ MediaPipe & ONNX strictly in Worker    │
+│ 2. OFF-MAIN-THREAD AI          │ MediaPipe & Kinematics in Web Worker   │
 │ 3. 240-FLOAT NORMALIZATION     │ Uniform Float32Array(240); zero NaN    │
 │ 4. TEMPORAL MOTION GATING      │ 30-frame window; 1.2s auto-commit pause│
 │ 5. CONFIRMATION HYSTERESIS     │ Multi-frame debounce; lock until reset │
@@ -127,8 +127,13 @@ All automated agents, contributors, and core updates **must strictly satisfy** t
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
+> [!NOTE]
+> **Honest AI Architecture & ONNX Status**:  
+> Real-time recognition (two-handed A–Z fingerspelling and 1,000+ vocabulary signs) is powered by **deterministic 3D Euclidean joint kinematics, relative angle trigonometry, and velocity gating** over MediaPipe Holistic landmarks (`src/ai/islGestureEngine.js`).  
+> **There is currently no pre-trained, working ONNX deep learning model deployed in production.** Although `onnxruntime-web` execution scaffolding exists inside `vision.worker.js` as an extensible hook for future trained weights (`scripts/train_word_model.py`), the project intentionally refuses to ship fake, random-weight, or untrained placeholder `.onnx` files.
+
 1. **Zero Backend Servers**: No external Python, Node, or cloud inference API for recognition or translation.
-2. **Off-Main-Thread AI**: MediaPipe and ONNX execute exclusively inside `src/workers/vision.worker.js`. The main React UI thread only consumes message events.
+2. **Off-Main-Thread AI**: MediaPipe Holistic tracking and kinematic classification execute exclusively inside `src/workers/vision.worker.js` (with ONNX Runtime Web scaffolded for future trained weights). The main React UI thread only consumes message events.
 3. **240-Float Normalization Contract**: Every frame is centered at the shoulder midpoint and scaled by shoulder span:
    - 21 Left Hand $\times$ 3 = 63 floats (0–62)
    - 21 Right Hand $\times$ 3 = 63 floats (63–125)
@@ -160,7 +165,7 @@ flowchart TD
         Worker --> MP["MediaPipe Holistic (WebGL/WASM)"]
         MP --> Norm["extractAndNormalizeFrame (Float32Array(240))"]
         Norm --> VGate["Velocity Gate (Active vs Rest)"]
-        VGate --> AI["3D Kinematics & Neural Classifiers"]
+        VGate --> AI["3D Biometric Kinematics Engine"]
         AI --> Hyst["Consecutive Confirmation Gate"]
         Hyst --> Buffer["GlossBufferManager (Token Deduplication)"]
         Buffer --> NLP["ISL Sentence Formatter (SOV to SVO)"]
@@ -316,9 +321,9 @@ sanket/
 │   ├── mediapipe/wasm/                 # Google MediaPipe WASM binaries & loaders
 │   ├── models/
 │   │   ├── holistic_landmarker.task   # MediaPipe Holistic bundle (hands + pose + face)
-│   │   ├── isl_alphabet_mlp.onnx       # A–Z ISL fingerspelling neural net
-│   │   └── isl_include_50.onnx         # 50-word temporal sequence model
-│   └── onnx/                           # ONNX Runtime Web WASM SIMD & thread workers
+│   │   ├── hand_landmarker.task       # MediaPipe Hand landmarker bundle
+│   │   └── gesture_recognizer.task    # MediaPipe Gesture recognizer bundle
+│   └── onnx/                           # ONNX Runtime Web WASM binaries (scaffolded)
 ├── src/
 │   ├── ai/
 │   │   ├── consecutiveConfirmation.js  # Hysteresis confirmation gate
@@ -433,7 +438,8 @@ npm run build
 | **Framework** | **React 19 + Vite 6** | Ultra-fast HMR, concurrent rendering, minimal bundle size | Free (MIT) |
 | **Styling** | **Tailwind CSS** | Tactile Duolingo / retro design system | Free (MIT) |
 | **Computer Vision** | **MediaPipe Holistic Tasks** | 543 3D landmark points (hands, pose, face) via WebGL/WASM | Free (Apache-2.0) |
-| **Inference Runtime** | **ONNX Runtime Web** | Local client-side neural network execution | Free (MIT) |
+| **Gesture Classifier** | **3D Biometric Kinematics Engine** | Deterministic Euclidean distances, finger curl/extension & joint trigonometry (`islGestureEngine.js`) | Free (Custom) |
+| **Model Runtime (Scaffolded)** | **ONNX Runtime Web** | Worker hooks prepared for future community models; no fake or untrained models shipped | Free (MIT) |
 | **Concurrency** | **HTML5 Web Workers** | Off-main-thread vision pipeline maintaining 60 FPS UI | Built-in |
 | **P2P Transport** | **WebRTC RTCDataChannel** | Sub-20ms direct UDP message streaming | Free |
 | **Signaling** | **PeerJS + Supabase Realtime** | Free room discovery with local BroadcastChannel fallback | Free Tier |
