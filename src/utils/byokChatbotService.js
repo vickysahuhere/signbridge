@@ -1340,7 +1340,7 @@ export async function synthesizeGeminiStudioVoice(rawText, apiKey) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: `Read the following transcript aloud verbatim: ${speechText}` }] }],
+          contents: [{ parts: [{ text: speechText }] }],
           generationConfig: {
             responseModalities: ['AUDIO'],
             speechConfig: {
