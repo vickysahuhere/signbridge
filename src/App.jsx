@@ -718,6 +718,25 @@ export function App() {
     }
   }, [isSignMastered, selectedLearnItem]);
 
+  const handleResetLearningProgress = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      const confirmed = window.confirm(
+        'Reset all ISL learning progress?\n\nThis will reset:\n• Mastered sign streak to 0\n• Current lesson back to Level 1: NAMASTE\n• Practice repetition counter back to 0/3\n\nYou will start fresh from the beginning.'
+      );
+      if (!confirmed) return;
+      try {
+        localStorage.removeItem('sanket_mastered_signs');
+      } catch (e) {}
+      masteredSetRef.current = new Set();
+      setMasteredCount(0);
+      setSelectedLearnItem(getLearnItemByLabel('NAMASTE') || ISL_LEARN_ITEMS[0]);
+      setActiveStepIndex(0);
+      setCompletedSteps([]);
+      setSuccessfulReps(0);
+      setIsSignMastered(false);
+    }
+  }, []);
+
   const handleSelectLearnItem = useCallback((item) => {
     setSelectedLearnItem(item);
     if (item.type === 'alphabet' && recognitionMode !== 'alphabet') {
@@ -905,6 +924,7 @@ export function App() {
                   successfulReps={successfulReps}
                   targetReps={TARGET_REPETITIONS}
                   onResetPractice={handleResetPractice}
+                  onResetProgress={handleResetLearningProgress}
                 />
               </div>
 

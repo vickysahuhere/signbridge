@@ -56,7 +56,8 @@ export function LearnSidebar({
   completedSteps = [],
   successfulReps = 0,
   targetReps = 3,
-  onResetPractice
+  onResetPractice,
+  onResetProgress
 }) {
   // Navigation Mode: 'course' (guided level path) | 'lexicon' (search all 1,051 signs)
   const [viewMode, setViewMode] = useState('course');
@@ -309,11 +310,25 @@ export function LearnSidebar({
             </div>
           </div>
 
-          <div className="flex items-center gap-1 flex-shrink-0">
+          <div className="flex items-center gap-1.5 flex-shrink-0">
             <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-[#58CC02] text-white border border-zinc-900 flex items-center gap-1 whitespace-nowrap shadow-sm">
               <Award className="w-3 h-3 text-white stroke-[2.5]" />
               <span>{masteredSet ? masteredSet.size : 0} Mastered</span>
             </span>
+            {onResetProgress && masteredSet && masteredSet.size > 0 && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onResetProgress();
+                }}
+                className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-white hover:bg-rose-50 text-rose-700 hover:text-rose-900 border border-zinc-900 flex items-center gap-0.5 transition-all cursor-pointer shadow-2xs"
+                title="Reset learning streak to start fresh from Level 1"
+              >
+                <RotateCcw className="w-2.5 h-2.5 stroke-[2.5]" />
+                <span>Reset</span>
+              </button>
+            )}
             <ChevronRight className="w-3.5 h-3.5 text-zinc-500 group-hover:translate-x-0.5 transition-transform flex-shrink-0" />
           </div>
         </button>
@@ -682,6 +697,21 @@ export function LearnSidebar({
                   <Award className="w-3.5 h-3.5 text-white stroke-[2.5]" />
                   {masteredSet ? masteredSet.size : 0} Mastered
                 </span>
+
+                {onResetProgress && masteredSet && masteredSet.size > 0 && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onResetProgress();
+                    }}
+                    className="cartoon-badge !py-1 !px-2 text-xs bg-white hover:bg-rose-50 text-rose-700 hover:text-rose-800 font-bold flex items-center gap-1 border border-zinc-900 shadow-sm transition-all cursor-pointer"
+                    title="Reset course progress & start fresh from Level 1: Namaste"
+                  >
+                    <RotateCcw className="w-3 h-3 stroke-[2.5]" />
+                    <span>Reset Progress</span>
+                  </button>
+                )}
 
                 <button
                   onClick={closeAcademy}
