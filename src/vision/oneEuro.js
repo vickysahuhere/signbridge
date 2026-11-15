@@ -5,7 +5,7 @@ const alpha = (cutoff, dt) => {
 };
 
 export class LandmarkOneEuro {
-  constructor({ minCutoff = 1.4, beta = 12, dCutoff = 1.0 } = {}) {
+  constructor({ minCutoff = 1.0, beta = 25, dCutoff = 1.0 } = {}) {
     this.minCutoff = minCutoff;
     this.beta = beta;
     this.dCutoff = dCutoff;

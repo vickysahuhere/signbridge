@@ -436,10 +436,16 @@ export function TeachStage({ onFrame, latestLandmarks, latestNormalizedFeatures,
           <canvas ref={canvasRef} width={1280} height={720} className="absolute inset-0 w-full h-full object-contain -scale-x-100 pointer-events-none z-10" />
 
           {!cameraOn && (
-            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 text-center p-6">
-              <Camera className="w-9 h-9 text-[#D7FFB8]" />
-              <p className="text-sm font-bold text-[#CECECE]">{cameraError || 'Starting camera…'}</p>
-              {cameraError && <button type="button" onClick={startCamera} className="duo-btn duo-btn-blue">Try again</button>}
+            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 text-center p-6 bg-[#151915]">
+              <div className="w-14 h-14 rounded-2xl bg-white/10 border-2 border-white/20 flex items-center justify-center shadow-inner">
+                <Camera className="w-7 h-7 text-[#D7FFB8]" />
+              </div>
+              <p className="text-sm font-extrabold text-[#CECECE] max-w-xs">{cameraError || 'Starting camera preview…'}</p>
+              {cameraError && (
+                <button type="button" onClick={startCamera} className="duo-btn duo-btn-blue !py-2 !px-4 !text-xs font-black">
+                  Try again
+                </button>
+              )}
             </div>
           )}
 

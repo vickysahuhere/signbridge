@@ -1217,78 +1217,64 @@ export function HomeChatbotPopup({
             </div>
           </div>
 
-          {/* Action Tools */}
+          {/* Action Tools: Ultra-Clean 3-Button Set */}
           <div className="flex items-center gap-1.5 flex-shrink-0">
-            {/* Quick Audio Mute / Unmute Button */}
-            <button
-              type="button"
-              onClick={handleToggleAutoSpeak}
-              className={`p-1.5 rounded-xl border-2 transition-all cursor-pointer shadow-2xs ${
-                autoSpeak
-                  ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
-                  : 'bg-zinc-50 border-zinc-200 text-zinc-400 hover:text-zinc-600'
-              }`}
-              title={autoSpeak ? "Spoken voice output is ON (click to mute)" : "Spoken voice output is MUTED (click to unmute)"}
-              aria-label="Toggle spoken voice"
-            >
-              {autoSpeak ? (
-                <Volume2 className="w-4 h-4 stroke-[2.5]" />
-              ) : (
-                <VolumeX className="w-4 h-4 stroke-[2]" />
-              )}
-            </button>
-
-            {/* BYOK Key Toggle */}
-            <button
-              type="button"
-              onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-              className={`px-2.5 py-1 text-xs font-black rounded-xl border-2 flex items-center gap-1.5 shadow-2xs transition-all ${
-                byokConfig.hasKey
-                  ? 'bg-[#DCFCE7] border-[#86EFAC] text-[#15803D]'
-                  : 'bg-[#FFF9E5] border-amber-300 text-amber-900'
-              }`}
-              title="Configure AI API Key"
-            >
-              <Key className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span className="hidden xs:inline">
-                {byokConfig.hasKey
-                  ? `Key: ${PROVIDERS.find(p => p.id === byokConfig.provider)?.name?.split(' ')[0] || 'Active'}`
-                  : 'Add Key'}
-              </span>
-              {isSettingsOpen ? (
-                <ChevronUp className="w-3 h-3" />
-              ) : (
-                <ChevronDown className="w-3 h-3" />
-              )}
-            </button>
-
             {/* Three Dots (...) More Options Menu */}
             <div className="relative" ref={moreMenuRef}>
               <button
                 type="button"
                 onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
                 className={`w-8 h-8 rounded-xl border-2 border-zinc-200 hover:border-zinc-300 flex items-center justify-center shadow-2xs transition-all cursor-pointer ${
-                  isMoreMenuOpen ? 'bg-amber-100 border-amber-300' : 'bg-white hover:bg-zinc-50 text-zinc-800'
+                  isMoreMenuOpen ? 'bg-amber-100 border-amber-300 text-amber-900' : 'bg-white hover:bg-zinc-50 text-zinc-700'
                 }`}
-                title="More Tools & Options"
+                title="Tools & Settings"
                 aria-label="More options"
               >
                 <MoreVertical className="w-4 h-4 stroke-[2.5]" />
               </button>
 
               {isMoreMenuOpen && (
-                <div className="absolute right-0 top-full mt-1.5 w-60 bg-white border-2 border-zinc-900 rounded-xl shadow-cartoon-md p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100 text-xs">
+                <div className="absolute right-0 top-full mt-1.5 w-64 bg-white border-2 border-zinc-900 rounded-xl shadow-cartoon-md p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100 text-xs">
                   <div className="px-2 py-1 text-[9px] font-black uppercase tracking-wider text-zinc-400 border-b border-zinc-100 mb-1">
-                    AI Tools & Options
+                    AI Tools & Settings
                   </div>
 
-                  {/* 1. Screen Vision Toggle */}
+                  {/* 1. API Key & Provider Settings */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsSettingsOpen(!isSettingsOpen);
+                      setIsMoreMenuOpen(false);
+                    }}
+                    className="w-full text-left px-2 py-1.5 rounded-lg hover:bg-amber-50 font-bold text-zinc-800 flex items-center justify-between transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Key className="w-4 h-4 text-amber-600 flex-shrink-0 stroke-[2.5]" />
+                      <div className="min-w-0">
+                        <div className="font-bold text-xs text-zinc-900 truncate">API Key & Model</div>
+                        <div className="text-[10px] text-zinc-500 font-normal truncate">
+                          {byokConfig.hasKey
+                            ? `${PROVIDERS.find(p => p.id === byokConfig.provider)?.name?.split(' ')[0] || 'Active'} configured`
+                            : 'Set Gemini, Groq, OpenAI'}
+                        </div>
+                      </div>
+                    </div>
+                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded border flex-shrink-0 ${
+                      byokConfig.hasKey
+                        ? 'bg-emerald-100 text-emerald-800 border-emerald-400'
+                        : 'bg-amber-100 text-amber-900 border-amber-300'
+                    }`}>
+                      {byokConfig.hasKey ? 'ACTIVE' : 'ADD KEY'}
+                    </span>
+                  </button>
+
+                  {/* 2. Screen Vision Toggle */}
                   <button
                     type="button"
                     onClick={() => {
                       handleToggleScreenVision();
                     }}
-                    className="w-full text-left px-2 py-1.5 rounded-lg hover:bg-sky-50 font-bold text-zinc-800 flex items-center justify-between transition-colors cursor-pointer"
+                    className="w-full text-left px-2 py-1.5 rounded-lg hover:bg-sky-50 font-bold text-zinc-800 flex items-center justify-between transition-colors cursor-pointer mt-0.5"
                   >
                     <div className="flex items-center gap-2">
                       <Eye className="w-4 h-4 text-sky-600 flex-shrink-0 stroke-[2.5]" />
@@ -1306,7 +1292,7 @@ export function HomeChatbotPopup({
                     </span>
                   </button>
 
-                  {/* 2. Spoken Voice (TTS) Toggle */}
+                  {/* 3. Spoken Voice (TTS) Toggle */}
                   <button
                     type="button"
                     onClick={() => {
@@ -1430,17 +1416,28 @@ export function HomeChatbotPopup({
                 <Key className="w-3.5 h-3.5 text-amber-600 stroke-[2.5]" />
                 <span>AI API Key Settings</span>
               </span>
-              {currentProviderMeta.keyUrl && (
-                <a
-                  href={currentProviderMeta.keyUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[10px] font-bold text-sky-700 hover:text-sky-900 flex items-center gap-0.5 underline"
+              <div className="flex items-center gap-2">
+                {currentProviderMeta.keyUrl && (
+                  <a
+                    href={currentProviderMeta.keyUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[10px] font-bold text-sky-700 hover:text-sky-900 flex items-center gap-0.5 underline"
+                  >
+                    <span>{currentProviderMeta.keyUrlLabel}</span>
+                    <ExternalLink className="w-2.5 h-2.5" />
+                  </a>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setIsSettingsOpen(false)}
+                  className="w-5 h-5 rounded-md hover:bg-zinc-100 flex items-center justify-center text-zinc-400 hover:text-zinc-700 cursor-pointer"
+                  title="Close Settings"
+                  aria-label="Close settings drawer"
                 >
-                  <span>{currentProviderMeta.keyUrlLabel}</span>
-                  <ExternalLink className="w-2.5 h-2.5" />
-                </a>
-              )}
+                  <X className="w-3.5 h-3.5 stroke-[2.5]" />
+                </button>
+              </div>
             </div>
 
             <form onSubmit={handleSaveByok} className="flex flex-col gap-2">

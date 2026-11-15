@@ -118,11 +118,13 @@ export function CallLobby({
         <div className="relative aspect-video bg-[#151915]">
           <video ref={videoRef} playsInline muted autoPlay className="absolute inset-0 w-full h-full object-cover -scale-x-100" />
           {!cameraReady && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center p-6">
-              <Camera className="w-8 h-8 text-[#D7FFB8]" />
-              <p className="text-sm font-bold text-[#CECECE]">{cameraError || 'Starting camera…'}</p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center p-6 bg-[#151915]">
+              <div className="w-14 h-14 rounded-2xl bg-white/10 border-2 border-white/20 flex items-center justify-center shadow-inner">
+                <Camera className="w-7 h-7 text-[#D7FFB8]" />
+              </div>
+              <p className="text-sm font-extrabold text-[#CECECE] max-w-xs">{cameraError || 'Starting camera preview…'}</p>
               {cameraError && (
-                <button type="button" onClick={startCamera} className="duo-btn duo-btn-blue !py-2 !text-xs">
+                <button type="button" onClick={startCamera} className="duo-btn duo-btn-blue !py-2 !px-4 !text-xs font-black">
                   Try again
                 </button>
               )}
@@ -167,7 +169,7 @@ export function CallLobby({
                 type="button"
                 onClick={() => setTab(t.id)}
                 className={`flex-1 py-2 rounded-lg text-sm font-extrabold transition-colors ${
-                  tab === t.id ? 'bg-white text-[#3C3C3C] shadow-sm' : 'text-[#AFAFAF] hover:text-[#3C3C3C]'
+                  tab === t.id ? 'bg-white text-[#3C3C3C] shadow-sm' : 'text-[#777777] hover:text-[#3C3C3C]'
                 }`}
               >
                 {t.label}

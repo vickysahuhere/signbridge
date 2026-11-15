@@ -1204,18 +1204,9 @@ export function HomePage({
                 Start <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
               </span>
             </h2>
-            <p className="mt-1 text-xs sm:text-[13.5px] text-zinc-600 font-bold leading-relaxed">
+            <p className="mt-1.5 text-xs sm:text-[13.5px] text-zinc-600 font-bold leading-relaxed">
               Practice 1,000+ signs with instant feedback.
             </p>
-            {/* Value Highlights */}
-            <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-black bg-emerald-50 text-emerald-800 border border-emerald-200/80">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> 1,000+ Signs
-              </span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-black bg-amber-50 text-amber-800 border border-amber-200/80">
-                <Sparkles className="w-2.5 h-2.5 text-amber-600" /> Instant AI Feedback
-              </span>
-            </div>
           </div>
 
           {/* Primary CTA Button */}
@@ -1262,18 +1253,9 @@ export function HomePage({
                 Start <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
               </span>
             </h2>
-            <p className="mt-1 text-xs sm:text-[13.5px] text-zinc-600 font-bold leading-relaxed">
+            <p className="mt-1.5 text-xs sm:text-[13.5px] text-zinc-600 font-bold leading-relaxed">
               Video call with live sign-to-text.
             </p>
-            {/* Value Highlights */}
-            <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-black bg-sky-50 text-sky-800 border border-sky-200/80">
-                <Zap className="w-2.5 h-2.5 text-sky-600 fill-sky-600" /> &lt; 20ms P2P
-              </span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-black bg-emerald-50 text-emerald-800 border border-emerald-200/80">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live Subtitles
-              </span>
-            </div>
           </div>
 
           {/* Primary CTA Button & Join Trigger */}

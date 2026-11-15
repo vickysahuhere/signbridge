@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as ort from 'onnxruntime-web';
 import { softmax, getTopKPredictions } from '../src/ai/softmax.js';
-import { ISL_WORD_LABELS, WORD_COUNT, TIER_1_WORD_COUNT, TIER_2_WORD_COUNT } from '../src/ai/islWordLabels.js';
+import { ISL_WORD_LABELS, WORD_COUNT, TIER_1_WORD_COUNT, TIER_2_WORD_COUNT, doesSignRequireFace, SIGNS_REQUIRING_FACE } from '../src/ai/islWordLabels.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -124,4 +124,28 @@ test('wordClassifier - validates 1000+ class Tier 3 sequence inference logic', a
   assert.strictEqual(top4[0].rank, 1);
   assert.strictEqual(top4[0].label, allGlossLabels[42]);
   assert.strictEqual(top4[0].isConfident, true);
+});
+
+test('doesSignRequireFace - gates face mesh tracking for non-facial signs', () => {
+  // Alphabet mode never requires face tracking
+  assert.strictEqual(doesSignRequireFace('A', 'alphabet'), false);
+  assert.strictEqual(doesSignRequireFace('B', 'alphabet'), false);
+  assert.strictEqual(doesSignRequireFace('Z', 'alphabet'), false);
+
+  // Common hand signs do NOT require face tracking (allowing 60 FPS hand tracking)
+  assert.strictEqual(doesSignRequireFace('NAMASTE', 'word'), false);
+  assert.strictEqual(doesSignRequireFace('HELLO', 'word'), false);
+  assert.strictEqual(doesSignRequireFace('GOOD', 'word'), false);
+  assert.strictEqual(doesSignRequireFace('HELP', 'word'), false);
+  assert.strictEqual(doesSignRequireFace('THANK_YOU', 'word'), false);
+  assert.strictEqual(doesSignRequireFace('PLEASE', 'word'), false);
+  assert.strictEqual(doesSignRequireFace('YES', 'word'), false);
+
+  // Signs that linguistically or physically require face/eyebrow markers
+  assert.strictEqual(doesSignRequireFace('WHAT', 'word'), true);
+  assert.strictEqual(doesSignRequireFace('WHERE', 'word'), true);
+  assert.strictEqual(doesSignRequireFace('FEVER', 'word'), true);
+  assert.strictEqual(doesSignRequireFace('DOCTOR', 'word'), true);
+  assert.strictEqual(doesSignRequireFace('HAPPY', 'word'), true);
+  assert.strictEqual(doesSignRequireFace('SAD', 'word'), true);
 });

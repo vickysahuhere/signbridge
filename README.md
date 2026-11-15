@@ -3,406 +3,374 @@
 > **Real-Time Indian Sign Language (ISL) to Natural English Chat & Video Bridge**  
 > *100% In-Browser Edge AI • Zero Cloud Server Costs • Total Privacy • Sub-20ms Peer-to-Peer Latency*
 
-> [!IMPORTANT]
-> ### 📍 Current Project Status: TRANSLATOR PHASE
-> We are currently in the **Translator Phase**! Our core focus right now is perfecting the **on-device real-time sign language recognition, 3D hand/body tracking, and ISL-to-English grammar translation engine**. 
-> - ✅ **Active & Working**: Real-time webcam sign detection (22 core conversational signs + 26 A–Z two-handed fingerspelling letters), configurable wrist velocity motion gating (default 700ms), and automated 260-word grammar restructuring (`YOU NAME WHAT` $\rightarrow$ *"What is your name?"*).
-> - 📊 **Empirically Measured**: All latency, throughput, and accuracy metrics are measured and documented in [`docs/MEASUREMENTS.md`](./docs/MEASUREMENTS.md).
-> - 🔄 **Next Up**: Fine-tuning neural sequence models with custom recordings, multi-peer WebRTC video room calls, and audio speech synthesis (TTS).
+[![Tests](https://img.shields.io/badge/tests-144%20passed-58CC02?style=for-the-badge&logo=vitest&logoColor=white)](./test)
+[![License: MIT](https://img.shields.io/badge/License-MIT-1CB0F6?style=for-the-badge)](./LICENSE)
+[![Edge AI: 100% Browser](https://img.shields.io/badge/Edge%20AI-100%25%20In--Browser-FFC800?style=for-the-badge&logo=webassembly&logoColor=black)](#-the-8-golden-invariants)
+[![Architecture: Web Worker](https://img.shields.io/badge/Worker-Off--Main--Thread-A559D9?style=for-the-badge)](#2-the-ai-engine-in-a-background-worker)
 
 ---
 
-## 📖 Table of Contents
+## 📍 Table of Contents
 
-- [Current Status: Translator Phase](#-current-status-translator-phase)
 - [What is SignBridge?](#-what-is-signbridge)
-- [Why SignBridge? (The Problem & Solution)](#-why-signbridge-the-problem--solution)
-- [How It Works in 3 Simple Steps](#-how-it-works-in-3-simple-steps)
-- [System Architecture (Diagrams)](#-system-architecture-diagrams)
+- [Why SignBridge? (The Problem & Edge Solution)](#-why-signbridge-the-problem--edge-solution)
+- [The 5 Core Application Hubs](#-the-5-core-application-hubs)
+  - [1. 🏠 Home Page (Minimal Choice Arena)](#1--home-page-minimal-choice-arena)
+  - [2. 📖 Learn ISL Studio (7-Level Curriculum)](#2--learn-isl-studio-7-level-curriculum)
+  - [3. 📹 Sign Call & P2P Video Lobby](#3--sign-call--p2p-video-lobby)
+  - [4. 🎓 Teach Studio (Custom Gesture Training)](#4--teach-studio-custom-gesture-training)
+  - [5. 🧪 Testing Arena (Live Benchmark & Quiz)](#5--testing-arena-live-benchmark--quiz)
+- [The 8 Golden Invariants](#-the-8-golden-invariants)
+- [System Architecture & Flow Diagrams](#-system-architecture--flow-diagrams)
   - [1. High-Level Flow](#1-high-level-flow)
-  - [2. The 30 FPS AI Vision Pipeline](#2-the-30-fps-ai-vision-pipeline)
+  - [2. 30 FPS Off-Main-Thread AI Vision Pipeline](#2-30-fps-off-main-thread-ai-vision-pipeline)
   - [3. ISL to English Grammar Engine (SOV $\rightarrow$ SVO)](#3-isl-to-english-grammar-engine-sov--svo)
-  - [4. Peer-to-Peer WebRTC & Signaling](#4-peer-to-peer-webrtc--signaling)
-- [Deep Dive: How the Magic Happens (In Plain English)](#-deep-dive-how-the-magic-happens-in-plain-english)
-  - [The Skeleton Tracker (MediaPipe Holistic)](#1-the-skeleton-tracker-mediapipe-holistic)
-  - [The AI Engine in a Background Worker](#2-the-ai-engine-in-a-background-worker)
-  - [Smart Motion Detector (Velocity Gate)](#3-smart-motion-detector-velocity-gate)
-  - [The Grammar Translator](#4-the-grammar-translator)
-  - [Two-Way HUD Subtitle Overlay](#5-two-way-hud-subtitle-overlay)
-- [Real-World Example Walkthrough](#-real-world-example-walkthrough)
-- [Key Features](#-key-features)
-- [Project Structure](#-project-structure)
+  - [4. Dual-Transport WebRTC Signaling](#4-dual-transport-webrtc-signaling)
+- [✨ Built-in Smart Tools](#-built-in-smart-tools)
+  - [Ask AI Guide (BYOK Multi-Model Assistant)](#-ask-ai-guide-byok-multi-model-assistant)
+  - [In-App Feedback & Window Snapshot Tool](#-in-app-feedback--window-snapshot-tool)
+  - [System & Contributor Panel](#-system--contributor-panel)
+- [Repository Topology](#-repository-topology)
 - [Quick Start Guide](#-quick-start-guide)
-- [Contributing & Agent Rules](#-contributing--agent-rules)
-- [Tech Stack & Free Tier Architecture](#-tech-stack--free-tier-architecture)
+- [Tech Stack](#-tech-stack)
+- [Contributing & Attribution Protocol](#-contributing--attribution-protocol)
 - [License](#-license)
-
----
-
-## 📍 Current Status: Translator Phase
-
-```mermaid
-flowchart LR
-    A["Stage 1: Vision Skeleton\n(MediaPipe 543 pts)"] --> B["Stage 2: Motion Gating\n(Velocity & 1.2s Pause)"]
-    B --> C["Stage 3 & 4: AI Classifiers\n(Alphabet & Words)"]
-    C --> D["Stage 5: Grammar Engine\n(ISL SOV to English)"]
-    D ==> E["📍 WE ARE HERE\nTranslator Phase Polish"]
-    E -.-> F["Stage 6: P2P Call Bridge\n(Full Room Telepresence)"]
-    
-    style E fill:#0284c7,stroke:#38bdf8,stroke-width:3px,color:#ffffff
-    style F fill:#334155,stroke:#64748b,stroke-width:1px,color:#94a3b8
-```
-
-> **Note to evaluators, users, and contributors**:  
-> Right now, the project is actively in the **Translator Phase** (Core Sign-to-Text & Grammar Translation). 
-> 
-> Before rolling out heavy multi-user video calling rooms, our primary priority is making sure the **AI translation is fast, accurate, accessible, and runs 100% locally in the browser**.
-
-### 🔍 What Does "Translator Phase" Mean?
-In simple words: **We are perfecting the signer's experience first.**
-- **The AI must understand you effortlessly**: When you sign in front of the camera, the app must track your fingers and facial expressions smoothly without stuttering or making mistakes.
-- **The English must sound natural**: When you sign in ISL order (e.g. `YOU NAME WHAT`), the app must automatically turn it into proper English (*"What is your name?"*) before sending it to anyone.
-
-### 📋 Phase Checklist
-
-| Feature / Milestone | Status | Details |
-| :--- | :---: | :--- |
-| **In-Browser Skeleton Tracking** | 🟢 **Complete** | 543 points (hands, pose, face) via MediaPipe Holistic WebGL (~190ms/frame on laptop CPU/GPU). |
-| **Two-Handed ISL Alphabet (A–Z)** | 🟢 **Complete** | 26 authentic two-handed fingerspelling letters via 3D biometric kinematics + digit support. |
-| **Conversational Word Recognition** | 🟢 **Complete** | 22 core conversational signs via 3D kinematics heuristics; training pipeline ready for AI4Bharat INCLUDE or custom recordings. |
-| **Wrist Velocity Motion Gating** | 🟢 **Complete** | Distinguishes active signing from idle pauses; triggers auto-commit after configurable pause (default 700ms). |
-| **ISL-to-English Grammar Engine** | 🟢 **Active / Polishing** | Reorders Subject-Object-Verb (SOV) to SVO across 260 lexicon terms with WH-fronting and negation handling. |
-| **Signer Stage & Visual Composition Bar** | 🟢 **Active / Polishing** | Live visual badges (`[YOU] [NAME]`), backspace/undo, pause countdown bar, and webcam feedback. |
-| **Keypoint Recorder & Training Studio** | 🟢 **Active** | Built-in drawer exporting `signbridge-training-v1` format compatible with `scripts/extract_keypoints.py`. |
-| **P2P Calling & Remote Room Bridge** | 🟡 **Next Milestone** | WebRTC signaling is operational in unit tests; full UI room pairing being refined. |
 
 ---
 
 ## 🌟 What is SignBridge?
 
-**SignBridge** (also known as **Sanket**) is a real-time web application that bridges the communication gap between the **Deaf / Hard-of-Hearing community who use Indian Sign Language (ISL)** and **hearing individuals who do not know sign language**.
+**SignBridge ISL** (also known as **Sanket / संकेत**) is an on-device, privacy-preserving communication bridge connecting the **Deaf and Hard-of-Hearing community who use Indian Sign Language (ISL)** with **hearing individuals**.
 
-When a person signs in front of their webcam, SignBridge:
-1. **Tracks their hands, body, and facial expressions** directly in the browser.
-2. **Recognizes ISL words and fingerspelled letters** using lightweight on-device AI.
-3. **Translates ISL grammar into fluent, natural English sentences**.
-4. **Sends the message instantly** to their conversation partner over a secure peer-to-peer connection.
-5. **Displays incoming text replies** as heads-up subtitles right on top of the webcam feed so the signer never has to take their eyes off the screen.
-
----
-
-## 💡 Why SignBridge? (The Problem & Solution)
-
-### The Problem
-* **Over 18 million Deaf people in India** use Indian Sign Language (ISL). Very few hearing people understand ISL.
-* Existing AI solutions send live video feeds to heavy cloud servers with expensive GPUs. This has **three major drawbacks**:
-  1. 💸 **High Costs**: Cloud servers cost hundreds of dollars every month.
-  2. ⏳ **High Lag**: Streaming raw video back and forth adds noticeable lag (300ms–800ms).
-  3. 🔒 **Privacy Concerns**: Users are uncomfortable uploading live video feeds of their homes to foreign servers.
-
-### The SignBridge Solution: 100% Edge AI (In-Browser)
-* **Zero Video Uploads**: Video never leaves the user's laptop or phone. All computer vision and AI calculations happen locally inside the web browser.
-* **Zero Cloud GPU Costs**: Uses the client's own GPU/CPU via WebGL and WebAssembly (WASM).
-* **Instant Classification**: Normalization, kinematics classification, and grammar formatting execute in under **0.1 milliseconds** per frame! Holistic tracking runs locally via WebGL.
-* **Natural Grammar**: Unlike simple word-by-word recognizers, SignBridge restructures Indian Sign Language grammar into proper English sentences.
-* **Documented Benchmarks**: See [`docs/MEASUREMENTS.md`](./docs/MEASUREMENTS.md) for full empirical profiling numbers.
-
----
-
-## 🚀 How It Works in 3 Simple Steps
+SignBridge executes entirely inside modern client web browsers via **WebGL**, **WebAssembly (WASM)**, and **HTML5 Web Workers**. No camera stream, joint coordinate tensor, or image bitmap is ever uploaded to a remote cloud server.
 
 ```mermaid
 flowchart LR
-    A["👤 1. Sign in Front of Webcam\n(Hands, Pose & Face)"] --> B["⚡ 2. Browser AI Recognizes & Reorders\n(30 FPS Edge AI + Grammar Engine)"]
-    B --> C["💬 3. Live P2P Message Sent\n(Natural English + HUD Subtitles)"]
+    A["👤 1. Sign in Webcam\n(Hands, Pose & Face)"] --> B["⚡ 2. 100% In-Browser Edge AI\n(MediaPipe + Kinematics + NLP)"]
+    B --> C["💬 3. Direct P2P Communication\n(Fluent English + HUD Subtitles)"]
+    
+    style A fill:#EEFDE5,stroke:#58CC02,stroke-width:2px,color:#2F7202
+    style B fill:#DDF4FE,stroke:#1CB0F6,stroke-width:2px,color:#0284C7
+    style C fill:#FFF5D1,stroke:#FFC800,stroke-width:2px,color:#78350F
 ```
-
-1. **Step 1: Sign** — Person A moves their hands and face naturally in front of any standard webcam.
-2. **Step 2: Translate** — The browser tracks 543 body coordinates, recognizes the gestures, and fixes the sentence order.
-3. **Step 3: Connect** — The translated English sentence appears on Person B's screen, and Person B's text reply appears directly as a floating subtitle on Person A's camera feed.
 
 ---
 
-## 📊 System Architecture (Diagrams)
+## 💡 Why SignBridge? (The Problem & Edge Solution)
+
+### The Problem
+* **Over 18 million Deaf people in India** communicate through Indian Sign Language (ISL), yet very few hearing people understand sign language.
+* Traditional AI computer vision solutions stream raw camera feeds to cloud servers hosting expensive GPU clusters. This introduces:
+  1. 💸 **High Recurring Costs**: Thousands of dollars in cloud GPU compute bills every month.
+  2. ⏳ **High Latency**: Network round-trip delays (300ms–1,000ms) that make natural two-way conversation feel disconnected.
+  3. 🔒 **Privacy Concerns**: Users must transmit live video feeds of their private spaces to third-party servers.
+
+### The SignBridge Edge Solution
+* 🔒 **100% Edge Privacy**: Video frames remain strictly inside client browser memory and are discarded after inference.
+* ⚡ **Sub-20ms P2P Latency**: Direct browser-to-browser WebRTC UDP data channels stream partial signing tokens and natural English translations instantly.
+* 🆓 **Zero Infrastructure Costs**: Runs on standard consumer laptops and phones via WebGL/WASM acceleration; signaling operates over free-tier WebSockets with an automatic cross-tab fallback.
+* 🧠 **Deterministic Grammar Transformation**: ISL Subject-Object-Verb (SOV) order and trailing WH-question markers are reordered into fluent Subject-Verb-Object (SVO) English sentences without hallucinations.
+
+---
+
+## 🗂️ The 5 Core Application Hubs
+
+SignBridge is structured into five dedicated, tactile interfaces:
+
+### 1. 🏠 Home Page (Minimal Choice Arena)
+- Designed around the friendly Otter mascot **Sanket**.
+- Two primary action cards: **Learn ISL** (interactive curriculum) and **Sign Call** (code-based video bridge).
+- Direct access to the **Teach** studio and **Testing** arena.
+- Floating **Ask AI** assistant launcher.
+
+### 2. 📖 Learn ISL Studio (7-Level Curriculum)
+- **1,000+ Sign Catalog**: Progressive structured course levels from **Foundations** (greetings, courtesies) to **Expert** (emergency, medical, governance).
+- **Live Anatomical Posture Guide**: Real-time biometric alignment check measuring wrist Euclidean distances, finger extensions, and joint angles against target ISL kinematics.
+- **Muscle Memory Pass Criteria**: Requires 3 successful consecutive repetitions to master each sign.
+- **Sign Academy Drawer**: Searchable curriculum directory filtered by category and mastery status.
+
+### 3. 📹 Sign Call & P2P Video Lobby
+- **6-Character Call Codes**: Room pairing via simple codes (`?join=CODE`) without user account registration.
+- **Dual-Transport Bridge**: Direct WebRTC UDP `RTCDataChannel("isl-chat")` with automatic WebSocket broadcast fallback.
+- **Heads-Up Subtitle Overlay (`IncomingSubtitleOverlay`)**: Hearing partner text replies appear directly as transparent subtitles over the webcam feed so signers maintain eye contact.
+- **Dual-Camera Grid**: View local and remote camera feeds side-by-side or focus on either participant.
+
+### 4. 🎓 Teach Studio (Custom Gesture Training)
+- Record your own sign variations and custom gestures directly in the browser.
+- **Guided Training Sets**: Step-by-step recording workflows for the 26 A–Z letters and core conversational words.
+- Dynamic DTW/Euclidean trajectory matching for user-trained gestures.
+- Export and import trained sign sets as JSON for data sharing.
+
+### 5. 🧪 Testing Arena (Live Benchmark & Quiz)
+- **100+ Testable Signs**: Combines built-in neural and geometric classifiers with user-taught custom signs.
+- **Live View Mode**: Real-time continuous detection readouts with candidate rankings.
+- **Timed Quiz Challenge**: 10-question rounds with countdown timer, streak tracker, instant pass/fail feedback, and final accuracy scoring.
+
+---
+
+## 🛡️ The 8 Golden Invariants
+
+All automated agents, contributors, and core updates **must strictly satisfy** these 8 architectural invariants:
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                        THE 8 GOLDEN INVARIANTS                         │
+├────────────────────────────────────────────────────────────────────────┤
+│ 1. ZERO BACKEND SERVERS        │ 100% client-side edge execution        │
+│ 2. OFF-MAIN-THREAD AI          │ MediaPipe & ONNX strictly in Worker    │
+│ 3. 240-FLOAT NORMALIZATION     │ Uniform Float32Array(240); zero NaN    │
+│ 4. TEMPORAL MOTION GATING      │ 30-frame window; 1.2s auto-commit pause│
+│ 5. CONFIRMATION HYSTERESIS     │ Multi-frame debounce; lock until reset │
+│ 6. DETERMINISTIC LINGUISTICS   │ LING-01 to LING-04 contracts unbroken  │
+│ 7. DUAL-TRANSPORT NETWORKING   │ P2P WebRTC + Supabase / BroadcastChan  │
+│ 8. RETRO TACTILE DESIGN SYSTEM │ 0px border-radius; Windows 3D bevels   │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+1. **Zero Backend Servers**: No external Python, Node, or cloud inference API for recognition or translation.
+2. **Off-Main-Thread AI**: MediaPipe and ONNX execute exclusively inside `src/workers/vision.worker.js`. The main React UI thread only consumes message events.
+3. **240-Float Normalization Contract**: Every frame is centered at the shoulder midpoint and scaled by shoulder span:
+   - 21 Left Hand $\times$ 3 = 63 floats (0–62)
+   - 21 Right Hand $\times$ 3 = 63 floats (63–125)
+   - 12 Upper Pose $\times$ 3 = 36 floats (126–161)
+   - 26 Facial Mesh $\times$ 3 = 78 floats (162–239)
+   - Missing points are padded with `0.0`. `NaN` or `undefined` is strictly forbidden.
+4. **Temporal Motion Gating**: 30-frame sliding `RingBuffer`. `VelocityGate` tracks rolling wrist movement (`IDLE` $\rightarrow$ `SIGNING_ACTIVE` $\rightarrow$ `PAUSE_COUNTDOWN` $\rightarrow$ `IDLE_COMMIT`). A 1.2s rest triggers auto-commit.
+5. **Confirmation Hysteresis**: Signs require consecutive frames meeting the confidence threshold ($\ge 0.80$) with `lockUntilRelease: true` to prevent repetitive token spamming.
+6. **Deterministic Linguistic Contracts**:
+   - `LING-01`: Deduplicates adjacent identical tokens.
+   - Contiguous fingerspelled letters merge into single words (`'S' + 'A' + 'N' + 'K' + 'E' + 'T'` $\rightarrow$ `'SANKET'`).
+   - `LING-02`: Manual `.undo()` and `.clear()` support.
+   - `LING-03`: Reorders ISL SOV to English SVO.
+   - `LING-04`: Repositions trailing WH-questions to the front with appropriate copulas.
+7. **Dual-Transport Networking**: Primary transport: WebRTC DataChannel (<20ms UDP). Secondary fallback: WebSocket broadcast. Offline / test fallback: browser `BroadcastChannel`.
+8. **Retro Tactile Design System**: Strict 0px border-radius where retro classes apply, authentic 3D outset/inset bevels, and warm friendly palette (`#EDF7EC`, `#58CC02`, `#1CB0F6`, `#FFC800`, `#CE82FF`).
+
+---
+
+## 📊 System Architecture & Flow Diagrams
 
 ### 1. High-Level Flow
 
-Here is how Person A (ISL Signer) and Person B (Text Partner) interact through SignBridge:
-
 ```mermaid
 flowchart TD
-    subgraph SignerSide["💻 Person A's Browser (ISL Signer)"]
-        Cam["📷 Webcam (30 FPS)"] --> Worker["⚙️ Web Worker (vision.worker.js)"]
-        Worker --> MP["MediaPipe Holistic\n(543 3D Keypoints)"]
-        MP --> Norm["Normalize Coordinates\n(240-feature vector)"]
-        Norm --> Vel["Velocity Gate\n(Active vs Resting Hands)"]
-        Vel --> AI["3D Kinematics Classifier\n(22 Words + 26 A–Z Letters)"]
-        AI --> Conf["Confidence & Confirmation Gate\n(3 matching frames + cooldown)"]
-        Conf --> Buf["Live Gloss Buffer\n(e.g., [YOU] [NAME] [WHAT])"]
-        Buf --> NLP["ISL Sentence Formatter\n(Converts to: 'What is your name?')"]
-        NLP --> HUD["Webcam Glass HUD Subtitles"]
+    subgraph SignerBrowser["💻 Signer's Browser (Client-Side)"]
+        Cam["📷 Camera (30 FPS)"] --> WBridge["useVisionWorker Frame Throttle"]
+        WBridge --> Worker["⚙️ Web Worker (vision.worker.js)"]
+        Worker --> MP["MediaPipe Holistic (WebGL/WASM)"]
+        MP --> Norm["extractAndNormalizeFrame (Float32Array(240))"]
+        Norm --> VGate["Velocity Gate (Active vs Rest)"]
+        VGate --> AI["3D Kinematics & Neural Classifiers"]
+        AI --> Hyst["Consecutive Confirmation Gate"]
+        Hyst --> Buffer["GlossBufferManager (Token Deduplication)"]
+        Buffer --> NLP["ISL Sentence Formatter (SOV to SVO)"]
+        NLP --> HUD["IncomingSubtitleOverlay"]
     end
 
-    subgraph Connection["🌐 Zero-Cost Signaling & Data Bridge"]
-        Supa["Supabase Realtime\n(Free WebSockets for Room Discovery & Fallback)"]
-        P2P["WebRTC RTCDataChannel\n(Direct P2P UDP <20ms)"]
+    subgraph NetworkLayer["🌐 Signaling & P2P Data Bridge"]
+        Signaling["Supabase Realtime / PeerJS"]
+        DataChannel["WebRTC DataChannel ('isl-chat') <20ms"]
     end
 
-    subgraph PartnerSide["📱 Person B's Browser (Text Partner)"]
-        Preview["⚡ Live Signer Indicator\n('Aarav is signing: YOU • NAME...')"]
+    subgraph PartnerBrowser["📱 Hearing Partner's Browser"]
+        Preview["⚡ Live Sign Preview"]
         Chat["💬 Chat Window & Quick Replies"]
     end
 
-    NLP -.->|Direct P2P Message| P2P
-    Buf -.->|Live Progress Preview| P2P
-    P2P -.-> Preview
-    P2P -.-> Chat
-    Chat -.->|Reply Text| P2P
-    P2P -.-> HUD
-    SignerSide <--> Supa
-    PartnerSide <--> Supa
+    Buffer -.->|Live partial tokens| DataChannel
+    NLP -.->|Committed English sentence| DataChannel
+    DataChannel -.-> Preview
+    DataChannel -.-> Chat
+    Chat -.->|Text reply| DataChannel
+    DataChannel -.-> HUD
+    SignerBrowser <--> Signaling
+    PartnerBrowser <--> Signaling
 ```
 
 ---
 
-### 2. The 30 FPS AI Vision Pipeline
-
-Every ~33 milliseconds, a new webcam frame is processed through this high-speed pipeline:
+### 2. 30 FPS Off-Main-Thread AI Vision Pipeline
 
 ```mermaid
 flowchart TD
-    F["📷 New Camera Frame\n(requestVideoFrameCallback)"] --> W["Transfer ImageBitmap to Worker"]
-    W --> H["MediaPipe Holistic Detector"]
+    Frame["📷 New Frame (requestVideoFrameCallback)"] --> Bitmap["createImageBitmap(video)"]
+    Bitmap --> Post["postMessage to vision.worker.js"]
     
-    H --> S["Extract 80 Critical Keypoints\n(42 Hands + 12 Upper Body + 26 Face)"]
-    S --> N["Normalize by Shoulder Distance\n(Makes detection size & distance invariant)"]
+    subgraph BackgroundWorker["⚙️ vision.worker.js (Isolated Core)"]
+        Detect["HolisticLandmarker.detectForVideo()"]
+        CloseBM["imageBitmap.close() (Prevent GPU VRAM Leaks)"]
+        Extract["Normalize 80 Points centered at Shoulder Span"]
+        VCheck{"Wrist Velocity > Threshold?"}
+        
+        VCheck -- "Moving" --> Mode{"Recognition Mode"}
+        Mode -- "Words" --> WordClass["3D Kinematics Heuristics + Temporal RingBuffer"]
+        Mode -- "A–Z" --> AlphaClass["Two-Handed Fingerspelling Classifier"]
+        
+        WordClass --> GateCheck{"Confidence >= 0.80 & Consecutive Match?"}
+        AlphaClass --> GateCheck
+        
+        GateCheck -- Yes --> Emit["Emit Candidate to Main Thread"]
+        GateCheck -- No --> Filter["Filter Out Noise"]
+        
+        VCheck -- "Paused >= 1.2s" --> AutoCommit["Trigger IDLE_COMMIT"]
+    end
     
-    N --> V{"Wrist Speed Check\n(Velocity Gate)"}
-    
-    V -- "Hands Moving (Signing)" --> M{"Mode Check"}
-    M -- "Word Mode" --> Ring["Push to 30-Frame Ring Buffer\n+ Classify 3D Kinematics"]
-    M -- "Alphabet Mode" --> Alpha["Classify Two-Handed ISL Alphabet"]
-    
-    Ring --> Gate{"Confidence >= 0.80\n& 3 Matches in a Row?"}
-    Alpha --> Gate
-    
-    Gate -- Yes --> Add["Append to Active Sentence Buffer"]
-    Gate -- No --> Ignore["Ignore Noise / Transitory Movements"]
-    
-    V -- "Hands Resting (Pause >= 700ms)" --> AutoCommit["✨ Trigger Auto-Commit Sentence"]
-    AutoCommit --> Gram["Pass to Grammar Engine & Send"]
+    Detect --> CloseBM --> Extract --> VCheck
 ```
 
 ---
 
 ### 3. ISL to English Grammar Engine (SOV $\rightarrow$ SVO)
 
-Indian Sign Language has its own unique grammatical structure that differs from English:
-* **English** uses **Subject - Verb - Object (SVO)** and places question words at the **start** (*"What is your name?"*).
-* **ISL** uses **Subject - Object - Verb (SOV)** and places question words at the **end** (*"You name what"*).
-
-SignBridge uses a deterministic rule-based linguistic parser to convert ISL glosses into grammatically sound English:
+ISL naturally uses **Subject - Object - Verb (SOV)** and places question markers at the end. The linguistic engine translates these deterministically:
 
 ```mermaid
 flowchart LR
-    subgraph RawGlosses["1. Recognized Signs"]
-        G1["[ YOU ]"] --> G2["[ NAME ]"] --> G3["[ WHAT ]"]
+    subgraph DetectedTokens["1. ISL Raw Tokens"]
+        T1["[ YOU ]"] --> T2["[ NAME ]"] --> T3["[ WHAT ]"]
     end
 
-    subgraph Formatter["2. ISL Linguistic Engine"]
-        T["Pattern Matcher\nPRONOUN_2ND + NOUN + WH_WHAT"]
-        T --> R["Reorder & Conjugate\n'What' + 'is' + 'your name'"]
+    subgraph LinguisticParser["2. Deterministic Formatter"]
+        Rules["• Detect WH-Question Marker: WHAT\n• Reposition to Front\n• Expand Copula & Possessive: 'your name'\n• Format Final Question"]
     end
 
-    subgraph English["3. Final Output"]
-        O["'What is your name?'"]
+    subgraph EnglishSentence["3. Translated Output"]
+        Out["'What is your name?'"]
     end
 
-    RawGlosses --> Formatter
-    Formatter --> English
+    DetectedTokens --> LinguisticParser --> EnglishSentence
 ```
 
-#### Examples of Grammar Transformations:
+#### Grammar Transformation Reference:
 
-| ISL Signs Detected | What It Means in ISL | Natural English Output |
+| ISL Token Sequence | Grammatical Rule Applied | English Translated Output |
 | :--- | :--- | :--- |
-| `[ YOU ] [ NAME ] [ WHAT ]` | Question: WH at end | **"What is your name?"** |
-| `[ I ] [ FOOD ] [ WANT ]` | SOV (Subject - Object - Verb) | **"I want food."** |
-| `[ HELLO ] [ YOU ] [ HELP ] [ CAN ]` | Greeting + Modal auxiliary | **"Hello, can you help me?"** |
-| `[ BOOK ] [ WHERE ]` | WH-question | **"Where is the book?"** |
-| `[ MY ] [ NAME ] [ A ] [ A ] [ R ] [ A ] [ V ]` | Mixed Signs + Fingerspelling | **"My name is Aarav."** |
+| `['YOU', 'NAME', 'WHAT']` | Trailing WH-question fronted + copula expansion | **"What is your name?"** |
+| `['I_ME', 'WATER', 'WANT']` | Subject-Object-Verb (SOV) $\rightarrow$ English SVO | **"I want water."** |
+| `['HOSPITAL', 'WHERE']` | Location inquiry fronted | **"Where is the hospital?"** |
+| `['I_ME', 'FOOD', 'EAT', 'NO']` | Negative particle integrated into auxiliary | **"I do not eat food."** |
+| `['I_ME', 'NAME', 'S', 'A', 'N', 'K', 'E', 'T']` | Contiguous letters merged into proper noun | **"My name is Sanket."** |
+| `['NAMASTE']` | Standalone cultural greeting | **"Namaste!"** |
 
 ---
 
-### 4. Peer-to-Peer WebRTC & Signaling
-
-How two users connect instantly without paying for server bandwidth:
+### 4. Dual-Transport WebRTC Signaling
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Signer as 💻 Person A (Signer)
-    participant Supa as ⚡ Supabase Realtime (WebSocket)
-    participant STUN as 🌐 Public STUN Server
-    actor Partner as 📱 Person B (Text Partner)
+    actor Host as 💻 Host (Signer)
+    participant Signal as ⚡ Signaling (PeerJS / Supabase)
+    participant STUN as 🌐 Public STUN (Cloudflare / Google)
+    actor Guest as 📱 Guest (Hearing Partner)
 
-    Signer->>Supa: Join Room "isl-room-42" (Role: Signer)
-    Partner->>Supa: Join Room "isl-room-42" (Role: Partner)
-    Supa-->>Signer: Notification: Partner has entered!
+    Host->>Signal: Generate 6-Character Room Code "482-910"
+    Guest->>Signal: Join Room "482-910"
+    Signal-->>Host: Peer Joined Notification
     
-    Signer->>STUN: Discover public IP & ports (ICE candidates)
-    Signer->>Supa: Send WebRTC Offer + ICE candidates
-    Supa-->>Partner: Relay WebRTC Offer
-    Partner->>Signer: Send WebRTC Answer via Supabase
+    Host->>STUN: Query ICE Candidates
+    Host->>Signal: Send WebRTC Offer
+    Signal-->>Guest: Relay Offer
+    Guest->>Signal: Send WebRTC Answer
     
-    Note over Signer,Partner: Direct P2P Data Channel Established! (< 20ms)
+    Note over Host,Guest: Direct P2P RTCDataChannel ('isl-chat') Established (<20ms)
     
-    Signer->>Partner: Live preview: "Aarav is signing: YOU..."
-    Signer->>Partner: Final message: "What is your name?"
-    Partner->>Signer: Reply: "Hi! I am Priya. Nice to meet you!"
+    Host->>Guest: Stream Live Sign Glosses & Committed Text
+    Guest->>Host: Stream Text Replies (Rendered on HUD)
     
-    Note over Signer,Partner: If firewall blocks UDP, messages instantly fall back to Supabase WebSockets!
+    Note over Host,Guest: If UDP is blocked by strict firewalls, messages automatically route via WebSocket broadcast!
 ```
 
 ---
 
-## 🔍 Deep Dive: How the Magic Happens (In Plain English)
+## ✨ Built-in Smart Tools
 
-### 1. The Skeleton Tracker (MediaPipe Holistic)
-Think of a digital puppet skeleton. Instead of looking at millions of colored pixels (which is slow and heavy), the app uses Google's MediaPipe Holistic to track **543 tiny 3D dots**:
-* **42 dots** for both hands (21 dots per hand — fingers, knuckles, wrists).
-* **12 dots** for upper body pose (shoulders, elbows, wrists, nose).
-* **26 dots** for expressive facial landmarks (eyebrows furrowing, mouth shapes).
+### 🤖 Ask AI Guide (BYOK Multi-Model Assistant)
+- Access via the floating bottom launcher or mobile navigation dock.
+- **Multi-Provider Support**: Compatible with Google Gemini (`gemini-2.5-flash`), Groq, OpenRouter, and OpenAI.
+- **Contextual Screen Awareness**: Analyzes the current active stage, selected signs, camera state, and error conditions.
+- **Voice AI Mode**: Real-time voice interaction with spoken responses.
+- **Transcript Export**: Export conversations in formatted Plain Text (`.txt`) or Word Document (`.doc`).
 
-**Why this matters**: In Indian Sign Language, raising your eyebrows or tilting your head changes a statement into a question! By tracking face + hands together, the AI captures the full meaning.
+### 🐞 In-App Feedback & Window Snapshot Tool
+- Trigger via the **FEEDBACK** button in the navbar.
+- Automatically captures a high-resolution DOM snapshot of the current window.
+- **Canvas Annotation**: Draw circles, arrows, and highlights over the screenshot before submission.
+- **Edge Telemetry**: Captures client browser specs, WebGL acceleration status, camera FPS, and worker latency.
+- Generates pre-formatted GitHub issues or email reports.
 
----
-
-### 2. The AI Engine in a Background Worker
-If a web page tries to run heavy artificial intelligence on the main screen, the browser freezes, buttons feel laggy, and the webcam stutters.
-
-To prevent this, SignBridge places the entire AI engine inside a **Browser Web Worker** (`vision.worker.js`):
-* The main screen stays super smooth at 60 FPS.
-* The background worker runs the AI calculations in parallel on another CPU/GPU core.
-* The vision model (`holistic_landmarker.task`) is stored directly in the browser's **Cache Storage** after the first visit, so future loads initialize instantly with zero re-downloading!
-
----
-
-### 3. Smart Motion Detector (Velocity Gate)
-When people sign, their hands move briskly. When they finish an idea, their hands naturally drop or rest.
-
-SignBridge tracks the **speed (velocity) of the signer's wrists**:
-* **Moving fast?** The AI enters `SIGNING_ACTIVE` mode and begins recording gestures into a 30-frame memory window.
-* **Hands paused (default 700ms, configurable)?** The app automatically knows you finished your thought! It triggers an `IDLE_COMMIT`, formats the sentence, and sends it without you having to touch your mouse or keyboard.
+### 🛡️ System & Contributor Panel
+- Accessible via the navbar 3-dot overflow menu (`⋮` $\rightarrow$ `ℹ About & Diagnostics`).
+- View official Git repository links and clone commands.
+- Review the **Pull Request Attribution Protocol**.
+- **Developer App Cache Reset**: One-click reset for local storage, session storage, CacheStorage, and IndexedDB.
 
 ---
 
-### 4. The Grammar Translator
-ISL doesn't use English words like *"is"*, *"am"*, or *"are"*, and places questions at the end. If an AI translated ISL literally, it would produce awkward phrases like *"You name what"* or *"I doctor go"*.
-
-SignBridge's **ISL Sentence Formatter** recognizes:
-1. **Pronoun & Verb relations** (`I` + `HUNGRY` $\rightarrow$ *"I am hungry."*).
-2. **WH-Questions** (`WHERE`, `WHAT`, `HOW`, `WHY` are moved to the front with question marks).
-3. **Fingerspelling Merging** (Sequences of letters like `A` + `M` + `I` + `T` automatically merge into the word `"Amit"`).
-4. **Negation** (Words like `NOT` or `NO` properly invert the verb: `I` + `LIKE` + `NOT` $\rightarrow$ *"I do not like this."*).
-
----
-
-### 5. Two-Way HUD Subtitle Overlay
-Signers look at their camera while signing. If they had to constantly glance down at a separate text chat window to read incoming messages, it would disrupt the flow of conversation.
-
-SignBridge features a **Glassmorphic Heads-Up Display (HUD)** placed right over the video stream:
-* Whenever the conversation partner sends a message, it gently pops up like a transparent movie subtitle over the webcam feed.
-* The signer can read replies while maintaining natural eye contact with the camera.
-
----
-
-## 💬 Real-World Example Walkthrough
-
-Here is a 10-second conversation between **Aarav (signing in ISL)** and **Priya (replying with text)**:
-
-1. **Aarav points to Priya (`YOU`)**:
-   * The AI detects the sign with 94% confidence.
-   * Priya immediately sees: `⚡ Aarav is signing: YOU...`
-2. **Aarav crosses his fingers (`NAME`)**:
-   * The sign is recognized.
-   * Priya's screen updates: `⚡ Aarav is signing: YOU • NAME...`
-3. **Aarav shakes his hand with raised eyebrows (`WHAT`)**:
-   * The sign `WHAT` is captured.
-   * Aarav's screen shows the tags: `[ YOU ] [ NAME ] [ WHAT ]`
-4. **Aarav pauses his hands for 700ms**:
-   * The velocity gate detects the natural pause.
-   * The grammar engine flips the words into: **"What is your name?"**
-   * The message is delivered to Priya over WebRTC in **12 milliseconds**.
-5. **Priya types a reply**:
-   * *"Hi Aarav! My name is Priya. Great to meet you!"*
-   * The message flashes as a clean subtitle right above Aarav's camera feed!
-
----
-
-## ⚡ Key Features
-
-- [x] **Zero Installation**: Runs entirely inside modern desktop or mobile web browsers (Chrome, Edge, Firefox, Brave, Safari).
-- [x] **Privacy Guaranteed**: Camera footage stays strictly on the user's computer.
-- [x] **Word & Alphabet Dual Mode**:
-  - **Conversational Word Mode**: 22 core conversational ISL signs (Greetings, Family, Needs, Questions, Emotions, Courtesies).
-  - **Two-Handed ISL Alphabet Mode**: Spells names, cities, and technical terms using authentic two-handed fingerspelling.
-- [x] **Hands-Free Auto-Commit**: Automatically converts and sends sentences when you rest your hands for 700ms (configurable).
-- [x] **Instant Undo / Backspace**: Made a mistake while signing? Click `[⌫ Undo]` or tap Backspace.
-- [x] **Interactive Word Dictionary**: Built-in visual catalog showing all supported ISL words with descriptions and hand poses.
-- [x] **Built-in Keypoint Recorder Drawer**: For developers and researchers to record, inspect, and benchmark new ISL gestures.
-- [x] **Bulletproof Fallback Networking**: Peer-to-peer WebRTC by default, with automatic WebSocket fallback if strict corporate or college Wi-Fi blocks UDP.
-
----
-
-## 📁 Project Structure
+## 📁 Repository Topology
 
 ```
 sanket/
 ├── public/
-│   ├── mediapipe/wasm/         # MediaPipe WebAssembly binaries for CPU/GPU vision
-│   ├── models/                 # MediaPipe task models
-│   │   ├── holistic_landmarker.task   # 543-point holistic tracker bundle
-│   │   └── gesture_recognizer.task    # Hand gesture task bundle
-│   └── onnx/                   # ONNX Runtime Web WASM runtimes
+│   ├── _headers                        # COOP/COEP headers for WASM SharedArrayBuffer
+│   ├── mediapipe/wasm/                 # Google MediaPipe WASM binaries & loaders
+│   ├── models/
+│   │   ├── holistic_landmarker.task   # MediaPipe Holistic bundle (hands + pose + face)
+│   │   ├── isl_alphabet_mlp.onnx       # A–Z ISL fingerspelling neural net
+│   │   └── isl_include_50.onnx         # 50-word temporal sequence model
+│   └── onnx/                           # ONNX Runtime Web WASM SIMD & thread workers
 ├── src/
-│   ├── ai/                     # AI classification & confidence gating
-│   │   ├── consecutiveConfirmation.js # 2-step verification filter
-│   │   ├── islAlphabetLabels.js       # A-Z alphabet definitions
-│   │   ├── islGestureEngine.js        # Rule-based heuristics & 3D geometry
-│   │   ├── islWordLabels.js           # ISL word dictionary labels
-│   │   └── softmax.js                 # Softmax probability math
-│   ├── components/             # React UI components
-│   │   ├── ChatPanel.jsx              # Conversation history & text reply box
-│   │   ├── IncomingSubtitleOverlay.jsx# Glass HUD subtitles over camera
-│   │   ├── KeypointRecorderDrawer.jsx # Data recording & dataset builder
-│   │   ├── LiveGlossBar.jsx           # Real-time pill badges ([YOU] [NAME])
-│   │   ├── Navbar.jsx                 # Header, room status, dictionary trigger
-│   │   ├── SignerStage.jsx            # Webcam video + skeleton canvas overlay
-│   │   └── WordDictionaryModal.jsx    # Searchable list of all signs
-│   ├── hooks/                  # React state & lifecycle hooks
-│   │   ├── useRoomConnection.js       # Room discovery & presence
-│   │   ├── useVisionWorker.js         # Web Worker bridge & frame dispatch
-│   │   └── useWebRTC.js               # P2P DataChannel connection hook
-│   ├── network/                # Networking & signaling
-│   │   ├── supabaseClient.js          # Free Supabase Realtime client
-│   │   └── webrtcManager.js           # RTCPeerConnection & STUN/TURN fallback
-│   ├── nlp/                    # Natural language processing
-│   │   ├── glossBufferManager.js      # Deduplication & token buffer
-│   │   └── islSentenceFormatter.js    # ISL SOV to English grammar engine
-│   ├── vision/                 # Computer vision math
-│   │   ├── cameraLoop.js              # Hardware-synced camera callback
-│   │   ├── drawSkeleton.js            # High-FPS canvas skeleton renderer
-│   │   ├── normalizeLandmarks.js      # Distance & scale invariant math
-│   │   ├── RingBuffer.js              # 30-frame temporal sliding window
-│   │   └── velocityGate.js            # Wrist speed & rest detection
-│   ├── workers/                # Multithreaded background execution
-│   │   └── vision.worker.js           # Web Worker running MediaPipe + ONNX
-│   ├── App.jsx                 # Main application controller
-│   └── main.jsx                # Application root
-├── test/                       # Comprehensive automated test suite (66 unit tests)
-├── package.json
-└── vite.config.js
+│   ├── ai/
+│   │   ├── consecutiveConfirmation.js  # Hysteresis confirmation gate
+│   │   ├── islAlphabetLabels.js        # 26 ISL fingerspelling letter metadata
+│   │   ├── islCourseCurriculum.js      # 7-level progressive learning curriculum
+│   │   ├── islGestureEngine.js         # 3D biometric joint & kinematics classifier
+│   │   ├── islTargetLandmarks.js       # Target landmark models & evaluation rules
+│   │   ├── islWordLabels.js            # 1,000+ ISL vocabulary taxonomy
+│   │   └── softmax.js                  # Stable softmax & top-k ranker
+│   ├── components/
+│   │   ├── AboutModal.jsx              # System properties, invariants & cache clear
+│   │   ├── CallLobby.jsx               # Code-based 6-character room lobby
+│   │   ├── ChatPanel.jsx               # Text messenger window + quick reply chips
+│   │   ├── FeedbackModal.jsx           # Screenshot capture, drawing & issue reporter
+│   │   ├── HomeChatbotPopup.jsx        # BYOK multi-provider AI assistant
+│   │   ├── HomePage.jsx                # Choice arena & animated Otter illustrations
+│   │   ├── HowItWorksModal.jsx         # Interactive architecture & gesture guide
+│   │   ├── IncomingSubtitleOverlay.jsx # Closed-captioning HUD over webcam
+│   │   ├── KeypointRecorderDrawer.jsx  # Gesture dataset recorder & benchmark tool
+│   │   ├── LearnGuessPanel.jsx         # Live AI detection readout & rep tracker
+│   │   ├── LearnSidebar.jsx            # Sign Academy curriculum drawer
+│   │   ├── LearnStage.jsx              # Video viewport + 60fps skeleton canvas
+│   │   ├── MobileBottomNav.jsx         # Mobile navigation dock
+│   │   ├── Navbar.jsx                  # Header, navigation tabs, 3-dot overflow menu
+│   │   ├── SignerStage.jsx             # In-call dual-camera video grid
+│   │   ├── TeachStage.jsx              # Custom gesture recording & training studio
+│   │   ├── TestStage.jsx               # Benchmark live view & timed quiz mode
+│   │   └── WordDictionaryModal.jsx     # Interactive ISL visual dictionary
+│   ├── hooks/
+│   │   ├── useRoomConnection.js        # Room ID routing & presence state
+│   │   ├── useVisionWorker.js          # Web Worker lifecycle & frame bridge
+│   │   └── useWebRTC.js                # WebRTC state machine & dual transport
+│   ├── network/
+│   │   ├── supabaseClient.js           # Supabase Realtime + BroadcastChannel fallback
+│   │   └── webrtcManager.js            # PeerConnection + DataChannel manager
+│   ├── nlp/
+│   │   ├── glossBufferManager.js       # Token deduplication & fingerspelling merger
+│   │   └── islSentenceFormatter.js     # Deterministic SOV -> SVO grammar engine
+│   ├── vision/
+│   │   ├── cameraLoop.js               # Hardware-synced requestVideoFrameCallback
+│   │   ├── drawSkeleton.js             # Canvas renderer & boundary alerts
+│   │   ├── normalizeLandmarks.js       # 240-float shoulder-relative normalization
+│   │   ├── RingBuffer.js               # 30-frame temporal FIFO buffer
+│   │   └── velocityGate.js             # Wrist velocity & 1.2s auto-commit pause
+│   ├── workers/
+│   │   └── vision.worker.js            # Off-main-thread vision & AI inference
+│   ├── App.jsx                         # Main state coordinator & page router
+│   ├── index.css                       # Design system CSS & tokens
+│   └── main.jsx                        # React root entry point
+├── test/                               # Native node:test suite (144 passing tests)
+├── package.json                        # Scripts & dependencies
+└── vite.config.js                      # Vite + ES Worker + COOP/COEP config
 ```
 
 ---
@@ -410,99 +378,89 @@ sanket/
 ## 🛠️ Quick Start Guide
 
 ### Prerequisites
-Make sure you have [Node.js](https://nodejs.org/) (version 18 or newer) installed on your machine.
+- [Node.js](https://nodejs.org/) (version 18 or newer)
+- A modern desktop or mobile browser supporting WebGL and WebAssembly (Chrome, Edge, Firefox, Brave, Safari).
 
 ### 1. Clone & Install
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/signbridge-isl.git
+git clone https://github.com/vickysahuhere/signbridge.git
 
-# Move into the project folder
-cd signbridge-isl
+# Move into the project directory
+cd signbridge
 
 # Install dependencies
 npm install
 ```
 
 ### 2. Configure Environment (Optional)
-The project works out of the box! If you want to use your own Supabase project for real-time room signaling:
-Create a `.env` file in the root directory:
-```env
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
-```
-*(If omitted, SignBridge uses built-in demo signaling).*
+The application works immediately out of the box with built-in offline fallbacks! To enable optional cloud signaling or AI Chatbot features, copy `.env.example` to `.env`:
 
-### 3. Run the App Locally
+```env
+# Optional: Google Gemini API Key for Ask AI Guide
+# Get a free key at https://aistudio.google.com/app/apikey
+VITE_GEMINI_API_KEY=your_gemini_api_key
+
+# Optional: Supabase Realtime for global cross-network room discovery
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+### 3. Run Locally
 ```bash
 npm run dev
 ```
-Open your browser and navigate to `http://localhost:5173`. Allow camera permissions when prompted!
+Open `http://localhost:5173` in your browser and allow camera permissions when prompted.
 
 ### 4. Run Automated Tests
-SignBridge includes a 66-test suite validating the math, grammar engine, ring buffer, Python/JS normalization parity, and WebRTC logic:
+SignBridge includes a **144-test unit test suite** validating computer vision normalization, 3D kinematics, temporal motion gating, linguistic grammar restructuring, WebRTC packet schemas, and chatbot services:
+
 ```bash
 npm test
 ```
 
-### 5. Empirical Performance & Accuracy Report
-SignBridge strictly adheres to verified, reproducible measurements. See [`docs/MEASUREMENTS.md`](./docs/MEASUREMENTS.md) for complete before/after latency breakdowns, hardware profiling, vocabulary classification coverage, and AI4Bharat INCLUDE dataset audit details.
+### 5. Production Build
+```bash
+npm run build
+```
 
 ---
 
-## 🧰 Tech Stack & Free Tier Architecture
+## 🧰 Tech Stack
 
-| Component | Technology | Why Chosen? | Cost |
+| Layer | Technology | Role & Why Chosen | Cost |
 | :--- | :--- | :--- | :--- |
-| **Frontend Framework** | **React 19 + Vite** | Instant HMR, lightweight bundle size | Free |
-| **Styling** | **Tailwind CSS** | Dark-mode, accessible, responsive layout | Free |
-| **Computer Vision** | **MediaPipe Holistic Tasks** | Tracks 543 points (hands, pose, face) via WebGL/WASM | Free (Apache-2.0) |
-| **AI Runtime** | **ONNX Runtime Web** | GPU-accelerated neural network execution in browser | Free (MIT) |
-| **Multithreading** | **HTML5 Web Workers API** | Runs AI in background without dropping UI frames | Built-in |
-| **Peer-to-Peer** | **WebRTC DataChannel** | Sub-20ms direct UDP message passing | Free |
-| **Signaling & Presence** | **Supabase Realtime** | Free WebSocket rooms without managing Node servers | Free Tier |
-| **NAT Traversal** | **Cloudflare STUN** | Free STUN servers for router punching | Free |
+| **Framework** | **React 19 + Vite 6** | Ultra-fast HMR, concurrent rendering, minimal bundle size | Free (MIT) |
+| **Styling** | **Tailwind CSS** | Tactile Duolingo / retro design system | Free (MIT) |
+| **Computer Vision** | **MediaPipe Holistic Tasks** | 543 3D landmark points (hands, pose, face) via WebGL/WASM | Free (Apache-2.0) |
+| **Inference Runtime** | **ONNX Runtime Web** | Local client-side neural network execution | Free (MIT) |
+| **Concurrency** | **HTML5 Web Workers** | Off-main-thread vision pipeline maintaining 60 FPS UI | Built-in |
+| **P2P Transport** | **WebRTC RTCDataChannel** | Sub-20ms direct UDP message streaming | Free |
+| **Signaling** | **PeerJS + Supabase Realtime** | Free room discovery with local BroadcastChannel fallback | Free Tier |
+| **STUN Discovery** | **Cloudflare & Google STUN** | Free public NAT traversal | Free |
+| **Icons** | **Lucide React** | Clean, accessible stroke icons | Free (ISC) |
 
 ---
 
-## 🤝 Contributing & Agent Rules
+## 🤝 Contributing & Attribution Protocol
 
-Contributions to SignBridge / Sanket are warmly welcomed!
+Contributions from developers, linguists, and researchers are warmly welcomed!
 
-- 📖 **For Human Developers**: Check out [**`CONTRIBUTING.md`**](./CONTRIBUTING.md) for local environment setup, testing guidelines, and PR procedures.
-- 🤖 **For AI Agents & LLMs**: Read [**`AGENTS.md`**](./AGENTS.md) **before generating or modifying code**. It contains the 8 non-negotiable architectural invariants, data contracts, and recipes to ensure the 30 FPS vision loop, grammar engine, and retro aesthetic are never broken.
+- 📖 **Human Contributors**: See [**`CONTRIBUTING.md`**](./CONTRIBUTING.md) for code standards, component styling rules, and pull request procedures.
+- 🤖 **AI Agents & LLMs**: Consult [**`AGENTS.md`**](./AGENTS.md) **before making changes**. It defines the 8 Golden Invariants, normalization contracts, and test gate requirements.
 
-### How You Can Help
-- Adding new ISL words and phrases to `src/nlp/islSentenceFormatter.js` and `src/ai/islGestureEngine.js`.
-- Recording new gesture datasets with the built-in **Keypoint Recorder Drawer**.
-- Improving recognition accuracy for subtle two-handed fingerspelling signs.
+### Pull Request Attribution Protocol
+When submitting pull requests, explicitly claim your contribution in the PR description:
+```text
+"This contribution was developed by me (@your-handle)."
+```
 
 ---
 
 ## 📜 License
 
-Distributed under the **MIT License**. See `LICENSE` for more information.
-
----
+Distributed under the **MIT License**. See [`LICENSE`](./LICENSE) for details.
 
 <p align="center">
   <b>Built with ❤️ for an accessible, inclusive, and barrier-free world.</b>
 </p>
-
-## Calls (Proto 4)
-Calls are code based. One person taps **Start a call** and gets a 6-character code; the other enters it under **Join with code**
-(or opens the `?join=CODE` link). Only one guest is admitted per code. Signalling uses the free PeerJS cloud server by default.
-To self-host or add a TURN server (recommended for mobile / strict networks) set, in `.env`:
-`VITE_PEER_HOST`, `VITE_PEER_PORT`, `VITE_PEER_PATH`, `VITE_PEER_SECURE`, `VITE_TURN_URL`, `VITE_TURN_USERNAME`, `VITE_TURN_CREDENTIAL`.
-
-## AI chatbot setup (Gemini, free)
-1. Get a key at https://aistudio.google.com/app/apikey
-2. Copy `.env.example` to `.env` and set `VITE_GEMINI_API_KEY=your_key`
-3. Restart `npm run dev` (Vite only reads `.env` at start)
-
-The chatbot has two tabs: **Chat** and **Voice AI** (speak, it answers out loud; use Chrome or Edge).
-
-## Deploy on Vercel
-1. Import this folder as a project (Framework: Vite is auto-detected; `vercel.json` sets headers).
-2. Project Settings > Environment Variables: add `VITE_GEMINI_API_KEY` (and optionally `VITE_GEMINI_MODEL`), then redeploy.
-3. Restrict the key to your Vercel domain in Google AI Studio, since VITE_ variables are visible in the browser.

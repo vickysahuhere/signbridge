@@ -7219,3 +7219,27 @@ export function getWordByGloss(gloss) {
   const upper = gloss.trim().toUpperCase().replace(/[\s\/-]+/g, '_');
   return ISL_WORD_LABELS.find(w => w.gloss === upper) || null;
 }
+
+/**
+ * Signs that linguistically or anatomically require facial expression/head anchors in ISL:
+ * - WH-Questions (eyebrow furrowing / raising)
+ * - Specific emotional descriptors (smiling/frowning)
+ * - Physical face / mouth contact (fever, doctor, food, drink, think, know, deaf, hearing)
+ */
+export const SIGNS_REQUIRING_FACE = new Set([
+  'WHAT', 'WHERE', 'WHO', 'WHY', 'WHEN', 'HOW',
+  'HAPPY', 'SAD', 'ANGRY', 'SURPRISED',
+  'FEVER', 'DOCTOR', 'FOOD', 'EAT', 'WATER', 'DRINK', 'THINK', 'KNOW', 'REMEMBER', 'DEAF', 'HEARING'
+]);
+
+/**
+ * Checks if a given sign gloss or recognition mode requires facial tracking.
+ * For all other signs (Namaste, Hello, Good, Help, Thank You, and letters A-Z), returns false
+ * so the system runs at 60 FPS without the heavy 478-point face mesh.
+ */
+export function doesSignRequireFace(signName, recognitionMode = 'word') {
+  if (recognitionMode === 'alphabet') return false;
+  if (!signName || typeof signName !== 'string') return false;
+  const clean = signName.toUpperCase().trim().replace(/[\s\/-]+/g, '_');
+  return SIGNS_REQUIRING_FACE.has(clean);
+}

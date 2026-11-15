@@ -376,7 +376,7 @@ async function initVision(config = {}) {
 /**
  * Process a single video frame ImageBitmap
  */
-async function processFrame(imageBitmap, timestamp, recognitionMode = 'word') {
+async function processFrame(imageBitmap, timestamp, recognitionMode = 'word', options = {}) {
   if (!isInitialized || !holisticLandmarker) {
     if (imageBitmap && typeof imageBitmap.close === 'function') {
       imageBitmap.close();
@@ -384,11 +384,17 @@ async function processFrame(imageBitmap, timestamp, recognitionMode = 'word') {
     return;
   }
 
+  const needsFace = Boolean(options?.needsFace);
   const frameStart = performance.now();
 
   try {
     const tHolisticStart = performance.now();
-    const runHolistic = !handLandmarker || !lastHolistic || holisticTick++ % HOLISTIC_EVERY === 0;
+    // Dynamic Face & Posture Cadence:
+    // If the sign doesn't require facial expression, skip running the heavy 478-point Face Mesh
+    // on every 3 frames. Run Holistic only once every 30 frames (1.0s) solely to refresh the shoulder anchor.
+    // If the sign DOES require facial grammar (e.g. WH-questions, emotions), run Holistic every 3 frames.
+    const holisticCadence = needsFace ? 3 : 30;
+    const runHolistic = !handLandmarker || !lastHolistic || (holisticTick++ % holisticCadence === 0);
     let results;
     if (runHolistic) {
       results = holisticLandmarker.detectForVideo(imageBitmap, timestamp);
@@ -404,11 +410,17 @@ async function processFrame(imageBitmap, timestamp, recognitionMode = 'word') {
         results = {
           ...results,
           leftHandLandmarks: smoothHand('left', left, timestamp),
-          rightHandLandmarks: smoothHand('right', right, timestamp)
+          rightHandLandmarks: smoothHand('right', right, timestamp),
+          faceLandmarks: needsFace ? getLandmarkArray(results.faceLandmarks) : []
         };
       } catch (he) {
         console.warn('[vision.worker] hand detect error:', he?.message);
       }
+    } else if (!needsFace && results) {
+      results = {
+        ...results,
+        faceLandmarks: []
+      };
     }
     const holisticMs = Math.round((performance.now() - tHolisticStart) * 10) / 10;
 
@@ -537,7 +549,7 @@ async function processFrame(imageBitmap, timestamp, recognitionMode = 'word') {
         leftHandLandmarks: getLandmarkArray(results.leftHandLandmarks),
         rightHandLandmarks: getLandmarkArray(results.rightHandLandmarks),
         poseLandmarks: getLandmarkArray(results.poseLandmarks),
-        faceLandmarks: getLandmarkArray(results.faceLandmarks)
+        faceLandmarks: needsFace ? getLandmarkArray(results.faceLandmarks) : []
       },
       normalizedFeatures: normalized.features,
       motion,
@@ -571,7 +583,7 @@ async function processFrame(imageBitmap, timestamp, recognitionMode = 'word') {
 
 // Worker message listener
 self.onmessage = async (event) => {
-  const { type, imageBitmap, timestamp, config, recognitionMode } = event.data || {};
+  const { type, imageBitmap, timestamp, config, recognitionMode, needsFace, activeSign } = event.data || {};
 
   switch (type) {
     case 'INIT_VISION':
@@ -583,7 +595,7 @@ self.onmessage = async (event) => {
       break;
 
     case 'PROCESS_FRAME':
-      await processFrame(imageBitmap, timestamp, recognitionMode);
+      await processFrame(imageBitmap, timestamp, recognitionMode, { needsFace, activeSign });
       break;
 
     case 'CLEAR_BUFFER':

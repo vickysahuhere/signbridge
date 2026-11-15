@@ -26,6 +26,7 @@ import { CallLobby } from './components/CallLobby.jsx';
 import { GlossBufferManager } from './nlp/glossBufferManager.js';
 import { formatIslSentence, formatRawGlosses } from './nlp/islSentenceFormatter.js';
 import { ISL_LEARN_ITEMS, getLearnItemByLabel } from './ai/islTargetLandmarks.js';
+import { doesSignRequireFace } from './ai/islWordLabels.js';
 import { getNextRecommendedSign } from './ai/islCourseCurriculum.js';
 import { AlertCircle, Video, Compass, Sparkles } from 'lucide-react';
 import { HomeChatbotPopup } from './components/HomeChatbotPopup.jsx';
@@ -184,11 +185,6 @@ export function App() {
     configureGate({ commitDurationMs: newPauseMs });
   }, [configureGate]);
 
-  const handleFrame = useCallback((videoElement, timestamp) => {
-    sendFrame(videoElement, timestamp, recognitionMode);
-  }, [sendFrame, recognitionMode]);
-
-
   // Recognition: matches live frames against the signs you have trained (Teach tab).
   const customSigns = useCustomSigns();
   const isLetter = (w) => /^[A-Z]$/.test(w);
@@ -238,6 +234,21 @@ export function App() {
     [matchState, heuristicLetters]
   );
   const latestConfirmedWord = null;
+
+  // Local hardware camera frame dispatcher:
+  // Dynamically gates face mesh tracking so signs that don't need facial expressions run at full 60 FPS
+  const handleFrame = useCallback((videoElement, timestamp) => {
+    let needsFace = false;
+    if (currentPage === 'learn') {
+      needsFace = doesSignRequireFace(selectedLearnItem?.label, recognitionMode);
+    } else if (currentPage === 'teach') {
+      needsFace = true;
+    } else if (currentPage === 'chat' && recognitionMode === 'word') {
+      const activeCandidates = wordPredictions?.topCandidates || [];
+      needsFace = activeCandidates.some(c => doesSignRequireFace(c.label));
+    }
+    sendFrame(videoElement, timestamp, recognitionMode, { needsFace, activeSign: selectedLearnItem?.label });
+  }, [sendFrame, recognitionMode, currentPage, selectedLearnItem, wordPredictions]);
 
   // Engine-confirmed signs go into the call sentence too (trained signs confirm via the matcher above).
   useEffect(() => {

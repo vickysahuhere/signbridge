@@ -319,7 +319,7 @@ export function Navbar({
           </div>
         )}
 
-        {/* Right: Feedback & Overflow Menu (Guide, Dictionary) */}
+        {/* Right: Feedback & Overflow Menu (Guide, Dictionary, About) */}
         <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
           {onOpenFeedback && (
             <button
@@ -329,12 +329,12 @@ export function Navbar({
               aria-label="Report Issue"
             >
               <Bug className="w-3.5 h-3.5 stroke-[2.2] flex-shrink-0" />
-              <span className="hidden 2xl:inline">Feedback</span>
+              <span className="hidden xl:inline">Feedback</span>
             </button>
           )}
 
-          {/* Three dots overflow menu for Guide and Dictionary */}
-          {(onOpenDictionary || onOpenGuide) && (
+          {/* Three dots overflow menu for Guide, Dictionary, and About */}
+          {(onOpenDictionary || onOpenGuide || onOpenAbout) && (
             <div className="relative" ref={menuRef}>
               <button
                 type="button"
@@ -344,7 +344,7 @@ export function Navbar({
                     ? 'bg-zinc-200 border-zinc-400 text-zinc-900'
                     : 'bg-white hover:bg-zinc-50 text-zinc-700'
                 }`}
-                title="More options (Guide, Dictionary)"
+                title="More options (Guide, Dictionary, About)"
                 aria-label="More options"
                 aria-expanded={isMenuOpen}
               >
@@ -352,7 +352,7 @@ export function Navbar({
               </button>
 
               {isMenuOpen && (
-                <div className="absolute right-0 top-full mt-1.5 w-44 bg-white border-2 border-zinc-900 rounded-xl shadow-cartoon-md p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100 flex flex-col gap-1">
+                <div className="absolute right-0 top-full mt-1.5 w-48 bg-white border-2 border-zinc-900 rounded-xl shadow-cartoon-md p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100 flex flex-col gap-1">
                   {onOpenGuide && (
                     <button
                       type="button"
@@ -363,7 +363,7 @@ export function Navbar({
                       className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-amber-50 font-bold text-xs text-zinc-800 flex items-center gap-2 transition-colors cursor-pointer"
                     >
                       <HelpCircle className="w-4 h-4 text-[#78350F] stroke-[2.2] flex-shrink-0" />
-                      <span>Guide</span>
+                      <span>App Guide</span>
                     </button>
                   )}
                   {onOpenDictionary && (
@@ -376,7 +376,20 @@ export function Navbar({
                       className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-100 font-bold text-xs text-zinc-800 flex items-center gap-2 transition-colors cursor-pointer"
                     >
                       <BookOpen className="w-4 h-4 text-[#3C3C3C] stroke-[2.2] flex-shrink-0" />
-                      <span>Dictionary</span>
+                      <span>Sign Dictionary</span>
+                    </button>
+                  )}
+                  {onOpenAbout && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        onOpenAbout();
+                      }}
+                      className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-blue-50 font-bold text-xs text-zinc-800 flex items-center gap-2 transition-colors cursor-pointer"
+                    >
+                      <Info className="w-4 h-4 text-[#1E40AF] stroke-[2.2] flex-shrink-0" />
+                      <span>About & Diagnostics</span>
                     </button>
                   )}
                 </div>

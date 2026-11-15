@@ -340,10 +340,12 @@ export function TestStage({ onFrame, latestLandmarks, latestNormalizedFeatures, 
 
             {!cameraOn && (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center p-6 bg-[#18181B]">
-                <Camera className="w-8 h-8 text-[#D7FFB8]" />
-                <p className="text-sm font-bold text-[#CECECE]">{cameraError || 'Starting camera…'}</p>
+                <div className="w-14 h-14 rounded-2xl bg-white/10 border-2 border-white/20 flex items-center justify-center shadow-inner">
+                  <Camera className="w-7 h-7 text-[#D7FFB8]" />
+                </div>
+                <p className="text-sm font-extrabold text-[#CECECE] max-w-xs">{cameraError || 'Starting camera…'}</p>
                 {cameraError && (
-                  <button type="button" onClick={startCamera} className="duo-btn duo-btn-blue !py-2 !text-xs">
+                  <button type="button" onClick={startCamera} className="duo-btn duo-btn-blue !py-2 !px-4 !text-xs font-black">
                     Try again
                   </button>
                 )}

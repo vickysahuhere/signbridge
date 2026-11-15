@@ -130,7 +130,7 @@ export function useVisionWorker() {
   }, []);
 
   // Dispatch frame to background worker
-  const sendFrame = useCallback(async (videoElement, timestamp, recognitionMode = 'word') => {
+  const sendFrame = useCallback(async (videoElement, timestamp, recognitionMode = 'word', options = {}) => {
     if (!workerRef.current || !isWorkerReady || isProcessingFrameRef.current) {
       return;
     }
@@ -153,7 +153,9 @@ export function useVisionWorker() {
           type: 'PROCESS_FRAME',
           imageBitmap,
           timestamp,
-          recognitionMode
+          recognitionMode,
+          needsFace: Boolean(options?.needsFace),
+          activeSign: options?.activeSign || null
         },
         [imageBitmap]
       );
