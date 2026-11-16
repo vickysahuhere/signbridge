@@ -811,7 +811,7 @@ export function App() {
   }, []);
 
   return (
-    <div className="h-[100dvh] min-h-[100dvh] max-h-[100dvh] w-full flex flex-col bg-[#EDF7EC] text-zinc-900 font-sans overflow-hidden select-none pb-14 md:pb-0">
+    <div className="h-[100dvh] min-h-[100dvh] max-h-[100dvh] w-full flex flex-col bg-[#EDF7EC] text-zinc-900 font-sans overflow-hidden select-none pb-14 md:pb-0 pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
       {/* 1. Playful Minimal Navbar */}
       <Navbar
         currentPage={currentPage}
@@ -840,7 +840,7 @@ export function App() {
       />
 
       {/* Main Content Workspace Area */}
-      <main className={`flex-1 min-h-0 w-full px-3 pb-2 sm:px-4 sm:pb-3 flex flex-col justify-stretch ${
+      <main className={`flex-1 min-h-0 w-full px-2 xs:px-3 pb-2 sm:px-4 sm:pb-3 flex flex-col justify-stretch ${
         currentPage === 'home' ? 'overflow-y-auto' : 'overflow-hidden'
       }`}>
         {workerError && (
@@ -906,7 +906,7 @@ export function App() {
             <div className="flex-1 min-h-0 w-full flex flex-col md:flex-row gap-3 sm:gap-4 overflow-hidden items-stretch">
               {/* Left Side: Dedicated Full Practice Blueprint & Real-Time Alignment Guide */}
               <div
-                className={`w-full md:w-[410px] lg:w-[470px] xl:w-[520px] 2xl:w-[560px] h-full min-h-0 overflow-hidden flex-shrink-0 ${
+                className={`w-full md:w-[410px] lg:w-[470px] xl:w-[520px] 2xl:w-[560px] h-full min-h-0 overflow-y-auto md:overflow-hidden flex-shrink-0 ${
                   mobileLearnTab === 'guide' ? 'flex' : 'hidden md:flex'
                 }`}
               >

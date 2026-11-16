@@ -68,12 +68,13 @@ export function LearnStage({
     const calculate16by9 = () => {
       const clientW = el.clientWidth;
       const clientH = el.clientHeight;
-      if (clientW <= 0 || clientH <= 0) return;
+      if (clientW <= 0) return;
 
       // Fit strictly within 16:9 bounds without ever cropping video
+      const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
       let w = clientW;
       let h = (w * 9) / 16;
-      if (h > clientH) {
+      if (!isMobile && clientH > 0 && h > clientH) {
         h = clientH;
         w = (h * 16) / 9;
       }

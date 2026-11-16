@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   Search,
   BookOpen,
@@ -67,6 +67,15 @@ export function LearnSidebar({
   const [filterMasteredOnly, setFilterMasteredOnly] = useState(false);
   const [gifLayout, setGifLayout] = useState('portrait'); // 'portrait' | 'landscape' | 'square'
   const [isExpandedDemo, setIsExpandedDemo] = useState(false);
+  const [isModalEnlarged, setIsModalEnlarged] = useState(false);
+  const modalTriggerRef = useRef(null);
+  const modalCloseBtnRef = useRef(null);
+
+  useEffect(() => {
+    if (isModalEnlarged) {
+      modalCloseBtnRef.current?.focus();
+    }
+  }, [isModalEnlarged]);
 
   const handleImageLoad = (e) => {
     const { naturalWidth, naturalHeight } = e.currentTarget;
@@ -94,17 +103,22 @@ export function LearnSidebar({
     setInternalIsOpen(false);
   };
 
-  // Close sidebar on Escape key
+  // Close modal or sidebar on Escape key
   useEffect(() => {
-    if (!isAcademyOpen) return;
+    if (!isAcademyOpen && !isModalEnlarged) return;
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
-        closeAcademy();
+        if (isModalEnlarged) {
+          setIsModalEnlarged(false);
+          modalTriggerRef.current?.focus();
+        } else if (isAcademyOpen) {
+          closeAcademy();
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isAcademyOpen]);
+  }, [isAcademyOpen, isModalEnlarged]);
 
   // Active expanded level in course view (defaults to selected sign's level)
   const currentSignLevel = useMemo(() => {
@@ -407,9 +421,16 @@ export function LearnSidebar({
                 {/* Enlarge / Standard Size Toggle Button */}
                 {selectedItem.image && (
                   <button
+                    ref={modalTriggerRef}
                     type="button"
-                    onClick={() => setIsExpandedDemo(prev => !prev)}
-                    className="absolute top-2 right-2 bg-white/95 hover:bg-white text-zinc-900 px-2 py-1 rounded-lg border border-zinc-900 shadow-sm transition-all z-10 text-[10px] font-bold flex items-center gap-1 cursor-pointer"
+                    onClick={() => {
+                      if (typeof window !== 'undefined' && window.innerWidth < 768) {
+                        setIsModalEnlarged(true);
+                      } else {
+                        setIsExpandedDemo(prev => !prev);
+                      }
+                    }}
+                    className="absolute top-2 right-2 bg-white/95 hover:bg-white text-zinc-900 px-2.5 py-1.5 rounded-lg border border-zinc-900 shadow-sm transition-all z-10 text-[10px] font-bold flex items-center gap-1 cursor-pointer active:scale-95"
                     title={isExpandedDemo ? "Restore Standard Size" : "Enlarge Demonstration"}
                   >
                     {isExpandedDemo ? (
@@ -1051,6 +1072,82 @@ export function LearnSidebar({
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* 4. Fullscreen Demonstration Lightbox Modal (Mobile & Tablet) */}
+      {isModalEnlarged && selectedItem?.image && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="demo-modal-title"
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex flex-col items-center justify-center p-3 sm:p-6 animate-in fade-in duration-150"
+        >
+          <div className="relative w-full max-w-lg bg-white rounded-3xl border-2 border-zinc-900 shadow-cartoon-lg p-4 flex flex-col gap-3">
+            <div className="flex items-center justify-between border-b border-zinc-100 pb-2">
+              <div className="min-w-0">
+                <span className="text-[10px] uppercase font-bold text-zinc-500 font-mono tracking-wider block">
+                  Authentic ISL Demonstration
+                </span>
+                <h3 id="demo-modal-title" className="font-black text-base text-zinc-900 truncate">
+                  {selectedItem.name} ({selectedItem.label})
+                </h3>
+              </div>
+              <button
+                ref={modalCloseBtnRef}
+                type="button"
+                onClick={() => {
+                  setIsModalEnlarged(false);
+                  modalTriggerRef.current?.focus();
+                }}
+                className="w-8 h-8 rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-700 flex items-center justify-center border border-zinc-300 font-bold active:scale-95 cursor-pointer"
+                title="Close"
+                aria-label="Close demonstration modal"
+              >
+                <X className="w-4 h-4 stroke-[2.5]" />
+              </button>
+            </div>
+
+            <div className="w-full bg-[#FAF8F5] rounded-2xl border-2 border-zinc-900 overflow-hidden flex items-center justify-center p-2 max-h-[58vh]">
+              {selectedItem.image.endsWith('.mp4') ? (
+                <video
+                  src={selectedItem.image}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-auto h-auto max-h-[52vh] max-w-full object-contain rounded-xl"
+                />
+              ) : (
+                <img
+                  src={selectedItem.image}
+                  alt={`${selectedItem.name} enlarged demonstration`}
+                  className="w-auto h-auto max-h-[52vh] max-w-full object-contain rounded-xl"
+                />
+              )}
+            </div>
+
+            <div className="bg-[#EAF6E8] p-3 rounded-xl border border-[#D6EBD3] text-xs text-zinc-800 font-medium">
+              <div className="font-bold text-zinc-900 mb-0.5">{selectedItem.description}</div>
+              {selectedItem.tip && (
+                <div className="text-[11px] font-bold text-[#16A34A] flex items-center gap-1.5 mt-1">
+                  <Lightbulb className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
+                  <span>{selectedItem.tip}</span>
+                </div>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setIsModalEnlarged(false);
+                modalTriggerRef.current?.focus();
+              }}
+              className="w-full duo-btn duo-btn-green py-2.5 text-xs font-black min-h-[42px] cursor-pointer"
+            >
+              Back to Practice
+            </button>
           </div>
         </div>
       )}

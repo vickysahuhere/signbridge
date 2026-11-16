@@ -55,7 +55,7 @@ export function LiveGlossBar({
           <button
             onClick={onUndo}
             disabled={!hasGlosses}
-            className="duo-btn !py-1 !px-2 sm:!px-2.5 text-xs sm:text-sm font-black text-zinc-700 hover:text-zinc-900 bg-white flex-shrink-0"
+            className="duo-btn !py-1 !px-2 sm:!px-2.5 text-xs sm:text-sm font-black text-zinc-700 hover:text-zinc-900 bg-white flex-shrink-0 min-h-[38px] active:scale-95"
             title="Undo last sign"
           >
             <Undo2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
@@ -65,7 +65,7 @@ export function LiveGlossBar({
           <button
             onClick={onClear}
             disabled={!hasGlosses}
-            className="duo-btn !py-1 !px-2 sm:!px-2.5 text-xs sm:text-sm font-black text-zinc-700 hover:text-[#FF4B4B] bg-white flex-shrink-0"
+            className="duo-btn !py-1 !px-2 sm:!px-2.5 text-xs sm:text-sm font-black text-zinc-700 hover:text-[#FF4B4B] bg-white flex-shrink-0 min-h-[38px] active:scale-95"
             title="Clear all signs"
           >
             <Trash2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
@@ -75,7 +75,7 @@ export function LiveGlossBar({
           <button
             onClick={onCommit}
             disabled={!hasGlosses}
-            className="duo-btn duo-btn-green font-black !py-1 !px-2 sm:!py-1.5 sm:!px-3 text-xs sm:text-sm flex-shrink-0"
+            className="duo-btn duo-btn-green font-black !py-1 !px-2 sm:!py-1.5 sm:!px-3 text-xs sm:text-sm flex-shrink-0 min-h-[38px] active:scale-95"
             title="Instant commit now (or simply rest hands to auto-commit)"
           >
             <Send className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
