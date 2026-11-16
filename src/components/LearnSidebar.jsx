@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   Search,
   BookOpen,
@@ -68,6 +68,14 @@ export function LearnSidebar({
   const [gifLayout, setGifLayout] = useState('portrait'); // 'portrait' | 'landscape' | 'square'
   const [isExpandedDemo, setIsExpandedDemo] = useState(false);
   const [isModalEnlarged, setIsModalEnlarged] = useState(false);
+  const modalTriggerRef = useRef(null);
+  const modalCloseBtnRef = useRef(null);
+
+  useEffect(() => {
+    if (isModalEnlarged) {
+      modalCloseBtnRef.current?.focus();
+    }
+  }, [isModalEnlarged]);
 
   const handleImageLoad = (e) => {
     const { naturalWidth, naturalHeight } = e.currentTarget;
@@ -95,17 +103,22 @@ export function LearnSidebar({
     setInternalIsOpen(false);
   };
 
-  // Close sidebar on Escape key
+  // Close modal or sidebar on Escape key
   useEffect(() => {
-    if (!isAcademyOpen) return;
+    if (!isAcademyOpen && !isModalEnlarged) return;
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
-        closeAcademy();
+        if (isModalEnlarged) {
+          setIsModalEnlarged(false);
+          modalTriggerRef.current?.focus();
+        } else if (isAcademyOpen) {
+          closeAcademy();
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isAcademyOpen]);
+  }, [isAcademyOpen, isModalEnlarged]);
 
   // Active expanded level in course view (defaults to selected sign's level)
   const currentSignLevel = useMemo(() => {
@@ -408,6 +421,7 @@ export function LearnSidebar({
                 {/* Enlarge / Standard Size Toggle Button */}
                 {selectedItem.image && (
                   <button
+                    ref={modalTriggerRef}
                     type="button"
                     onClick={() => {
                       if (typeof window !== 'undefined' && window.innerWidth < 768) {
@@ -1064,22 +1078,32 @@ export function LearnSidebar({
 
       {/* 4. Fullscreen Demonstration Lightbox Modal (Mobile & Tablet) */}
       {isModalEnlarged && selectedItem?.image && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex flex-col items-center justify-center p-3 sm:p-6 animate-in fade-in duration-150">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="demo-modal-title"
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex flex-col items-center justify-center p-3 sm:p-6 animate-in fade-in duration-150"
+        >
           <div className="relative w-full max-w-lg bg-white rounded-3xl border-2 border-zinc-900 shadow-cartoon-lg p-4 flex flex-col gap-3">
             <div className="flex items-center justify-between border-b border-zinc-100 pb-2">
               <div className="min-w-0">
                 <span className="text-[10px] uppercase font-bold text-zinc-500 font-mono tracking-wider block">
                   Authentic ISL Demonstration
                 </span>
-                <h3 className="font-black text-base text-zinc-900 truncate">
+                <h3 id="demo-modal-title" className="font-black text-base text-zinc-900 truncate">
                   {selectedItem.name} ({selectedItem.label})
                 </h3>
               </div>
               <button
+                ref={modalCloseBtnRef}
                 type="button"
-                onClick={() => setIsModalEnlarged(false)}
+                onClick={() => {
+                  setIsModalEnlarged(false);
+                  modalTriggerRef.current?.focus();
+                }}
                 className="w-8 h-8 rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-700 flex items-center justify-center border border-zinc-300 font-bold active:scale-95 cursor-pointer"
                 title="Close"
+                aria-label="Close demonstration modal"
               >
                 <X className="w-4 h-4 stroke-[2.5]" />
               </button>
@@ -1116,7 +1140,10 @@ export function LearnSidebar({
 
             <button
               type="button"
-              onClick={() => setIsModalEnlarged(false)}
+              onClick={() => {
+                setIsModalEnlarged(false);
+                modalTriggerRef.current?.focus();
+              }}
               className="w-full duo-btn duo-btn-green py-2.5 text-xs font-black min-h-[42px] cursor-pointer"
             >
               Back to Practice

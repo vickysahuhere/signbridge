@@ -105,7 +105,7 @@ export function ChatPanel({
   const remainingSeconds = Math.max(0, (1 - pauseProgress) * 1.2).toFixed(1);
 
   return (
-    <div className="duo-card flex flex-col min-h-[360px] md:h-full w-full overflow-hidden bg-white shadow-cartoon-sm">
+    <div className="duo-card flex flex-col min-h-[360px] max-h-[70dvh] md:max-h-none md:h-full md:min-h-0 w-full overflow-hidden bg-white shadow-cartoon-sm">
       {/* 1. Header: Auto-Conversion Status & Actions */}
       <div className="px-3 py-2 sm:px-3.5 sm:py-2.5 bg-[#F7F7F7] border-b-2 border-[#E5E5E5] flex items-center justify-between gap-1.5 sm:gap-2 flex-shrink-0 flex-wrap">
         <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">

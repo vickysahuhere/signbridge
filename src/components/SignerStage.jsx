@@ -633,7 +633,7 @@ export function SignerStage({
             <div
               className={
                 layoutMode === 'grid'
-                  ? "relative w-full h-[220px] xs:h-[240px] sm:h-[280px] md:h-full min-h-0 rounded-2xl border-2 border-zinc-900 bg-zinc-950 overflow-hidden flex items-center justify-center shadow-inner"
+                  ? "relative w-full min-h-[220px] xs:min-h-[240px] sm:min-h-[280px] md:h-full md:min-h-0 rounded-2xl border-2 border-zinc-900 bg-zinc-950 overflow-hidden flex items-center justify-center shadow-inner"
                   : layoutMode === 'remote-focus'
                   ? "relative w-full h-[260px] xs:h-[300px] sm:h-[340px] md:absolute md:inset-0 md:w-full md:h-full min-h-0 rounded-2xl border-2 border-zinc-900 bg-zinc-950 overflow-hidden flex items-center justify-center shadow-inner z-10"
                   : "absolute bottom-3 right-3 z-30 cartoon-card bg-zinc-950 p-1 border-2 border-zinc-900 shadow-cartoon-md max-w-[220px] w-[35%] sm:w-[180px] aspect-[4/3] overflow-hidden cursor-pointer rounded-2xl transition-all hover:scale-105"
@@ -660,7 +660,7 @@ export function SignerStage({
                 </>
               ) : (
                 /* Waiting for Partner Join Card */
-                <div className="w-full h-full p-4 flex flex-col items-center justify-center text-center bg-[#18181B] text-zinc-200 select-none">
+                <div className="w-full h-full p-3 sm:p-4 flex flex-col items-center justify-start md:justify-center overflow-y-auto text-center bg-[#18181B] text-zinc-200 select-none">
                   <div className="w-12 h-12 rounded-2xl bg-zinc-800 border-2 border-zinc-700 flex items-center justify-center mb-2.5 shadow-cartoon">
                     <Users className="w-6 h-6 text-sky-400 stroke-[2.2]" />
                   </div>
