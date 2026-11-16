@@ -105,27 +105,27 @@ export function ChatPanel({
   const remainingSeconds = Math.max(0, (1 - pauseProgress) * 1.2).toFixed(1);
 
   return (
-    <div className="duo-card flex flex-col h-full w-full overflow-hidden bg-white">
+    <div className="duo-card flex flex-col min-h-[360px] md:h-full w-full overflow-hidden bg-white shadow-cartoon-sm">
       {/* 1. Header: Auto-Conversion Status & Actions */}
-      <div className="px-3.5 py-2.5 bg-[#F7F7F7] border-b-2 border-[#E5E5E5] flex items-center justify-between gap-2 flex-shrink-0 flex-wrap">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-xl bg-[#58CC02] border-2 border-[#46A302] border-b-3 flex items-center justify-center text-white">
+      <div className="px-3 py-2 sm:px-3.5 sm:py-2.5 bg-[#F7F7F7] border-b-2 border-[#E5E5E5] flex items-center justify-between gap-1.5 sm:gap-2 flex-shrink-0 flex-wrap">
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+          <div className="w-7 h-7 rounded-xl bg-[#58CC02] border-2 border-[#46A302] border-b-3 flex items-center justify-center text-white flex-shrink-0">
             <Sparkles className="w-4 h-4 stroke-[2.5]" />
           </div>
-          <div>
-            <h3 className="font-black text-xs sm:text-sm text-[#3C3C3C] leading-tight flex items-center gap-1.5">
+          <div className="min-w-0">
+            <h3 className="font-black text-xs sm:text-sm text-[#3C3C3C] leading-tight flex items-center gap-1.5 truncate">
               <span>Auto-Conversion Stream</span>
-              <span className="text-[9px] font-black uppercase px-1 py-0.2 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">
+              <span className="text-[9px] font-black uppercase px-1 py-0.2 rounded bg-emerald-100 text-emerald-800 border border-emerald-300 flex-shrink-0">
                 Live
               </span>
             </h3>
-            <div className="flex items-center gap-1.5 text-[11px] font-bold text-zinc-500">
+            <div className="flex items-center gap-1.5 text-[10.5px] sm:text-[11px] font-bold text-zinc-500 truncate">
               <span
-                className={`w-2 h-2 rounded-full ${
+                className={`w-2 h-2 rounded-full flex-shrink-0 ${
                   peerPresence.isOnline ? 'bg-[#58CC02] animate-pulse' : 'bg-zinc-300'
                 }`}
               />
-              <span>
+              <span className="truncate">
                 {peerPresence.isOnline
                   ? `${peerPresence.name || 'Partner'} connected`
                   : 'Waiting for partner...'}
@@ -135,7 +135,7 @@ export function ChatPanel({
         </div>
 
         {/* Action Controls & Latency Badge */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
           <div className="duo-badge bg-white text-zinc-800 text-[10px] hidden sm:inline-flex">
             <span>{connectionMode === 'p2p' ? 'Direct P2P' : 'Relay'}</span>
             <span className="font-mono text-zinc-400 font-bold">• {rttMs}ms</span>
@@ -146,7 +146,7 @@ export function ChatPanel({
               <button
                 type="button"
                 onClick={handleCopyTranscript}
-                className="duo-btn !py-1 !px-2 text-[10px] font-bold bg-white text-zinc-700 hover:text-zinc-950 flex items-center gap-1"
+                className="duo-btn !py-1 !px-2 text-[10px] font-bold bg-white text-zinc-700 hover:text-zinc-950 flex items-center gap-1 active:scale-95"
                 title="Copy entire transcript to clipboard"
               >
                 {copiedTranscript ? <Check className="w-3 h-3 text-emerald-600 stroke-[2.5]" /> : <Copy className="w-3 h-3" />}
@@ -157,7 +157,7 @@ export function ChatPanel({
                 <button
                   type="button"
                   onClick={onClearMessages}
-                  className="duo-btn !py-1 !px-2 text-[10px] font-bold bg-white text-zinc-700 hover:text-[#EF4444] flex items-center gap-1"
+                  className="duo-btn !py-1 !px-2 text-[10px] font-bold bg-white text-zinc-700 hover:text-[#EF4444] flex items-center gap-1 active:scale-95"
                   title="Clear conversation history"
                 >
                   <Trash2 className="w-3 h-3" />
@@ -364,8 +364,8 @@ export function ChatPanel({
 
       {/* 4. Optional Secondary Input (For Hearing Partners without Sign Language) */}
       <div className="border-t-2 border-[#E5E5E5] bg-[#F7F7F7] flex-shrink-0">
-        {/* Quick Reply Toolbar */}
-        <div className="px-3 py-1.5 bg-white border-b border-[#E5E5E5] overflow-x-auto flex items-center gap-1.5 flex-shrink-0">
+        {/* Quick Reply Toolbar (Horizontally scrollable on mobile) */}
+        <div className="px-3 py-1.5 bg-white border-b border-[#E5E5E5] overflow-x-auto flex items-center gap-1.5 flex-shrink-0 no-scrollbar">
           <span className="text-[9px] font-black text-zinc-400 uppercase tracking-wider flex-shrink-0">
             Quick:
           </span>
@@ -373,7 +373,7 @@ export function ChatPanel({
             <button
               key={reply}
               onClick={() => handleQuickReply(reply)}
-              className="duo-btn !py-0.5 !px-2 text-[11px] font-bold bg-[#F7F7F7] hover:bg-[#1CB0F6] hover:text-white hover:border-[#1899D6]"
+              className="duo-btn !py-1 !px-2.5 text-xs font-bold bg-[#F7F7F7] hover:bg-[#1CB0F6] hover:text-white hover:border-[#1899D6] whitespace-nowrap active:scale-95 flex-shrink-0 min-h-[32px]"
             >
               {reply}
             </button>
@@ -387,12 +387,12 @@ export function ChatPanel({
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             placeholder="Type text reply..."
-            className="duo-input flex-1 text-xs py-2 px-3"
+            className="duo-input flex-1 text-xs py-2 px-3 min-h-[42px]"
           />
           <button
             type="submit"
             disabled={!inputText.trim()}
-            className="duo-btn duo-btn-blue font-black text-xs py-2 px-3.5 flex items-center gap-1 min-h-[38px] flex-shrink-0"
+            className="duo-btn duo-btn-blue font-black text-xs py-2 px-3.5 flex items-center gap-1 min-h-[42px] flex-shrink-0 active:scale-95"
           >
             <Send className="w-3.5 h-3.5 stroke-[2.5]" />
             <span className="hidden sm:inline">Send</span>

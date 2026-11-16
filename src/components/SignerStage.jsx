@@ -633,9 +633,9 @@ export function SignerStage({
             <div
               className={
                 layoutMode === 'grid'
-                  ? "relative w-full h-full min-h-0 rounded-2xl border-2 border-zinc-900 bg-zinc-950 overflow-hidden flex items-center justify-center shadow-inner"
+                  ? "relative w-full h-[220px] xs:h-[240px] sm:h-[280px] md:h-full min-h-0 rounded-2xl border-2 border-zinc-900 bg-zinc-950 overflow-hidden flex items-center justify-center shadow-inner"
                   : layoutMode === 'remote-focus'
-                  ? "absolute inset-0 w-full h-full min-h-0 rounded-2xl border-2 border-zinc-900 bg-zinc-950 overflow-hidden flex items-center justify-center shadow-inner z-10"
+                  ? "relative w-full h-[260px] xs:h-[300px] sm:h-[340px] md:absolute md:inset-0 md:w-full md:h-full min-h-0 rounded-2xl border-2 border-zinc-900 bg-zinc-950 overflow-hidden flex items-center justify-center shadow-inner z-10"
                   : "absolute bottom-3 right-3 z-30 cartoon-card bg-zinc-950 p-1 border-2 border-zinc-900 shadow-cartoon-md max-w-[220px] w-[35%] sm:w-[180px] aspect-[4/3] overflow-hidden cursor-pointer rounded-2xl transition-all hover:scale-105"
               }
               onClick={layoutMode === 'local-focus' ? () => setLayoutMode('remote-focus') : undefined}
@@ -854,7 +854,7 @@ export function SignerStage({
             {isCameraActive ? (
               <button
                 onClick={stopCamera}
-                className="cartoon-btn cartoon-btn-coral !py-1 !px-2 sm:!px-2.5 text-xs font-bold flex-shrink-0"
+                className="cartoon-btn cartoon-btn-coral !py-1 !px-2 sm:!px-2.5 text-xs font-bold flex-shrink-0 min-h-[38px] active:scale-95"
               >
                 <CameraOff className="w-3.5 h-3.5 stroke-[2.2]" />
                 <span className="sm:hidden">Stop</span>
@@ -864,7 +864,7 @@ export function SignerStage({
               <button
                 onClick={() => startCamera()}
                 disabled={isLoadingCamera}
-                className="cartoon-btn cartoon-btn-mint !py-1 !px-2 sm:!px-2.5 text-xs font-bold flex-shrink-0"
+                className="cartoon-btn cartoon-btn-mint !py-1 !px-2 sm:!px-2.5 text-xs font-bold flex-shrink-0 min-h-[38px] active:scale-95"
               >
                 <Camera className="w-3.5 h-3.5 stroke-[2.2]" />
                 <span className="sm:hidden">{isLoadingCamera ? 'Starting...' : 'Start'}</span>
@@ -877,7 +877,7 @@ export function SignerStage({
               <button
                 type="button"
                 onClick={toggleCameraFacing}
-                className="cartoon-btn !py-1 !px-2 text-xs font-bold bg-white text-zinc-800 flex items-center gap-1 flex-shrink-0"
+                className="cartoon-btn !py-1 !px-2 text-xs font-bold bg-white text-zinc-800 flex items-center gap-1 flex-shrink-0 min-h-[38px] active:scale-95"
                 title={`Switch Camera (Currently: ${facingMode})`}
               >
                 <SwitchCamera className="w-3.5 h-3.5 stroke-[2.2]" />
@@ -888,7 +888,7 @@ export function SignerStage({
             {isCameraActive && (
               <button
                 onClick={() => setShowSkeleton(!showSkeleton)}
-                className={`cartoon-btn !py-1 !px-2 sm:!px-2.5 text-xs font-bold flex-shrink-0 ${
+                className={`cartoon-btn !py-1 !px-2 sm:!px-2.5 text-xs font-bold flex-shrink-0 min-h-[38px] active:scale-95 ${
                   showSkeleton ? 'bg-zinc-900 text-white' : 'bg-white text-zinc-700'
                 }`}
                 title="Toggle skeleton landmarks overlay"
@@ -901,7 +901,7 @@ export function SignerStage({
 
             <button
               onClick={() => setShowProfiler(prev => !prev)}
-              className={`cartoon-btn !py-1 !px-2 text-xs font-bold flex-shrink-0 ${
+              className={`cartoon-btn !py-1 !px-2 text-xs font-bold flex-shrink-0 min-h-[38px] active:scale-95 ${
                 showProfiler ? 'bg-[#FFC800] text-zinc-900' : 'bg-white text-zinc-600'
               }`}
               title="Toggle Pipeline Latency HUD"
@@ -914,7 +914,7 @@ export function SignerStage({
               <button
                 type="button"
                 onClick={onUndo}
-                className="cartoon-btn !py-1 !px-2 sm:!px-2.5 text-xs font-extrabold bg-white text-zinc-800 hover:text-zinc-950 flex items-center gap-1 border-2 border-zinc-900 shadow-cartoon-sm flex-shrink-0"
+                className="cartoon-btn !py-1 !px-2 sm:!px-2.5 text-xs font-extrabold bg-white text-zinc-800 hover:text-zinc-950 flex items-center gap-1 border-2 border-zinc-900 shadow-cartoon-sm flex-shrink-0 min-h-[38px] active:scale-95"
                 title="Undo last sign (1-click)"
               >
                 <Undo2 className="w-3.5 h-3.5 stroke-[2.5]" />

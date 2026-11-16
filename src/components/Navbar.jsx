@@ -87,8 +87,8 @@ export function Navbar({
   };
 
   return (
-    <header className="w-full px-2 py-1.5 sm:px-4 sm:py-2.5 flex-shrink-0">
-      <div className="duo-card px-1.5 py-1 sm:px-3 sm:py-1.5 flex items-center justify-between gap-1 sm:gap-2 lg:gap-3 bg-white w-full min-w-0">
+    <header className="w-full px-2 py-1.5 sm:px-4 sm:py-2.5 flex-shrink-0 z-30">
+      <div className="duo-card px-2 py-1.5 sm:px-3 sm:py-2 flex items-center justify-between gap-1.5 sm:gap-2 lg:gap-3 bg-white w-full min-w-0">
         {/* Left: Brand & Main Mode Selector */}
         <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0 min-w-0">
           {/* Logo Mark - Click to navigate Home */}
@@ -333,13 +333,13 @@ export function Navbar({
             </button>
           )}
 
-          {/* Three dots overflow menu for Guide, Dictionary, and About */}
-          {(onOpenDictionary || onOpenGuide || onOpenAbout) && (
+          {/* Three dots overflow menu for Guide, Dictionary, Feedback, and About */}
+          {(onOpenDictionary || onOpenGuide || onOpenAbout || onOpenFeedback) && (
             <div className="relative" ref={menuRef}>
               <button
                 type="button"
                 onClick={() => setIsMenuOpen((prev) => !prev)}
-                className={`duo-btn !py-1 !px-1.5 sm:!px-2 text-xs flex items-center justify-center flex-shrink-0 transition-all ${
+                className={`duo-btn !py-1 !px-1.5 sm:!px-2 text-xs flex items-center justify-center flex-shrink-0 transition-all min-h-[38px] min-w-[38px] active:scale-95 ${
                   isMenuOpen
                     ? 'bg-zinc-200 border-zinc-400 text-zinc-900'
                     : 'bg-white hover:bg-zinc-50 text-zinc-700'
@@ -348,11 +348,11 @@ export function Navbar({
                 aria-label="More options"
                 aria-expanded={isMenuOpen}
               >
-                <MoreVertical className="w-3.5 h-3.5 stroke-[2.4]" />
+                <MoreVertical className="w-4 h-4 stroke-[2.4]" />
               </button>
 
               {isMenuOpen && (
-                <div className="absolute right-0 top-full mt-1.5 w-48 bg-white border-2 border-zinc-900 rounded-xl shadow-cartoon-md p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100 flex flex-col gap-1">
+                <div className="absolute right-0 top-full mt-1.5 w-48 bg-white border-2 border-[#E5E5E5] border-b-[4px] rounded-2xl shadow-lg p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100 flex flex-col gap-1">
                   {onOpenGuide && (
                     <button
                       type="button"
@@ -360,10 +360,10 @@ export function Navbar({
                         setIsMenuOpen(false);
                         onOpenGuide();
                       }}
-                      className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-amber-50 font-bold text-xs text-zinc-800 flex items-center gap-2 transition-colors cursor-pointer"
+                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-amber-50 font-black text-xs text-zinc-800 flex items-center gap-2 transition-colors cursor-pointer"
                     >
-                      <HelpCircle className="w-4 h-4 text-[#78350F] stroke-[2.2] flex-shrink-0" />
-                      <span>App Guide</span>
+                      <HelpCircle className="w-4 h-4 text-[#78350F] stroke-[2.4] flex-shrink-0" />
+                      <span>Quick Guide</span>
                     </button>
                   )}
                   {onOpenDictionary && (
@@ -373,10 +373,23 @@ export function Navbar({
                         setIsMenuOpen(false);
                         onOpenDictionary();
                       }}
-                      className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-100 font-bold text-xs text-zinc-800 flex items-center gap-2 transition-colors cursor-pointer"
+                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-emerald-50 font-black text-xs text-zinc-800 flex items-center gap-2 transition-colors cursor-pointer"
                     >
-                      <BookOpen className="w-4 h-4 text-[#3C3C3C] stroke-[2.2] flex-shrink-0" />
+                      <BookOpen className="w-4 h-4 text-[#2F7202] stroke-[2.4] flex-shrink-0" />
                       <span>Sign Dictionary</span>
+                    </button>
+                  )}
+                  {onOpenFeedback && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        onOpenFeedback();
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-rose-50 font-black text-xs text-[#EA2B2B] flex items-center gap-2 transition-colors cursor-pointer"
+                    >
+                      <Bug className="w-4 h-4 text-[#EA2B2B] stroke-[2.4] flex-shrink-0" />
+                      <span>Report Issue</span>
                     </button>
                   )}
                   {onOpenAbout && (
@@ -386,10 +399,10 @@ export function Navbar({
                         setIsMenuOpen(false);
                         onOpenAbout();
                       }}
-                      className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-blue-50 font-bold text-xs text-zinc-800 flex items-center gap-2 transition-colors cursor-pointer"
+                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-zinc-100 font-black text-xs text-zinc-700 flex items-center gap-2 transition-colors cursor-pointer"
                     >
-                      <Info className="w-4 h-4 text-[#1E40AF] stroke-[2.2] flex-shrink-0" />
-                      <span>About & Diagnostics</span>
+                      <Info className="w-4 h-4 text-zinc-500 stroke-[2.4] flex-shrink-0" />
+                      <span>About Sanket</span>
                     </button>
                   )}
                 </div>

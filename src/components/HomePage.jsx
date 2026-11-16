@@ -1121,7 +1121,7 @@ export function HomePage({
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto my-1 sm:my-auto flex flex-col items-center px-2.5 sm:px-6 py-2 sm:py-5">
+    <div className="w-full max-w-5xl mx-auto my-1 sm:my-auto flex flex-col items-center px-2 xs:px-3 sm:px-6 py-2 sm:py-5">
       {/* 1. Header Minimal Branding & Duolingo Mascot Welcome */}
       <div className="w-full max-w-4xl mb-4 sm:mb-5 flex flex-col sm:flex-row items-center justify-between gap-3 bg-white/95 p-3 sm:p-4 rounded-3xl border-2 border-[#E5E5E5] border-b-[4px] shadow-sm">
         {/* Left: 24 FPS Animated Mascot (10 dynamic states) & Clean Minimal Headline */}

@@ -11,18 +11,19 @@ export function MobileBottomNav({
 }) {
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t-2 border-[#E5E5E5] px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-lg flex items-center justify-around select-none"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t-2 border-[#E5E5E5] px-1.5 pt-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-lg flex items-center justify-around select-none"
       aria-label="Mobile Navigation Dock"
     >
       {/* 1. Home */}
       <button
         type="button"
         onClick={() => onPageChange && onPageChange('home')}
-        className={`flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all ${
+        className={`flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all min-h-[46px] active:scale-95 ${
           currentPage === 'home'
             ? 'text-[#3C3C3C] font-black'
-            : 'text-zinc-400 hover:text-zinc-600 font-bold'
+            : 'text-zinc-500 hover:text-zinc-700 font-bold'
         }`}
+        aria-current={currentPage === 'home' ? 'page' : undefined}
       >
         <div
           className={`w-9 h-7 rounded-lg flex items-center justify-center transition-all ${
@@ -33,18 +34,19 @@ export function MobileBottomNav({
         >
           <Home className="w-4 h-4 stroke-[2.5]" />
         </div>
-        <span className="text-[10px] mt-0.5 tracking-tight leading-none">Home</span>
+        <span className="text-[10.5px] mt-0.5 tracking-tight leading-none">Home</span>
       </button>
 
       {/* 2. Learn ISL */}
       <button
         type="button"
         onClick={() => onPageChange && onPageChange('learn')}
-        className={`flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all relative ${
+        className={`flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all relative min-h-[46px] active:scale-95 ${
           currentPage === 'learn'
             ? 'text-[#2F7202] font-black'
-            : 'text-zinc-400 hover:text-zinc-600 font-bold'
+            : 'text-zinc-500 hover:text-zinc-700 font-bold'
         }`}
+        aria-current={currentPage === 'learn' ? 'page' : undefined}
       >
         <div
           className={`w-9 h-7 rounded-lg flex items-center justify-center transition-all relative ${
@@ -60,18 +62,19 @@ export function MobileBottomNav({
             </span>
           )}
         </div>
-        <span className="text-[10px] mt-0.5 tracking-tight leading-none">Learn</span>
+        <span className="text-[10.5px] mt-0.5 tracking-tight leading-none">Learn</span>
       </button>
 
       {/* 3. Sign Call */}
       <button
         type="button"
         onClick={() => onPageChange && onPageChange('chat')}
-        className={`flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all relative ${
+        className={`flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all relative min-h-[46px] active:scale-95 ${
           currentPage === 'chat'
             ? 'text-[#0284C7] font-black'
-            : 'text-zinc-400 hover:text-zinc-600 font-bold'
+            : 'text-zinc-500 hover:text-zinc-700 font-bold'
         }`}
+        aria-current={currentPage === 'chat' ? 'page' : undefined}
       >
         <div
           className={`w-9 h-7 rounded-lg flex items-center justify-center transition-all relative ${
@@ -87,16 +90,17 @@ export function MobileBottomNav({
             </span>
           )}
         </div>
-        <span className="text-[10px] mt-0.5 tracking-tight leading-none">Call</span>
+        <span className="text-[10.5px] mt-0.5 tracking-tight leading-none">Call</span>
       </button>
 
       {/* 4. Teach */}
       <button
         type="button"
         onClick={() => onPageChange && onPageChange('teach')}
-        className={`flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all ${
-          currentPage === 'teach' ? 'text-[#A559D9] font-black' : 'text-zinc-400 hover:text-zinc-600 font-bold'
+        className={`flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all min-h-[46px] active:scale-95 ${
+          currentPage === 'teach' ? 'text-[#A559D9] font-black' : 'text-zinc-500 hover:text-zinc-700 font-bold'
         }`}
+        aria-current={currentPage === 'teach' ? 'page' : undefined}
       >
         <div
           className={`w-9 h-7 rounded-lg flex items-center justify-center transition-all ${
@@ -105,16 +109,17 @@ export function MobileBottomNav({
         >
           <GraduationCap className="w-4 h-4 stroke-[2.5]" />
         </div>
-        <span className="text-[10px] mt-0.5 tracking-tight leading-none">Teach</span>
+        <span className="text-[10.5px] mt-0.5 tracking-tight leading-none">Teach</span>
       </button>
 
       {/* 5. Testing */}
       <button
         type="button"
         onClick={() => onPageChange && onPageChange('test')}
-        className={`flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all ${
-          currentPage === 'test' ? 'text-[#78350F] font-black' : 'text-zinc-400 hover:text-zinc-600 font-bold'
+        className={`flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all min-h-[46px] active:scale-95 ${
+          currentPage === 'test' ? 'text-[#78350F] font-black' : 'text-zinc-500 hover:text-zinc-700 font-bold'
         }`}
+        aria-current={currentPage === 'test' ? 'page' : undefined}
       >
         <div
           className={`w-9 h-7 rounded-lg flex items-center justify-center transition-all ${
@@ -123,19 +128,19 @@ export function MobileBottomNav({
         >
           <ClipboardCheck className="w-4 h-4 stroke-[2.5]" />
         </div>
-        <span className="text-[10px] mt-0.5 tracking-tight leading-none">Testing</span>
+        <span className="text-[10.5px] mt-0.5 tracking-tight leading-none">Testing</span>
       </button>
 
       {/* 6. Ask AI Guide */}
       <button
         type="button"
         onClick={onOpenChatbot}
-        className="flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl text-zinc-400 hover:text-zinc-600 font-bold transition-all group"
+        className="flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl text-zinc-500 hover:text-zinc-700 font-bold transition-all group min-h-[46px] active:scale-95"
       >
         <div className="w-9 h-7 rounded-lg flex items-center justify-center bg-amber-50 text-amber-600 border border-amber-200">
           <Sparkles className="w-4 h-4 stroke-[2.5] text-amber-500 fill-amber-500 animate-subtle-bounce" />
         </div>
-        <span className="text-[10px] mt-0.5 tracking-tight leading-none text-amber-700 font-black">AI Guide</span>
+        <span className="text-[10.5px] mt-0.5 tracking-tight leading-none text-amber-700 font-black">AI Guide</span>
       </button>
     </nav>
   );

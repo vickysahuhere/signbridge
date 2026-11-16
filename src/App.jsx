@@ -840,7 +840,7 @@ export function App() {
       />
 
       {/* Main Content Workspace Area */}
-      <main className={`flex-1 min-h-0 w-full px-3 pb-2 sm:px-4 sm:pb-3 flex flex-col justify-stretch ${
+      <main className={`flex-1 min-h-0 w-full px-2 xs:px-3 pb-2 sm:px-4 sm:pb-3 flex flex-col justify-stretch ${
         currentPage === 'home' ? 'overflow-y-auto' : 'overflow-hidden'
       }`}>
         {workerError && (
